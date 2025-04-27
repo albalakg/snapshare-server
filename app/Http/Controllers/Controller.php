@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 use App\Services\Helpers\EnvService;
+use App\Services\Helpers\LogService;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -48,9 +49,6 @@ class Controller extends BaseController
      */
     protected function errorResponse(Exception $exception, $data = null, $status = Response::HTTP_BAD_REQUEST): JsonResponse
     {
-        // $logger = new LogService($this->log_channel, Auth::user());
-        // $logger->error($exception);
-
         $error_data = [
             'message'   => EnvService::isNotProd() ? $exception->getMessage() : self::DEFAULT_ERROR,
             'status'    => false,
@@ -64,6 +62,8 @@ class Controller extends BaseController
                 'Line'          => $exception->getLine(),
             ];;
         }
+
+        LogService::init()->error($exception, $error_data);
 
         return response()->json(
             $error_data,
