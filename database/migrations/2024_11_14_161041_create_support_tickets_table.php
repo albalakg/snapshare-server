@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('email')->index();
             $table->integer('status')->unsigned()->index();
             $table->string('full_name');
-            $table->string('longText');
+            $table->string('text');
             $table->timestamps();
         });
     }
