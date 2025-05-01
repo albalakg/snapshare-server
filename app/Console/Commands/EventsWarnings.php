@@ -12,7 +12,6 @@ use App\Services\Enums\StatusEnum;
 use App\Services\Helpers\LogService;
 use App\Services\Helpers\MailService;
 use App\Services\Enums\SubscriptionEnum;
-use App\Mail\WarningBeforeEventDisabledMail;
 
 class EventsWarnings extends Command
 {

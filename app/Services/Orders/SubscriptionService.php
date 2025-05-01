@@ -22,6 +22,15 @@ class SubscriptionService
      * @param string $name
      * @return ?Subscription
     */
+    public function create(string $name): ?Subscription
+    {
+        return Subscription::where('name', $name)->first();
+    }
+    
+    /**
+     * @param string $name
+     * @return ?Subscription
+    */
     public function findByName(string $name): ?Subscription
     {
         return Subscription::where('name', $name)->first();

@@ -7,7 +7,6 @@ use Illuminate\Database\Seeder;
 use App\Services\Enums\StatusEnum;
 use App\Services\Users\UserService;
 use Illuminate\Foundation\Auth\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class UserSeeder extends Seeder
 {

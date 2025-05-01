@@ -56,7 +56,7 @@ class EventService
     {
         return Event::where('path', $event_path)
             ->select('id', 'image', 'name', 'starts_at', 'user_id', 'status')
-            ->where('status', [StatusEnum::ACTIVE, StatusEnum::READY, StatusEnum::PENDING])
+            ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::READY, StatusEnum::PENDING])
             ->first();
     }
 
@@ -157,7 +157,7 @@ class EventService
 
         foreach ($event_assets as $event_asset) {
             try {
-                FileService::delete($event_asset->path, FileService::S3_DISK);
+                FileService::delete($event_asset->path, config('filesystems.default'));
             } catch (Exception $ex) {
                 LogService::init()->error($ex, ['error' => LogsEnum::FAILED_TO_DELETE_EVENT_ASSET]);
             }
@@ -252,7 +252,7 @@ class EventService
 
         $event->name = $data['name'] ?? $event->name;
         if ($data['image']) {
-            $event->image = FileService::create($data['image'], "events/$event_id", FileService::S3_DISK);
+            $event->image = FileService::create($data['image'], "events/$event_id", config('filesystems.default'));
         }
         // $event->description = $data['description'] ?? $event->description;
 
@@ -280,7 +280,7 @@ class EventService
         }
 
         $event->name = $data['name'] ?? $event->name;
-        $event->image = FileService::create($data['image'], "events/$event_id", FileService::S3_DISK);
+        $event->image = FileService::create($data['image'], "events/$event_id", config('filesystems.default'));
         // $event->description = $data['description'] ?? $event->description;
         $event->starts_at = $this->getEventStartTime($data['start_at'] ?? '');
         $event->status = $data['status'] ?? $event->status;
@@ -366,7 +366,7 @@ class EventService
         }
 
         $event_asset = new EventAsset;
-        $event_asset->path = FileService::create($request['file'], "events/$event_id/gallery", FileService::S3_DISK);
+        $event_asset->path = FileService::create($request['file'], "events/$event_id/gallery", config('filesystems.default'));
         $event_asset->event_id = $request->event_id;
         $event_asset->asset_type = $this->getFileType($request);
         $event_asset->user_agent = $request->userAgent();
@@ -411,7 +411,7 @@ class EventService
 
         foreach ($event_assets as $event_asset) {
             try {
-                FileService::delete("events/$event_id", FileService::S3_DISK);
+                FileService::delete("events/$event_id", config('filesystems.default'));
             } catch (Exception $ex) {
                 LogService::init()->error($ex, ['message' => MessagesEnum::FAILED_TO_DELETE_EVENT_ASSETS_FOLDER]);
             }
