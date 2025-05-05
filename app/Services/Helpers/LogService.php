@@ -77,7 +77,7 @@ class LogService
     /**
      * Create an error log
      *
-     * @param Exception|String $ex
+     * @param Exception|string $ex
      * @param array $context
      * @return string|null
     */

@@ -44,7 +44,7 @@ class AuthController extends Controller
     {
         try {
             $user_service = new UserService;
-            $user_service->resetPassword($request->email, $request->token, $request->password);
+            $user_service->resetPassword($request->token, $request->password);
             return $this->successResponse(MessagesEnum::RESET_PASSWORD);
         } catch (Exception $ex) {
             return $this->errorResponse($ex);

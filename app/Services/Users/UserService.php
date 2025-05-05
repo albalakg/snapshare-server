@@ -123,12 +123,12 @@ class UserService
         if (!$user || !$user->isActive()) {
             return;
         }
-
+        
         if (!$this->canResetPassword($email)) {
-            LogService::init()->error(LogsEnum::MAX_PASSWORD_RESET_ATTEMPTS, ['user_id' => $user->id]);
+            LogService::init()->info(LogsEnum::MAX_PASSWORD_RESET_ATTEMPTS, ['user_id' => $user->id]);
             return;
         }
-
+        
         $this->deactivateUsersResetPasswords($email);
         $forgot_password_request = UserResetPassword::create([
             'token'       => TokenService::generate(),
@@ -136,8 +136,7 @@ class UserService
             'status'      => StatusEnum::PENDING,
             'created_at'  => now()
         ]);
-
-
+        
         $forgot_password_request->user_name = $user->first_name;
         LogService::init()->info(LogsEnum::FORGOT_PASSWORD_REQUEST, ['user_id' => $user->id]);
         $this->mail_service->delay()->send($email, MailEnum::FORGOT_PASSWORD, [
@@ -147,15 +146,13 @@ class UserService
     }
 
     /**
-     * @param string $email
      * @param string $token
      * @param string $password
      * @return void
      */
-    public function resetPassword(string $email, string $token, string $password)
+    public function resetPassword(string $token, string $password)
     {
-        $reset_password_request = UserResetPassword::where('email', $email)
-            ->where('token', $token)
+        $reset_password_request = UserResetPassword::where('token', $token)
             ->where('status', StatusEnum::PENDING)
             ->where('created_at', '>=', Carbon::now()->subHour()->toDateTimeString())
             ->first();
@@ -164,7 +161,7 @@ class UserService
             throw new Exception(MessagesEnum::RESET_PASSWORD_REQUEST_NOT_FOUND);
         }
 
-        if (!$user = User::where('email', $email)->first()) {
+        if (!$user = User::where('email', $reset_password_request->email)->first()) {
             throw new Exception(MessagesEnum::USER_NOT_FOUND);
         }
 

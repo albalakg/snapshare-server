@@ -90,11 +90,12 @@ class MailService
 
       if ($this->delay_time) {
         Mail::to($this->receivers)->later($this->delay_time, new $email_class($data));
+        $this->info('Mail saved in queue');
       } else {
         Mail::to($this->receivers)->send(new $email_class($data));
+        $this->info('Mail sent successfully');
       }
 
-      $this->info('Mail sent successfully');
       return true;
     } catch (Exception $ex) {
       $this->error($ex->__toString());
@@ -132,7 +133,7 @@ class MailService
    */
   private function info(string $content)
   {
-    // $this->log_service->info($content, [LogService::TRACK_ID => $this->mail_track_id]);
+    LogService::init()->info($content, [LogService::TRACK_ID => $this->mail_track_id]);
   }
 
   /**
@@ -141,6 +142,6 @@ class MailService
    */
   private function error(string $content)
   {
-    // $this->log_service->error($content, [LogService::TRACK_ID => $this->mail_track_id]);
+    LogService::init()->error($content, [LogService::TRACK_ID => $this->mail_track_id]);
   }
 }
