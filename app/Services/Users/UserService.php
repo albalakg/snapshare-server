@@ -261,7 +261,6 @@ class UserService
     {
         $user = User::where('id', $user_id)
             ->with('events')
-            ->select('id')
             ->first();
 
         if (!$user) {
@@ -276,16 +275,16 @@ class UserService
             }
         }
 
-        $mail_data = [
+        $this->mail_service->send($user->email, MailEnum::USER_DELETED, data: [
             'first_name' => $user->first_name,
-        ];
-        $this->mail_service->send($user->email, MailEnum::USER_DELETED, $mail_data);
+        ]);
 
         $user->update([
             'first_name' => '',
             'last_name' => '',
             'email' => '',
             'password' => '',
+            'status' => StatusEnum::INACTIVE,
         ]);
 
         $user->delete();

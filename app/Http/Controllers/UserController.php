@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Helpers\MailService;
 use Exception;
 use App\Services\Users\UserService;
 use App\Services\Enums\MessagesEnum;
@@ -38,7 +39,7 @@ class UserController extends Controller
     public function delete()
     {
         try {
-            $user_service = new UserService(null, new EventService());
+            $user_service = new UserService(new MailService, new EventService());
             $user_service->delete(Auth::user()->id);
             return $this->successResponse(MessagesEnum::USER_DELETED_SUCCESS);
         } catch (Exception $ex) {
