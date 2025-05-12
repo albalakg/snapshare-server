@@ -75,7 +75,7 @@ class MailService
   public function send($emails, string $email_class, $data): bool
   {
     try {
-      // $this->info('Sending mail', ['email' => $email_class]);
+      $this->info('Sending mail', ['email' => $email_class, "data" => $data]);
 
       // If mail service is off skip
       if (!$this->isActive() || $this->isMock) {
