@@ -52,7 +52,7 @@ class ZipEventAssetsForDownloadJob implements ShouldQueue
     
             foreach ($event_assets as $event_asset) {
                 try {
-                    if ($file_data = FileService::get($event_asset->path, config('filesystems.default'))) {
+                    if ($file_data = FileService::get($event_asset->path, FileService::S3_DISK)) {
                         $zip->addFile(
                             fileName: basename($event_asset->path),
                             data: $file_data
@@ -66,7 +66,7 @@ class ZipEventAssetsForDownloadJob implements ShouldQueue
             $zip->finish();
             rewind($stream);
     
-            FileService::createFileWithPut($stream, $s3_zip_path, config('filesystems.default'));
+            FileService::createFileWithPut($stream, $s3_zip_path, FileService::S3_DISK);
 
             fclose($stream);
     
