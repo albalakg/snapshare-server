@@ -39,6 +39,7 @@ class EndEvents extends Command
         $events = Event::join('users', 'users.id', 'events.user_id')
             ->where('events.finished_at', '<=', Carbon::now()->endOfDay())
             ->where('events.status', StatusEnum::IN_PROGRESS)
+            ->withCount('assets')
             ->select('events.id', 'events.name', 'events.starts_at', 'events.finished_at', 'users.first_name', 'users.email', 'events.status')
             ->get();
 
@@ -49,6 +50,7 @@ class EndEvents extends Command
                     'event' => $event,
                     'first_name' => $event->first_name ?? '',
                     'date' => $event->starts_at,
+                    'assets_count' => $event->assets_count,
                     'event_url' => config('app.client_url') . '/event',
                 ];
                 $mail_service->send($event->email, MailEnum::EVENT_FINISHED, $data);
