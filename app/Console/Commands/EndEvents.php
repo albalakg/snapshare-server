@@ -50,8 +50,8 @@ class EndEvents extends Command
                     'event' => $event,
                     'first_name' => $event->first_name ?? '',
                     'date' => $event->starts_at,
-                    'assets_count' => $event->assets_count,
-                    'event_url' => config('app.client_url') . '/event',
+                    'assets_count' => $event->assets_count ?? 0,
+                    'event_url' => config('app.client_url') . '/event/assets',
                 ];
                 $mail_service->send($event->email, MailEnum::EVENT_FINISHED, $data);
                 LogService::init()->info(LogsEnum::EVENT_ENDED, ['id' => $event->id]);

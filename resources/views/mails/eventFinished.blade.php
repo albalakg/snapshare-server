@@ -18,7 +18,7 @@
     </p>
     
     <div style="text-align: center;">
-        <a href="{{ $event_url }}" class="button">צפייה בגלריית האירוע</a>
+        <a href="{{ $event_url }}" class="button">צפייה בקבצי האירוע</a>
     </div>
 
     <div class="success">

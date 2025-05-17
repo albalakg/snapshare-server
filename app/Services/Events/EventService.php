@@ -56,7 +56,7 @@ class EventService
     {
         return Event::where('path', $event_path)
             ->select('id', 'image', 'name', 'starts_at', 'user_id', 'status')
-            ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::READY, StatusEnum::PENDING])
+            ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::READY, StatusEnum::PENDING, StatusEnum::IN_PROGRESS])
             ->first();
     }
 
