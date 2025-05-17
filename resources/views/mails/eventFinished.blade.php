@@ -7,7 +7,7 @@
     <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
         <h3>סיכום האירוע:</h3>
         <p><strong>שם האירוע:</strong> {{ $event->name }}</p>
-        <p><strong>תאריך:</strong> {{ $event->date->format('d/m/Y') }}</p>
+        <p><strong>תאריך:</strong> {{ \Carbon\Carbon::parse($event->date)->format('d/m/Y') }}</p>
         <p><strong>מספר קבצים שהועלו:</strong> {{ $event->assets_count }}</p>
     </div>
 

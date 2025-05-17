@@ -36,11 +36,10 @@ class EndEvents extends Command
     {
         $mail_service = new MailService();
         $event_service = new EventService();
-        $end = Carbon::now()->endOfDay();
         $events = Event::join('users', 'users.id', 'events.user_id')
             ->where('events.finished_at', '<=', Carbon::now()->endOfDay())
             ->where('events.status', StatusEnum::IN_PROGRESS)
-            ->select('events.id', 'events.name', 'events.finished_at', 'users.first_name', 'users.email', 'events.status')
+            ->select('events.id', 'events.name', 'events.starts_at', 'events.finished_at', 'users.first_name', 'users.email', 'events.status')
             ->get();
 
         foreach ($events as $event) {
@@ -49,6 +48,7 @@ class EndEvents extends Command
                 $data = [
                     'event' => $event,
                     'first_name' => $event->first_name ?? '',
+                    'date' => $event->starts_at,
                     'event_url' => config('app.client_url') . '/event',
                 ];
                 $mail_service->send($event->email, MailEnum::EVENT_FINISHED, $data);
