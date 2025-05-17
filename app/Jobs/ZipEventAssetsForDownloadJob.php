@@ -78,7 +78,7 @@ class ZipEventAssetsForDownloadJob implements ShouldQueue
             $data = [
                 'event' => $this->event_asset_download->event,
                 'first_name' => $this->event_asset_download->event->user->first_name ?? '',
-                'download_url' => config('app.CLIENT_URL') . "/events/assets",
+                'download_url' => config('app.client_url') . "/events/assets",
             ];
             $this->mail_service->send($this->event_asset_download->event->user->email, MailEnum::ASSETS_READY_FOR_DOWNLOAD, $data);
             

@@ -63,7 +63,7 @@ class EventsWarnings extends Command
                 $data = [
                     'event' => $event,
                     'first_name' => $event->first_name ?? '',
-                    'download_url' => config('app.CLIENT_URL') . "/events/assets",
+                    'download_url' => config('app.client_url') . "/events/assets",
                     'deactivation_date' => Carbon::now()->addDays(3),
                     'days_remaining' => 3,
                 ];

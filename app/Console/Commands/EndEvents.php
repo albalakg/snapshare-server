@@ -49,7 +49,7 @@ class EndEvents extends Command
                 $data = [
                     'event' => $event,
                     'first_name' => $event->first_name ?? '',
-                    'event_url' => config('app.CLIENT_URL') . '/events',
+                    'event_url' => config('app.client_url') . '/events',
                 ];
                 $mail_service->send($event->email, MailEnum::EVENT_FINISHED, $data);
                 LogService::init()->info(LogsEnum::EVENT_ENDED, ['id' => $event->id]);
