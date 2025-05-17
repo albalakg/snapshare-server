@@ -123,7 +123,7 @@ class MailService
 
   private function isActive(): bool
   {
-    return config('mail.status') === 'active';
+    return Str::lower(trim(config('mail.status'))) === 'active';
   }
 
   /**
