@@ -57,16 +57,18 @@ class EventsWarnings extends Command
                 } 
 
                 if ($should_warn) {
-                    $data = [
-                        'event' => $event,
-                        'first_name' => $event->first_name ?? '',
-                        'download_url' => config('app.CLIENT_URL') . "/events/assets",
-                        'deactivation_date' => Carbon::now()->addDays(3),
-                        'days_remaining' => 3,
-                    ];
-                    $mail_service->send($event->email, MailEnum::EVENT_WARNING_BEFORE_DEACTIVATION, $data);
-                    LogService::init()->info(LogsEnum::EVENT_WARNED, ['id' => $event->id]);
+                    continue;
                 }
+                
+                $data = [
+                    'event' => $event,
+                    'first_name' => $event->first_name ?? '',
+                    'download_url' => config('app.CLIENT_URL') . "/events/assets",
+                    'deactivation_date' => Carbon::now()->addDays(3),
+                    'days_remaining' => 3,
+                ];
+                $mail_service->send($event->email, MailEnum::EVENT_WARNING_BEFORE_DEACTIVATION, $data);
+                LogService::init()->info(LogsEnum::EVENT_WARNED, ['id' => $event->id]);
             } catch(Exception $ex) {
                 LogService::init()->error($ex, ['id' => $event->id, 'method' => LogsEnum::EVENT_WARNED]);
             }

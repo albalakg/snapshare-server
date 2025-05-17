@@ -35,7 +35,6 @@ class MailService
   public function __construct()
   {
     $this->mail_track_id  = Str::uuid();
-    $this->info('Mail service triggered');
   }
 
   /**

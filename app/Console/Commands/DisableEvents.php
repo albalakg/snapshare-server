@@ -61,14 +61,16 @@ class DisableEvents extends Command
                 } 
 
                 if ($should_disable) {
-                    $event_service->disable($event->id);
-                    $data = [
-                        'event' => $event,
-                        'first_name' => $event->first_name ?? '',
-                    ];
-                    $mail_service->send($event->email, MailEnum::EVENT_DISABLED, $data);
-                    LogService::init()->info(LogsEnum::EVENT_DISABLED, ['id' => $event->id]);
+                    continue;
                 }
+                
+                $event_service->disable($event->id);
+                $data = [
+                    'event' => $event,
+                    'first_name' => $event->first_name ?? '',
+                ];
+                $mail_service->send($event->email, MailEnum::EVENT_DISABLED, $data);
+                LogService::init()->info(LogsEnum::EVENT_DISABLED, ['id' => $event->id]);
                 
             } catch(Exception $ex) {
                 LogService::init()->error($ex, ['id' => $event->id, 'method' => LogsEnum::EVENT_DISABLED]);
