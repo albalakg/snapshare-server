@@ -42,6 +42,8 @@ class EventsWarnings extends Command
             ->select('events.id', 'events.name', 'events.finished_at', 'users.first_name', 'users.email', 'events.status', 'orders.subscription_id')
             ->get();
 
+        LogService::init()->info(LogsEnum::EVENT_WARNED, ['events' => $events]);
+
         foreach ($events as $event) {
             try {
                 $should_warn = false;
