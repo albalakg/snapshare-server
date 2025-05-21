@@ -43,7 +43,7 @@ class EndEvents extends Command
             ->select('events.id', 'events.name', 'events.starts_at', 'events.finished_at', 'users.first_name', 'users.email', 'events.status')
             ->get();
 
-        LogService::init()->info(LogsEnum::EVENT_ENDED . "EVENTS", ['events' => $events]);
+        LogService::init()->info(LogsEnum::EVENT_ENDED . " EVENTS", ['events' => $events->toArray()]);
         
         foreach ($events as $event) {
             try {

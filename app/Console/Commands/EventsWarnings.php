@@ -42,7 +42,7 @@ class EventsWarnings extends Command
             ->select('events.id', 'events.name', 'events.finished_at', 'users.first_name', 'users.email', 'events.status', 'orders.subscription_id')
             ->get();
 
-        LogService::init()->info(LogsEnum::EVENT_WARNED, ['events' => $events]);
+        LogService::init()->info(LogsEnum::EVENT_WARNED, ['events' => $events->toArray()]);
 
         foreach ($events as $event) {
             try {
@@ -60,7 +60,7 @@ class EventsWarnings extends Command
                 } 
 
                 if (!$should_warn) {
-                    LogService::init()->info(LogsEnum::EVENT_WARNED . " SKIP", ['events' => $events]);
+                    LogService::init()->info(LogsEnum::EVENT_WARNED . " SKIP", ['id' => $event->id]);
                     continue;
                 }
                 

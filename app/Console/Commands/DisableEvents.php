@@ -61,6 +61,7 @@ class DisableEvents extends Command
                 } 
 
                 if (!$should_disable) {
+                    LogService::init()->info(LogsEnum::EVENT_DISABLED . " SKIP", ['id' => $event->id]);
                     continue;
                 }
                 
