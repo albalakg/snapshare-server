@@ -49,6 +49,7 @@ class EventsWarnings extends Command
                 $should_warn = false;
                 $finishedAt = Carbon::parse($event->finished_at);
                 $days_diff = $finishedAt->diffInDays(Carbon::now()->endOfDay());
+                LogService::init()->info(LogsEnum::EVENT_WARNED . " DIFF", ['diff' => $days_diff]);
                 if (
                     ($event->subscription_id === SubscriptionEnum::NORMAL_ID &&
                     $days_diff === 11) ||
@@ -59,6 +60,7 @@ class EventsWarnings extends Command
                 } 
 
                 if ($should_warn) {
+                    LogService::init()->info(LogsEnum::EVENT_WARNED . " SKIP", ['events' => $events]);
                     continue;
                 }
                 
@@ -70,7 +72,7 @@ class EventsWarnings extends Command
                     'days_remaining' => 3,
                 ];
                 $mail_service->send($event->email, MailEnum::EVENT_WARNING_BEFORE_DEACTIVATION, $data);
-                LogService::init()->info(LogsEnum::EVENT_WARNED, ['id' => $event->id]);
+                LogService::init()->info(LogsEnum::EVENT_WARNED . " SUCCESS", ['id' => $event->id]);
             } catch(Exception $ex) {
                 LogService::init()->error($ex, ['id' => $event->id, 'method' => LogsEnum::EVENT_WARNED]);
             }
