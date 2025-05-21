@@ -32,7 +32,7 @@ class EventWarningBeforeDeactivationMail extends Mailable implements ShouldQueue
         $this->first_name = $mail_data['first_name'];
         $this->download_url = $mail_data['download_url'];
         $this->deactivation_date = $mail_data['deactivation_date'];
-        $this->days_remaining = now()->diffInDays($this->deactivation_date, false);
+        $this->days_remaining = now()->diffInDays($this->deactivation_date);
     }
 
     /**
