@@ -128,11 +128,12 @@ class MailService
 
   /**
    * @param string $content
+   * @param array $context
    * @return void
    */
-  private function info(string $content)
+  private function info(string $content, array $context = [])
   {
-    LogService::init()->info($content, [LogService::TRACK_ID => $this->mail_track_id]);
+    LogService::init()->info($content, array_merge($context, [LogService::TRACK_ID => $this->mail_track_id]));
   }
 
   /**
