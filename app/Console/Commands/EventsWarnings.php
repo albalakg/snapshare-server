@@ -59,7 +59,7 @@ class EventsWarnings extends Command
                     $should_warn = true;
                 } 
 
-                if ($should_warn) {
+                if (!$should_warn) {
                     LogService::init()->info(LogsEnum::EVENT_WARNED . " SKIP", ['events' => $events]);
                     continue;
                 }

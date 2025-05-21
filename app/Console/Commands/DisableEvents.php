@@ -60,7 +60,7 @@ class DisableEvents extends Command
                     $should_disable = true;
                 } 
 
-                if ($should_disable) {
+                if (!$should_disable) {
                     continue;
                 }
                 
