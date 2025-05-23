@@ -14,7 +14,6 @@ use App\Services\Enums\StatusEnum;
 use App\Services\Users\UserService;
 use App\Services\Enums\MessagesEnum;
 use App\Services\Helpers\LogService;
-use Illuminate\Support\Facades\Http;
 use App\Services\Helpers\FileService;
 use App\Services\Helpers\MailService;
 use App\Services\Orders\StoreService;
@@ -324,6 +323,7 @@ class EventService
         }
 
         $this->deleteEventsAssetsByEvent($event_id);
+        $this->deleteEventsDownloadProcesses($event_id);
         return $this->updateStatus(StatusEnum::INACTIVE, $event->id);
     }
 
@@ -405,16 +405,9 @@ class EventService
      */
     private function deleteEventsAssetsByEvent(int $event_id): void
     {
-        $event_assets = EventAsset::where('event_id', $event_id)
-            ->select('id', 'path')
-            ->get();
-
-        foreach ($event_assets as $event_asset) {
-            try {
-                FileService::delete("events/$event_id", FileService::S3_DISK);
-            } catch (Exception $ex) {
-                LogService::init()->error($ex, ['message' => MessagesEnum::FAILED_TO_DELETE_EVENT_ASSETS_FOLDER]);
-            }
+        $is_deleted = FileService::delete("events/$event_id", FileService::S3_DISK);
+        if(!$is_deleted) {
+            LogService::init()->error(MessagesEnum::FAILED_TO_DELETE_EVENT_ASSETS_FOLDER, ["id" => $event_id]);
         }
 
         EventAsset::where('event_id', $event_id)->delete();
