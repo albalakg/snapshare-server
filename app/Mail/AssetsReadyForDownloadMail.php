@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Event;
+use App\Services\Helpers\LogService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -17,6 +18,7 @@ class AssetsReadyForDownloadMail extends Mailable implements ShouldQueue
     protected array $mail_data;
     protected Event $event;
     protected string $first_name;
+    protected int $total_assets;
     protected string $download_url;
 
     /**
@@ -26,11 +28,9 @@ class AssetsReadyForDownloadMail extends Mailable implements ShouldQueue
     {
         $this->mail_data = $mail_data;
         $this->event = $mail_data['event'];
+        $this->total_assets = $mail_data['event']['assets_count'];
         $this->first_name = $mail_data['first_name'];
         $this->download_url = $mail_data['download_url'];
-
-        // Load the assets count
-        $this->event->loadCount('assets');
     }
 
     /**
@@ -52,6 +52,7 @@ class AssetsReadyForDownloadMail extends Mailable implements ShouldQueue
             view: 'mails.assetsReadyForDownload',
             with: [
                 'event' => $this->event,
+                'total_assets' => $this->total_assets,
                 'first_name' => $this->first_name,
                 'download_url' => $this->download_url,
             ]

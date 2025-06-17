@@ -12,6 +12,7 @@
     <p>כל המידע האישי שלכם, כולל:</p>
     <ul style="list-style-type: disc; margin-right: 20px;">
         <li>פרטי המשתמש</li>
+        <li>פרטי האירוע</li>
         <li>קבצי האירוע</li>
     </ul>
     

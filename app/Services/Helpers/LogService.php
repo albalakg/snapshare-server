@@ -17,6 +17,10 @@ class LogService
           TRACK_ID          = 'track_id',
           LOCAL_IP          = '127.0.0.1';
 
+    private null | string $trace_id = null;
+
+    private static ?self $instance = null;
+
     /**
      * Log object
      *
@@ -49,6 +53,7 @@ class LogService
     {
         $this->log  = Log::channel($channel);
         $this->user = $user ?? Auth::user();
+        $this->trace_id = Str::uuid()->toString();
         $this->setMetaData();
     }
     
@@ -59,7 +64,11 @@ class LogService
     */
     static public function init(string $channel = self::DEFAULT_CHANNEL, ?User $user = null): self
     {
-        return new Self($channel, $user);
+        if (!self::$instance) {
+            self::$instance = new self($channel, $user);
+        }
+
+        return self::$instance;
     }
     
     /**
@@ -170,14 +179,12 @@ class LogService
                 return;
             }
 
-            $track_id = Cache::get(self::TRACK_ID);
-
             $this->log_meta_data = [
                 'user'      => $this->getUser(),
                 'ip'        => request()->ip(),
                 'browser'   => request()->header('user-agent'),
                 'url'       => request()->url(),
-                'track_id'  => $track_id ? $track_id->toString() : Str::uuid()->toString()
+                'trace_id'  => $this->trace_id,
             ];
         } catch (Exception $ex) {
             Log::channel(self::DEFAULT_CHANNEL)->critical($ex->__toString());

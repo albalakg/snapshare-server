@@ -156,7 +156,7 @@ class EventService
 
         foreach ($event_assets as $event_asset) {
             try {
-                FileService::delete($event_asset->path, FileService::S3_DISK);
+                FileService::delete($event_asset->path);
             } catch (Exception $ex) {
                 LogService::init()->error($ex, ['error' => LogsEnum::FAILED_TO_DELETE_EVENT_ASSET]);
             }
@@ -173,6 +173,7 @@ class EventService
      */
     public function downloadEventAssets(int $id, array $data, int $user_id): ?array
     {
+        LogService::init()->info(MessagesEnum::EVENT_DOWNLOAD_PROCESS, ['event_id' => $id, 'step' => 1]);
         if (!$event = Event::find($id)) {
             throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
         }
@@ -187,11 +188,15 @@ class EventService
             $user_id,
             $this->mail_service
         );
-        if ($download_job->canStartNewProcess($event)) {
-            return $download_job->zip()->only(['id', 'event_id', 'status', 'path']) ?? null;
-        }
+        LogService::init()->info(MessagesEnum::EVENT_DOWNLOAD_PROCESS, ['event_id' => $id, 'step' => 2]);
 
-        return null;
+        if (!$download_job->canStartNewProcess($event)) {
+            throw new Exception(MessagesEnum::FAILED_TO_START_DOWNLOAD_PROCESS);
+        }
+        
+        LogService::init()->info(MessagesEnum::EVENT_DOWNLOAD_PROCESS, ['event_id' => $id, 'step' => 3]);
+
+        return $download_job->zip()->only(['id', 'event_id', 'status', 'path']) ?? null;
     }
 
     /**
@@ -251,7 +256,7 @@ class EventService
 
         $event->name = $data['name'] ?? $event->name;
         if ($data['image']) {
-            $event->image = FileService::create($data['image'], "events/$event_id", FileService::S3_DISK);
+            $event->image = FileService::create($data['image'], "events/$event_id");
         }
         // $event->description = $data['description'] ?? $event->description;
 
@@ -279,7 +284,7 @@ class EventService
         }
 
         $event->name = $data['name'] ?? $event->name;
-        $event->image = FileService::create($data['image'], "events/$event_id", FileService::S3_DISK);
+        $event->image = FileService::create($data['image'], "events/$event_id");
         // $event->description = $data['description'] ?? $event->description;
         $event->starts_at = $this->getEventStartTime($data['start_at'] ?? '');
         $event->status = $data['status'] ?? $event->status;
@@ -366,7 +371,7 @@ class EventService
         }
 
         $event_asset = new EventAsset;
-        $event_asset->path = FileService::create($request['file'], "events/$event_id/gallery", FileService::S3_DISK);
+        $event_asset->path = FileService::create($request['file'], "events/$event_id/gallery");
         $event_asset->event_id = $request->event_id;
         $event_asset->asset_type = $this->getFileType($request);
         $event_asset->user_agent = $request->userAgent();
@@ -405,9 +410,9 @@ class EventService
      */
     private function deleteEventsAssetsByEvent(int $event_id): void
     {
-        $is_deleted = FileService::delete("events/$event_id", FileService::S3_DISK);
+        $is_deleted = FileService::delete("events/$event_id");
         if(!$is_deleted) {
-            LogService::init()->error(MessagesEnum::FAILED_TO_DELETE_EVENT_ASSETS_FOLDER, ["id" => $event_id]);
+            LogService::init()->error(MessagesEnum::FAILED_TO_DELETE_EVENT_ASSETS_FOLDER, ['id' => $event_id]);
         }
 
         EventAsset::where('event_id', $event_id)->delete();

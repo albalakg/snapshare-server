@@ -12,24 +12,12 @@ class MailService
   const SYSTEM_EMAILS = 'gal.blacky@gmail.com';
   const DEFAULT_DELAY = 1; // Seconds
 
-  /**
-   * @var array
-   */
   private array $receivers;
 
-  /**
-   * @var int
-   */
   private int $delay_time = 0;
 
-  /**
-   * @var string
-   */
   private string $mail_track_id;
 
-  /**
-   * @var Boolean
-  */
   private bool $isMock = false;
 
   public function __construct()
@@ -133,6 +121,10 @@ class MailService
    */
   private function info(string $content, array $context = [])
   {
+    if(isset($context["data"]) && EnvService::isProd()) {
+      unset($context["data"]);
+    }
+
     LogService::init()->info($content, array_merge($context, [LogService::TRACK_ID => $this->mail_track_id]));
   }
 

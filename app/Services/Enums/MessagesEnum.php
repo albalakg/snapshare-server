@@ -21,6 +21,7 @@ class MessagesEnum extends BaseEnum
     const EVENT_NOT_FOUND = 'Event not found';
     const EVENTS_ASSETS_NOT_FOUND = 'Event Assets not found';
     const EVENT_NOT_AUTHORIZED = 'Not authorized to modify this event';
+    const FAILED_TO_START_DOWNLOAD_PROCESS = 'Failed to start the download process for all the requested files';
     const USER_NOT_AUTHORIZED_TO_DELETE = 'Not authorized to delete this user';
     const RESET_PASSWORD_REQUEST_NOT_FOUND = 'Reset Password request not found';
     const DOWNLOAD_EVENT_ASSET_START_FAILED = 'Failed to prepare event assets for download';
@@ -47,6 +48,7 @@ class MessagesEnum extends BaseEnum
     const EVENT_UPDATED_SUCCESS = 'Event updated successfully';
     const EVENT_DELETED_SUCCESS = 'Event deleted successfully';
     const EVENT_FILE_UPLOADED_SUCCESS = 'Event file uploaded successfully';
+    const EVENT_DOWNLOAD_PROCESS = 'Event Download Process';
     const USER_CREATED_SUCCESS = 'User created successfully';
     const USER_UPDATED_SUCCESS = 'User updated successfully';
     const USER_UPDATED_PASSWORD_SUCCESS = 'User updated password successfully';

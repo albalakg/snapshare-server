@@ -7,8 +7,7 @@
     <div class="info-box">
         <h3>פרטי האירוע:</h3>
         <p><strong>שם האירוע:</strong> {{ $event->name }}</p>
-        <p><strong>תאריך האירוע:</strong> {{ $event->date->format('d/m/Y') }}</p>
-        <p><strong>מספר קבצים:</strong> {{ $event->assets_count }}</p>
+        <p><strong>מספר קבצים:</strong> {{ $total_assets }}</p>
     </div>
 
     <div class="success">
