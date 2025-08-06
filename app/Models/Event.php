@@ -15,12 +15,19 @@ class Event extends Model
         'order_id',
     ];
 
+    protected $appends = ['fullPath'];
+
     protected $fillable = ['status'];
 
     public function assets()
     {
         return $this->hasMany(EventAsset::class, 'event_id', 'id')
             ->where('status', StatusEnum::ACTIVE);
+    }
+
+    public function getFullPathAttribute()
+    {
+        return config('app.storage_url') . '/' . $this->image;  
     }
 
     public function user()
