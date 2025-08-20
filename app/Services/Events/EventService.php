@@ -2,6 +2,8 @@
 
 namespace App\Services\Events;
 
+use App\Models\EventConfig;
+use App\Services\ActionGates\EventActionsGate;
 use DateTime;
 use Exception;
 use ZipArchive;
@@ -56,6 +58,7 @@ class EventService
         return Event::where('path', $event_path)
             ->select('id', 'image', 'name', 'starts_at', 'user_id', 'status')
             ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::READY, StatusEnum::PENDING, StatusEnum::IN_PROGRESS])
+            ->with('config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date')
             ->first();
     }
 
@@ -86,7 +89,7 @@ class EventService
         return Event::where('user_id', $user_id)
             ->where('status', '!=', StatusEnum::INACTIVE)
             ->select('id', 'order_id', 'path', 'image', 'name', 'status', 'starts_at', 'finished_at')
-            ->with('assets:id,event_id,asset_type,path', 'activeDownloadProcess:id,path,status,event_id')
+            ->with('assets:id,event_id,asset_type,path', 'activeDownloadProcess:id,path,status,event_id', 'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date')
             ->first();
     }
 
@@ -213,6 +216,8 @@ class EventService
         $event->user_id = $order->user_id;
         $event->status = StatusEnum::PENDING;
         $event->save();
+
+        $this->createEventConfig($event->id);
         return $event;
     }
 
@@ -258,7 +263,6 @@ class EventService
         if ($data['image']) {
             $event->image = FileService::create($data['image'], "events/$event_id");
         }
-        // $event->description = $data['description'] ?? $event->description;
 
         if ($event->isPending()) {
             $event->starts_at = $this->getEventStartTime($data['starts_at'] ?? '') ?? $event->starts_at;
@@ -268,6 +272,8 @@ class EventService
         }
 
         $event->save();
+
+        $this->updateEventConfig($event_id, $data['config'] ?? []);
         return $event;
     }
 
@@ -306,6 +312,9 @@ class EventService
         if (!$event = Event::find($event_id)) {
             throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
         }
+
+        EventActionsGate::canUpdateEventStatus($event, $status);
+        
         return $event->update(['status' => $status]);
     }
 
@@ -488,5 +497,27 @@ class EventService
     {
         $extension = strtolower($request->file('file')->getClientOriginalExtension());
         return in_array($extension, ['mp4', 'mov', 'avi']) ? EventAssetTypeEnum::VIDEO_ID : EventAssetTypeEnum::IMAGE_ID;
+    }
+
+    private function createEventConfig(int $event_id): void
+    {
+        $event_config = new EventConfig;
+        $event_config->event_id = $event_id;
+        $event_config->preview_site_display_image = true;
+        $event_config->preview_site_display_name = true;
+        $event_config->preview_site_display_date = true;
+        $event_config->save();
+    }
+
+    private function updateEventConfig(int $event_id, array $config): void
+    {
+        EventConfig::updateOrCreate(
+            ['event_id' => $event_id],
+            [
+                'preview_site_display_image' => ($config['preview_site_display_image'] === 'true') ?? true,
+                'preview_site_display_name' => ($config['preview_site_display_name'] === 'true') ?? true,
+                'preview_site_display_date' => ($config['preview_site_display_date'] === 'true') ?? true,
+            ]
+        );
     }
 }

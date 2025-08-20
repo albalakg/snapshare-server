@@ -21,6 +21,7 @@ class MessagesEnum extends BaseEnum
     const EVENT_NOT_FOUND = 'Event not found';
     const EVENTS_ASSETS_NOT_FOUND = 'Event Assets not found';
     const EVENT_NOT_AUTHORIZED = 'Not authorized to modify this event';
+    const EVENT_READY_MISSING_INFO = 'Can\'t set event to ready without name and start date';
     const FAILED_TO_START_DOWNLOAD_PROCESS = 'Failed to start the download process for all the requested files';
     const USER_NOT_AUTHORIZED_TO_DELETE = 'Not authorized to delete this user';
     const RESET_PASSWORD_REQUEST_NOT_FOUND = 'Reset Password request not found';

@@ -20,10 +20,12 @@ class UpdateEventRequest extends FormRequest
             'image' => [
                 'nullable',
                 'file',
-                'mimes:jpeg,png,jpg,webp',
-                'max:10240',
-                'mimetypes:image/jpeg,image/png,image/webp',
+                'max:10240', // 10MB
+                'mimetypes:image/*', 
             ],
+            'config.preview_site_display_image' => ['nullable', 'in:true,false'],
+            'config.preview_site_display_name'  => ['nullable', 'in:true,false'],
+            'config.preview_site_display_date'  => ['nullable', 'in:true,false'],
         ];
     }
 }

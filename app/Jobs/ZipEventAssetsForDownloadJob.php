@@ -84,7 +84,7 @@ class ZipEventAssetsForDownloadJob implements ShouldQueue
             $data = [
                 'event' => $this->event_asset_download->event->loadCount("assets"),
                 'first_name' => $this->event_asset_download->event->user->first_name ?? '',
-                'download_url' => config('app.client_url') . "/events/assets",
+                'download_url' => config('app.client_url') . "/event/assets",
             ];
 
             // LogService::init()->info('assets_count', ['event' => $data['event']]);

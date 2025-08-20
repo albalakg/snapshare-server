@@ -17,9 +17,8 @@ class UploadFileRequest extends FormRequest
             'file' => [
                 'required',
                 'file',
-                'mimes:jpeg,png,jpg,gif,mp4,mov,avi,webp',
-                'max:15240',
-                'mimetypes:image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/x-msvideo',
+                'max:20480', // 20MB
+                'mimetypes:image/*,video/*',
             ],
         ];
     }

@@ -35,6 +35,11 @@ class Event extends Model
         return $this->hasOne(User::class, 'id', 'user_id');
     }
 
+    public function config()
+    {
+        return $this->hasOne(EventConfig::class, 'event_id', 'id');
+    }
+
     public function order()
     {
         return $this->hasOne(Order::class, 'id', 'order_id');
