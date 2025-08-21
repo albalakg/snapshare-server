@@ -12,9 +12,9 @@ return new class extends Migration {
             $table->foreignId('event_id')->constrained()->cascadeOnDelete();
 
             // toggles
-            $table->boolean('preview_site_display_image')->default(false);
-            $table->boolean('preview_site_display_name')->default(false);
-            $table->boolean('preview_site_display_date')->default(false);
+            $table->boolean('preview_site_display_image')->default(true);
+            $table->boolean('preview_site_display_name')->default(true);
+            $table->boolean('preview_site_display_date')->default(true);
 
             $table->timestamps();
             $table->softDeletes();
