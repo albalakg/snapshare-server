@@ -58,7 +58,7 @@ class EventService
         return Event::where('path', $event_path)
             ->select('id', 'image', 'name', 'starts_at', 'user_id', 'status')
             ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::READY, StatusEnum::PENDING, StatusEnum::IN_PROGRESS])
-            ->with('config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date')
+            ->with('config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery')
             ->first();
     }
 
@@ -89,7 +89,7 @@ class EventService
         return Event::where('user_id', $user_id)
             ->where('status', '!=', StatusEnum::INACTIVE)
             ->select('id', 'order_id', 'path', 'image', 'name', 'status', 'starts_at', 'finished_at')
-            ->with('assets:id,event_id,asset_type,path', 'activeDownloadProcess:id,path,status,event_id', 'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date')
+            ->with('assets:id,event_id,asset_type,path,is_displayed', 'activeDownloadProcess:id,path,status,event_id', 'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery')
             ->first();
     }
 
@@ -133,8 +133,37 @@ class EventService
         }
 
         return EventAsset::where('event_id', $id)
-            ->select('id', 'event_id', 'asset_type', 'path')
+            ->select('id', 'event_id', 'asset_type', 'path', 'is_displayed')
             ->get();
+    }
+
+    /**
+     * @param int $id
+     * @param int $user_id
+     * @return Collection
+     */
+    public function getEventAssetsForGallery(int $id, int $user_id): Collection
+    {
+        if (!$event = Event::find($id)) {
+            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+        }
+
+        if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+            throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+        }
+
+        $event->load('config');
+
+        
+        $query = EventAsset::where('event_id', $id)
+                           ->where('is_displayed', true);
+        
+        if(!$event->config->preview_guests_assets_in_gallery || !$event->config->preview_owners_assets_in_gallery) {
+            $query = $query->where('created_by_guest', boolval($event->config->preview_guests_assets_in_gallery));
+        }
+        
+        return $query->select('id', 'event_id', 'asset_type', 'path')
+                     ->get();
     }
 
     /**
@@ -382,10 +411,12 @@ class EventService
         $event_asset = new EventAsset;
         $event_asset->path = FileService::create($request['file'], "events/$event_id/gallery");
         $event_asset->event_id = $request->event_id;
+        $event_asset->is_displayed = true;
         $event_asset->asset_type = $this->getFileType($request);
         $event_asset->user_agent = $request->userAgent();
         $event_asset->ip = $request->ip();
         $event_asset->status = StatusEnum::ACTIVE;
+        $event_asset->created_by_guest = !boolval($user_id);
         $event_asset->save();
 
         return $event_asset;
@@ -506,6 +537,8 @@ class EventService
         $event_config->preview_site_display_image = true;
         $event_config->preview_site_display_name = true;
         $event_config->preview_site_display_date = true;
+        $event_config->preview_guests_assets_in_gallery = true;
+        $event_config->preview_owners_assets_in_gallery = true;
         $event_config->save();
     }
 
@@ -517,6 +550,8 @@ class EventService
                 'preview_site_display_image' => ($config['preview_site_display_image'] === 'true') ?? true,
                 'preview_site_display_name' => ($config['preview_site_display_name'] === 'true') ?? true,
                 'preview_site_display_date' => ($config['preview_site_display_date'] === 'true') ?? true,
+                'preview_guests_assets_in_gallery' => ($config['preview_guests_assets_in_gallery'] === 'true') ?? true,
+                'preview_owners_assets_in_gallery' => ($config['preview_owners_assets_in_gallery'] === 'true') ?? true,
             ]
         );
     }

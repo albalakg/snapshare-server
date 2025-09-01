@@ -23,9 +23,11 @@ class UpdateEventRequest extends FormRequest
                 'max:10240', // 10MB
                 'mimetypes:image/*', 
             ],
-            'config.preview_site_display_image' => ['nullable', 'in:true,false'],
-            'config.preview_site_display_name'  => ['nullable', 'in:true,false'],
-            'config.preview_site_display_date'  => ['nullable', 'in:true,false'],
+            'config.preview_site_display_image'         => ['nullable', 'in:true,false'],
+            'config.preview_site_display_name'          => ['nullable', 'in:true,false'],
+            'config.preview_site_display_date'          => ['nullable', 'in:true,false'],
+            'config.preview_guests_assets_in_gallery'   => ['nullable', 'in:true,false'],
+            'config.preview_owners_assets_in_gallery'   => ['nullable', 'in:true,false'],
         ];
     }
 }

@@ -82,6 +82,17 @@ class EventController extends Controller
         }
     }
 
+    public function galleryAssets(int $event_id)
+    {
+        try {
+            $event_service = new EventService(new UserService());
+            $response = $event_service->getEventAssetsForGallery($event_id, Auth::user()->id);
+            return $this->successResponse(MessagesEnum::EVENT_FOUND_SUCCESS, $response);
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex);
+        }
+    }
+
     public function deleteAssets(int $event_id, DeleteEventAssetsRequest $request)
     {
         try {

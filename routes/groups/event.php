@@ -6,6 +6,7 @@ use App\Http\Controllers\EventController;
 // TODO: for some reason it works only when added in the api.php file as well, need to to check it
 Route::group(['middleware' => 'auth:api'], function () {
     Route::get('{event_id}/assets', [EventController::class, 'assets']);
+    Route::get('{event_id}/gallery-assets', [EventController::class, 'galleryAssets']);
     Route::get('{event_id}/assets/download/status', [EventController::class, 'getDownloadStatus']);
     Route::post('{event_id}/assets/download', [EventController::class, 'downloadAssets']);
     Route::post('{event_id}/assets/delete', [EventController::class, 'deleteAssets']);
