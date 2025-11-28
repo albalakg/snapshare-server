@@ -217,6 +217,29 @@ class EventService
      * @param int $id
      * @param array $data
      * @param int $user_id
+     * @return bool
+     */
+    public function hideEventAssets(int $id, array $data, int $user_id)
+    {
+        if (!$event = Event::find($id)) {
+            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+        }
+
+        if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+            throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+        }
+            
+        foreach($data['assets'] as $event_asset_id) {
+            $event_asset = EventAsset::find($event_asset_id);
+            $event_asset->is_displayed = !$event_asset->is_displayed;
+            $event_asset->save();
+        }
+    }
+
+    /**
+     * @param int $id
+     * @param array $data
+     * @param int $user_id
      * @return ?array
      */
     public function downloadEventAssets(int $id, array $data, int $user_id): ?array

@@ -10,6 +10,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('{event_id}/assets/download/status', [EventController::class, 'getDownloadStatus']);
     Route::post('{event_id}/assets/download', [EventController::class, 'downloadAssets']);
     Route::post('{event_id}/assets/delete', [EventController::class, 'deleteAssets']);
+    Route::post('{event_id}/assets/hide', [EventController::class, 'hideAssets']);
     Route::post('{event_id}/update', [EventController::class, 'update']);
     Route::post('{event_id}/ready', [EventController::class, 'ready']);
     Route::post('{event_id}/pending', [EventController::class, 'pending']);

@@ -15,6 +15,7 @@ use App\Http\Requests\UploadFileRequest;
 use App\Http\Requests\CreateEventRequest;
 use App\Http\Requests\UpdateEventRequest;
 use App\Http\Requests\DeleteEventAssetsRequest;
+use App\Http\Requests\HideEventAssetsRequest;
 
 class EventController extends Controller
 {
@@ -98,6 +99,17 @@ class EventController extends Controller
         try {
             $event_service = new EventService(new UserService());
             $response = $event_service->deleteEventAssets($event_id, $request->validated(), Auth::user()->id);
+            return $this->successResponse(MessagesEnum::DELETED_EVENT_ASSET_SUCCESS, $response);
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex);
+        }
+    }
+
+    public function hideAssets(int $event_id, HideEventAssetsRequest $request)
+    {
+        try {
+            $event_service = new EventService(new UserService());
+            $response = $event_service->hideEventAssets($event_id, $request->validated(), Auth::user()->id);
             return $this->successResponse(MessagesEnum::DELETED_EVENT_ASSET_SUCCESS, $response);
         } catch (Exception $ex) {
             return $this->errorResponse($ex);
