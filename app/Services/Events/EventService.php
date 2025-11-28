@@ -509,7 +509,7 @@ class EventService
     private function isAuthorizedToUploadAsset(Event $event, ?int $user_id): bool
     {
         $order = $this->order_service->find($event->order_id);
-        $has_files_space = $this->getEventTotalAssets($event->id) < $order->subscription->files_allowed;
+        $has_files_space = $order->subscription->files_allowed === 0 || $this->getEventTotalAssets($event->id) < $order->subscription->files_allowed;
         
         if(!$has_files_space) {
             logService::init()->info('Event files limit reached', ['event_id' => $event->id]);
