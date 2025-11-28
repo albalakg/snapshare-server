@@ -5,7 +5,7 @@
     
     <p>שלום {{ $first_name }},</p>
     <div class="info-box">
-        <h3>פרטי האירוע:</h3>
+        <h3>פרטי האירוע</h3>
         <p><strong>שם האירוע:</strong> {{ $event->name }}</p>
         <p><strong>מספר קבצים:</strong> {{ $total_assets }}</p>
     </div>

@@ -5,7 +5,7 @@
     <p>שלום {{ $first_name }},</p>
     
     <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-        <h3>פרטי המחיקה:</h3>
+        <h3>פרטי המחיקה</h3>
         <p><strong>תאריך מחיקה:</strong> {{ now()->format('d/m/Y H:i') }}</p>
     </div>
 

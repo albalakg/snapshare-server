@@ -5,7 +5,7 @@
     <p>שלום {{ $first_name }},</p>
     
     <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-        <h3>פרטי האירוע:</h3>
+        <h3>פרטי האירוע</h3>
         <p><strong>שם האירוע:</strong> {{ $event->name }}</p>
         <p><strong>תאריך השבתה:</strong> {{ now()->format('d/m/Y') }}</p>
     </div>

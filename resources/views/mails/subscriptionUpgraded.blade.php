@@ -6,7 +6,7 @@
     <p>שלום {{ $first_name }},</p>
 
     <div class="success">
-        <h3>פרטי החבילה החדשה:</h3>
+        <h3>פרטי החבילה החדשה</h3>
         <p><strong>שם החבילה:</strong> {{ $subscription->name }}</p>
         <p><strong>תאריך שדרוג:</strong> {{ now()->format('d/m/Y') }}</p>
     </div>

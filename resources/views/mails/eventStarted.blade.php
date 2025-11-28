@@ -5,7 +5,7 @@
     <p>שלום {{ $first_name }},</p>
     
     <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-        <h3>פרטי האירוע:</h3>
+        <h3>פרטי האירוע</h3>
         <p><strong>שם האירוע:</strong> {{ $event->name }}</p>
         <p><strong>תאריך:</strong> {{ \Carbon\Carbon::parse($event->starts_at)->timezone('Asia/Jerusalem')->format('d/m/Y') }}</p>
         <p><strong>שעת התחלה:</strong> {{ \Carbon\Carbon::parse($event->starts_at)->timezone('Asia/Jerusalem')->format('H:i') }}</p>

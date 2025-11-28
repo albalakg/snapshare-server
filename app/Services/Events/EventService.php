@@ -63,6 +63,22 @@ class EventService
     }
 
     /**
+     * @param string $event_path
+     * @return ?Event
+     */
+    public function getBaseGallery(string $event_path): ?Event
+    {
+        return Event::where('path', $event_path)
+            ->select('id', 'image', 'name', 'starts_at', 'user_id', 'status')
+            ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::READY, StatusEnum::PENDING, StatusEnum::IN_PROGRESS])
+            ->with(
+                'displayedAssets:id,event_id,asset_type,path', 
+                'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery'
+            )
+            ->first();
+    }
+
+    /**
      * @param int $id
      * @return ?Event
      */
@@ -496,18 +512,19 @@ class EventService
         $has_files_space = $this->getEventTotalAssets($event->id) < $order->subscription->files_allowed;
         
         if(!$has_files_space) {
+            logService::init()->info('Event files limit reached', ['event_id' => $event->id]);
             return false;
         }
         
-        LogService::init()->info('test', ['user_id' => $user_id, 'event_id' => $event->user_id, 'is' => $event->isInactive()]);
         if(($user_id && $user_id === $event->user_id) && !$event->isInactive()) {
             return true;
         }
-
+        
         if($event->isInProgress()) {
             return true;
         } 
-
+        
+        LogService::init()->info('Not Authorized to upload file', ['user_id' => $user_id, 'event_id' => $event->user_id, 'is' => $event->isInactive()]);
         return false;
     }
 

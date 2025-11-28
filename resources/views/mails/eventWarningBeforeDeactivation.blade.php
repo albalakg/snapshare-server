@@ -5,7 +5,7 @@
     <p>שלום {{ $first_name }},</p>
     
     <div class="info-box">
-        <h3>פרטי האירוע:</h3>
+        <h3>פרטי האירוע</h3>
         <p><strong>שם האירוע:</strong> {{ $event->name }}</p>
         <p><strong>ימים להשבתה:</strong> {{ $days_remaining }}</p>
         <p><strong>תאריך השבתה:</strong> {{ $deactivation_date->format('d/m/Y') }}</p>

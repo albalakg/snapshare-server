@@ -19,20 +19,19 @@ class ZipEventAssetsForDownload
         private array $asset_ids,
         private int $created_by,
         protected ?MailService $mail_service = null,
-    )
-    {}
+    ) {}
 
     public function canStartNewProcess(Event $event): bool
     {
         $no_active_process = !EventAssetDownload::where('event_id', $event->id)
-                                ->whereIn('status', [StatusEnum::PENDING, StatusEnum::IN_PROGRESS])
-                                ->exists();
+            ->whereIn('status', [StatusEnum::PENDING, StatusEnum::IN_PROGRESS])
+            ->exists();
 
         LogService::init()->info('canStartNewProcess', ['no_active_process' => $no_active_process]);
 
         $valid_amount_of_processes = EventAssetDownload::where('event_id', $event->id)
-                                ->where('status', '!=', StatusEnum::INACTIVE)
-                                ->count() < 50;
+            ->where('status', '!=', StatusEnum::INACTIVE)
+            ->count() < 50;
         LogService::init()->info('canStartNewProcess 2', ['valid_amount_of_processes' => $valid_amount_of_processes]);
 
         return $no_active_process && $valid_amount_of_processes;
@@ -40,7 +39,7 @@ class ZipEventAssetsForDownload
 
     /**
      * @return ?EventAssetDownload
-    */
+     */
     public function zip(): ?EventAssetDownload
     {
         // Validate assets exist and belong to the event
@@ -55,21 +54,29 @@ class ZipEventAssetsForDownload
         LogService::init()->info(MessagesEnum::EVENT_DOWNLOAD_PROCESS, ['event_id' => $this->event->id, 'step' => 4]);
 
         try {
-            // Create download record
-            $download = EventAssetDownload::create([
-                'event_id' => $this->event->id,
-                'event_assets' => json_encode($this->asset_ids),
-                'status' => StatusEnum::PENDING,
-                'created_by' => $this->created_by
-            ]);
-            
-            // Dispatch job
-            ZipEventAssetsForDownloadJob::dispatch($download, $this->mail_service);
-
+            $this->deactivatePreviousProcesses();
+            $download_process = $this->createNewProcess();
+            ZipEventAssetsForDownloadJob::dispatch($download_process, $this->mail_service);
             LogService::init()->info(MessagesEnum::EVENT_DOWNLOAD_PROCESS, ['event_id' => $this->event->id, 'step' => 5]);
-            return $download;
+            return $download_process;
         } catch (\Exception $e) {
             return null;
         }
+    }
+
+    private function deactivatePreviousProcesses(): void
+    {
+        EventAssetDownload::where('event_id', $this->event->id)
+            ->update(['status' => StatusEnum::INACTIVE]);
+    }
+
+    private function createNewProcess(): EventAssetDownload
+    {
+        return EventAssetDownload::create([
+            'event_id' => $this->event->id,
+            'event_assets' => json_encode($this->asset_ids),
+            'status' => StatusEnum::PENDING,
+            'created_by' => $this->created_by
+        ]);
     }
 }

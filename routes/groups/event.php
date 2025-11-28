@@ -17,5 +17,6 @@ Route::group(['middleware' => 'auth:api'], function () {
 });
 
 Route::get('{event_path}/base-info', [EventController::class, 'getBaseInfo']);
+Route::get('{event_path}/base-assets', [EventController::class, 'getBaseGallery']);
 Route::post('{event_id}/upload', [EventController::class, 'uploadFile']);
 Route::post('{event_id}/auth/upload', [EventController::class, 'authenticatedUploadFile'])->middleware("auth:api");

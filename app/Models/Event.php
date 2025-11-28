@@ -25,6 +25,13 @@ class Event extends Model
             ->where('status', StatusEnum::ACTIVE);
     }
 
+    public function displayedAssets()
+    {
+        return $this->hasMany(EventAsset::class, 'event_id', 'id')
+            ->where('status', StatusEnum::ACTIVE)
+            ->where('is_displayed', StatusEnum::ACTIVE);
+    }
+
     public function getFullPathAttribute()
     {
         return config('app.storage_url') . '/' . $this->image;  
