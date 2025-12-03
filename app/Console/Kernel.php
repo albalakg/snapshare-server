@@ -14,8 +14,10 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('event:start')->everyMinute();
         $schedule->command('event:end')->everyFiveMinutes();
-        $schedule->command('event:disable')->dailyAt('20:00');
+        $schedule->command('event:start-notification-second')->everyTenMinutes();
+        $schedule->command('event:start-notification-first')->dailyAt('17:00');
         $schedule->command('event:warning')->dailyAt('18:00');
+        $schedule->command('event:disable')->dailyAt('20:00');
     }
 
     /**

@@ -3,8 +3,8 @@
 
 * Add Facebook & Instagram links - V
 * Add a note to the event's date with "בחרו תאריך ושעה מדוייקת של תחילת האירוע" - V
-* Add a shareable link with readonly to the guests - 
-* Add multiple qr cards available
+* Add a shareable link with readonly to the guests - V
+* Add multiple qr cards available - V
 * Add notification if the event is about to start in 5 days & 8 hours and the status is not "ready"
-* Add multiple gallery
-* Add note for deployment link
+* Add multiple galleries
+* Add note for deployment link - V

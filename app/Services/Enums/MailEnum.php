@@ -8,6 +8,7 @@ use App\Mail\ContactConfirmationMail;
 use App\Mail\EventDeactivateMail;
 use App\Mail\EventFinishedMail;
 use App\Mail\EventStartedMail;
+use App\Mail\EventStartNotificationFirstMail;
 use App\Mail\EventWarningBeforeDeactivationMail;
 use App\Mail\ForgotPasswordMail;
 use App\Mail\OrderConfirmedMail;
@@ -25,6 +26,8 @@ class MailEnum extends BaseEnum
     const ORDER_CONFIRMED = OrderConfirmedMail::class;
     const ORDER_FAILED = OrderFailedMail::class;
     const EVENT_STARTED = EventStartedMail::class;
+    const EVENT_STARTS_IN_5_DAYS = EventStartNotificationFirstMail::class;
+    const EVENT_STARTS_IN_8_HOURS = EventStartNotificationSecondMail::class;
     const EVENT_FINISHED = EventFinishedMail::class;
     const EVENT_WARNING_BEFORE_DEACTIVATION = EventWarningBeforeDeactivationMail::class;
     const EVENT_DISABLED = EventDeactivateMail::class;
