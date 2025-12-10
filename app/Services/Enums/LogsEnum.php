@@ -11,7 +11,7 @@ class LogsEnum extends BaseEnum
     const EVENT_WARNED = 'Event been warned';
     const EVENT_STARTED = 'Event started';
     const EVENT_STARTS_IN_5_DAYS = 'Event starts in 5 days';
-    const EVENT_STARTS_IN_8_HOURS = 'Event starts in 8 hours';
+    const EVENT_STARTS_IN_1_DAY = 'Event starts in 8 hours';
     const EVENT_ENDED = 'Event ended';
     const EVENT_DISABLED = 'Event disabled';
     const FAILED_TO_DELETE_EVENT_ASSET = 'Failed to delete event asset';
