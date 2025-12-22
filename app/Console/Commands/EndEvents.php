@@ -37,11 +37,12 @@ class EndEvents extends Command
         $mail_service = new MailService();
         $event_service = new EventService();
         $events = Event::join('users', 'users.id', 'events.user_id')
-            ->where('events.finished_at', '<=', Carbon::now()->endOfDay())
+            ->where('events.finished_at', '<=', Carbon::now())
             ->where('events.status', StatusEnum::IN_PROGRESS)
             ->withCount('assets')
             ->select('events.id', 'events.name', 'events.starts_at', 'events.finished_at', 'users.first_name', 'users.email', 'events.status')
             ->get();
+            
 
         LogService::init()->info(LogsEnum::EVENT_ENDED . " EVENTS", ['events' => $events->toArray()]);
         
