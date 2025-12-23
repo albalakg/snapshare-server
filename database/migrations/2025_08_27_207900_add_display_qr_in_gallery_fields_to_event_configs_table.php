@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('event_configs', function (Blueprint $table) {
-            $table->boolean('created_by_guest')->default(true)->nullable();
+            $table->boolean('preview_qr_in_gallery')->default(true)->nullable();
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('event_configs', function (Blueprint $table) {
-            $table->dropColumn('created_by_guest');
+            $table->dropColumn('preview_qr_in_gallery');
         });
     }
 };

@@ -6,7 +6,6 @@ use Exception;
 use App\Services\Enums\StatusEnum;
 use App\Services\Users\UserService;
 use App\Services\Enums\MessagesEnum;
-use App\Services\Helpers\LogService;
 use Illuminate\Support\Facades\Auth;
 use App\Services\Events\EventService;
 use App\Services\Helpers\MailService;
@@ -16,6 +15,7 @@ use App\Http\Requests\CreateEventRequest;
 use App\Http\Requests\UpdateEventRequest;
 use App\Http\Requests\DeleteEventAssetsRequest;
 use App\Http\Requests\HideEventAssetsRequest;
+use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
@@ -88,6 +88,22 @@ class EventController extends Controller
         try {
             $event_service = new EventService(new UserService());
             $response = $event_service->getEventAssetsForGallery($event_id, Auth::user()->id);
+            return $this->successResponse(MessagesEnum::EVENT_FOUND_SUCCESS, $response);
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex);
+        }
+    }
+
+    public function galleryGuestAssets(Request $request, int $event_id)
+    {
+        try {
+            $request->validate([
+                'token' => ['required', 'string'],
+            ]);
+            
+            $event_service = new EventService(new UserService());
+            $event =$event_service->getEventByToken($request->token);
+            $response = $event_service->getEventAssetsForGallery($event_id, $event->user_id);
             return $this->successResponse(MessagesEnum::EVENT_FOUND_SUCCESS, $response);
         } catch (Exception $ex) {
             return $this->errorResponse($ex);

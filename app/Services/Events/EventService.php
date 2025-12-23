@@ -152,7 +152,18 @@ class EventService
             ->select('id', 'event_id', 'asset_type', 'path', 'is_displayed')
             ->get();
     }
-
+    
+    /**
+     * @param string $token
+     * @return Event
+    */
+    public function getEventByToken(string $token): ?Event
+    {
+        return Event::whereIn('status', [StatusEnum::ACTIVE, StatusEnum::IN_PROGRESS])
+                      ->where('path', $token)
+                      ->first();
+    }
+    
     /**
      * @param int $id
      * @param int $user_id
@@ -342,7 +353,7 @@ class EventService
         $event->save();
 
         $this->updateEventConfig($event_id, $data['config'] ?? []);
-        return $event;
+        return $event->load('config');
     }
 
     /**
@@ -587,11 +598,12 @@ class EventService
         EventConfig::updateOrCreate(
             ['event_id' => $event_id],
             [
-                'preview_site_display_image' => ($config['preview_site_display_image'] === 'true') ?? true,
-                'preview_site_display_name' => ($config['preview_site_display_name'] === 'true') ?? true,
-                'preview_site_display_date' => ($config['preview_site_display_date'] === 'true') ?? true,
-                'preview_guests_assets_in_gallery' => ($config['preview_guests_assets_in_gallery'] === 'true') ?? true,
-                'preview_owners_assets_in_gallery' => ($config['preview_owners_assets_in_gallery'] === 'true') ?? true,
+                'preview_site_display_image'        => ($config['preview_site_display_image'] === 'true') ?? true,
+                'preview_site_display_name'         => ($config['preview_site_display_name'] === 'true') ?? true,
+                'preview_site_display_date'         => ($config['preview_site_display_date'] === 'true') ?? true,
+                'preview_guests_assets_in_gallery'  => ($config['preview_guests_assets_in_gallery'] === 'true') ?? true,
+                'preview_owners_assets_in_gallery'  => ($config['preview_owners_assets_in_gallery'] === 'true') ?? true,
+                'preview_qr_in_gallery'             => ($config['preview_qr_in_gallery'] === 'true') ?? true,
             ]
         );
     }

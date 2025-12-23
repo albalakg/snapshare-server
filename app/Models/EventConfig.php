@@ -17,6 +17,7 @@ class EventConfig extends Model
         'preview_site_display_date',
         'preview_guests_assets_in_gallery',
         'preview_owners_assets_in_gallery',
+        'preview_qr_in_gallery',
     ];
 
     protected $casts = [
@@ -25,6 +26,7 @@ class EventConfig extends Model
         'preview_site_display_date'         => 'boolean',
         'preview_guests_assets_in_gallery'  => 'boolean',
         'preview_owners_assets_in_gallery'  => 'boolean',
+        'preview_qr_in_gallery'             => 'boolean',
     ];
 
     public function event()
