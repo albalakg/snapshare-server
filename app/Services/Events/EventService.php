@@ -159,7 +159,7 @@ class EventService
     */
     public function getEventByToken(string $token): ?Event
     {
-        return Event::whereIn('status', [StatusEnum::ACTIVE, StatusEnum::IN_PROGRESS])
+        return Event::whereIn('status', [StatusEnum::ACTIVE, StatusEnum::IN_PROGRESS, StatusEnum::READY])
                       ->where('path', $token)
                       ->first();
     }
