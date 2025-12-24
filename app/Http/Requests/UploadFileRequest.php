@@ -16,6 +16,9 @@ class UploadFileRequest extends FormRequest
         return [
             'file' => [
                 'required',
+                'file',
+                'max:20480', // 20MB
+                'mimetypes:image/*,video/*',
             ],
         ];
     }
