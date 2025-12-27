@@ -230,7 +230,7 @@ class EventService
      * @param int $user_id
      * @return bool
      */
-    public function hideEventAssets(int $id, array $data, int $user_id)
+    public function hideEventAssets(int $id, array $data, int $user_id): bool
     {
         if (!$event = Event::find($id)) {
             throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
@@ -245,6 +245,8 @@ class EventService
             $event_asset->is_displayed = !$event_asset->is_displayed;
             $event_asset->save();
         }
+        
+        return true;
     }
 
     /**

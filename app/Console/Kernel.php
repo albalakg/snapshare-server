@@ -17,7 +17,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('event:notification-1-day')->dailyAt('17:00');
         $schedule->command('event:notification-5-day')->dailyAt('17:30');
         $schedule->command('event:warning')->dailyAt('18:00');
-        $schedule->command('event:disable')->dailyAt('20:00');
+        // $schedule->command('event:disable')->dailyAt('20:00');
     }
 
     /**
