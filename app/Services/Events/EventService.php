@@ -105,7 +105,7 @@ class EventService
         return Event::where('user_id', $user_id)
             ->where('status', '!=', StatusEnum::INACTIVE)
             ->select('id', 'order_id', 'path', 'image', 'name', 'status', 'starts_at', 'finished_at')
-            ->with('assets:id,event_id,asset_type,path,is_displayed', 'activeDownloadProcess:id,path,status,event_id', 'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery')
+            ->with('assets:id,event_id,asset_type,path,is_displayed', 'activeDownloadProcess:id,path,status,event_id', 'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,preview_qr_in_gallery')
             ->first();
     }
 
@@ -547,20 +547,34 @@ class EventService
         $order = $this->order_service->find($event->order_id);
         $has_files_space = $order->subscription->files_allowed === 0 || $this->getEventTotalAssets($event->id) < $order->subscription->files_allowed;
         
+        // No Space
         if(!$has_files_space) {
             logService::init()->info('Event files limit reached', ['event_id' => $event->id]);
             return false;
         }
-        
-        if(($user_id && $user_id === $event->user_id) && !$event->isInactive()) {
-            return true;
+
+        // Post Event - No one
+        if($event->isInactive() || $event->isActive()) {
+            LogService::init()->info('Not Authorized to upload file - Event Inactive or Finished', ['user_id' => $user_id, 'event_id' => $event->id, 'status' => $event->status]);
+            return false;
         }
         
+        // Pre Event - Owner Only
+        if($event->isPending() || $event->isReady()) {
+            if($user_id === $event->user_id) {
+                return true;
+            }
+
+            LogService::init()->info('Not Authorized to upload file - Event isPending or Ready', ['user_id' => $user_id, 'event_id' => $event->id, 'status' => $event->status]);
+            return false;
+        }
+        
+        // During Event - All
         if($event->isInProgress()) {
             return true;
         } 
         
-        LogService::init()->info('Not Authorized to upload file', ['user_id' => $user_id, 'event_id' => $event->user_id, 'is' => $event->isInactive()]);
+        LogService::init()->info('Not Authorized to upload file, last validation', ['user_id' => $user_id, 'event_id' => $event->id, 'status' => $event->status]);
         return false;
     }
 

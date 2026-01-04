@@ -37,10 +37,13 @@ class UserService
     public function getProfile(User $user): ?User
     {
         $user->event = $this->event_service->getEventByUser($user->id);
-        $user->order = $user->event ?
-            $this->order_service->find($user->event->order_id)
-            ->only(['order_number', 'subscription', 'price', 'created_at'])
-            : null;
+        $user->order = null;
+        
+        if($user->event) {
+            $user->order = $this->order_service->find($user->event->order_id)
+                ->only(['order_number', 'subscription', 'price', 'created_at']);
+        }
+
         return $user;
     }
 
