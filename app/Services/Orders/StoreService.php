@@ -2,10 +2,12 @@
 
 namespace App\Services\Orders;
 
+use App\Services\Helpers\LogService;
 use Exception;
 use App\Models\User;
 use App\Models\Order;
 use App\Models\Subscription;
+use App\Services\Enums\LogsEnum;
 use App\Services\Enums\MailEnum;
 use App\Services\Enums\StatusEnum;
 use App\Services\Users\UserService;
@@ -14,6 +16,8 @@ use App\Services\Events\EventService;
 use App\Services\Helpers\MailService;
 use App\Services\Orders\SubscriptionService;
 use Illuminate\Database\Eloquent\Collection;
+
+use function Aws\boolean_value;
 
 class StoreService
 {
@@ -65,6 +69,45 @@ class StoreService
     /**
      * @param array $data
      * @param int $user_id
+     * @return boolean
+     */
+    public function createDemo(array $data, int $user_id): bool
+    {
+        if (!$subscription = $this->subscription_service->findByName($data['subscription'])) {
+            throw new Exception(MessagesEnum::SUBSCRIPTION_NOT_FOUND);
+        }
+
+        if ($this->hasOrderInProgress($user_id)) {
+            throw new Exception(MessagesEnum::ORDER_ALREADY_IN_PROGRESS);
+        }
+
+
+        $user = $this->user_service->find($user_id);
+        if (!$user) {
+            throw new Exception(MessagesEnum::USER_NOT_FOUND);
+        }
+
+        try {
+            $new_order = $this->addNewOrder($subscription, $user_id, StatusEnum::ACTIVE);
+            try {
+                $this->event_service->createDemo($new_order, $user);
+                return true;
+            } catch (Exception $ex) {
+                $new_order->update([
+                    'status' => StatusEnum::INACTIVE,
+                ]);
+                LogService::init()->critical($ex, ['order_id' => $new_order->id, 'method' => LogsEnum::FAILED_TO_CREATE_DEMO_EVENT]);
+            }
+        } catch (Exception $e) {
+            LogService::init()->critical($ex, ['user_id' => $user_id, 'method' => LogsEnum::FAILED_TO_CREATE_DEMO_EVENT]);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array $data
+     * @param int $user_id
      * @return ?array
      */
     public function createOrder(array $data, int $user_id): ?array
@@ -77,17 +120,14 @@ class StoreService
             throw new Exception(MessagesEnum::ORDER_ALREADY_IN_PROGRESS);
         }
 
-        $new_order = new Order();
-        $new_order->user_id = $user_id;
-        $new_order->subscription_id = $subscription->id;
-        $new_order->price = $subscription->price;
-        $new_order->status = StatusEnum::PENDING;
-        $new_order->order_number = $this->generateOrderNumber();
-        $new_order->save();
-
         $user = $this->user_service->find($user_id);
+        if (!$user) {
+            throw new Exception(MessagesEnum::USER_NOT_FOUND);
+        }
+
 
         try {
+            $new_order = $this->addNewOrder($subscription, $user_id);
             $transaction_response = $this->payment_service->startTransaction($new_order, $user, $subscription);
             $new_order->update([
                 'token'       => $transaction_response['token'],
@@ -129,7 +169,7 @@ class StoreService
             throw new Exception(MessagesEnum::USER_NOT_FOUND);
         }
 
-        if($this->payment_service->isPaymentCallbackValid($data)) {
+        if ($this->payment_service->isPaymentCallbackValid($data)) {
             $this->updateStatus(StatusEnum::INACTIVE, $order->id);
             $this->mail_service->send($user->email, MailEnum::ORDER_FAILED, [
                 'order' => $order,
@@ -189,5 +229,24 @@ class StoreService
     {
         $this->payment_service = new PaymentService();
         $this->payment_service->sendInvoice($order, $user, $subscription);
+    }
+
+    /**
+     * @param Subscription $subscription
+     * @param int $user_id
+     * @param int $status
+     * @return Order
+     */
+    private function addNewOrder(Subscription $subscription, int $user_id, int $status = StatusEnum::PENDING): Order
+    {
+        $new_order = new Order();
+        $new_order->user_id = $user_id;
+        $new_order->subscription_id = $subscription->id;
+        $new_order->price = $subscription->price;
+        $new_order->status = $status;
+        $new_order->order_number = $this->generateOrderNumber();
+        $new_order->save();
+
+        return $new_order;
     }
 }

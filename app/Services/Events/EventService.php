@@ -21,6 +21,7 @@ use App\Services\Helpers\MailService;
 use App\Services\Orders\StoreService;
 use App\Services\Helpers\TokenService;
 use App\Http\Requests\UploadFileRequest;
+use App\Models\User;
 use App\Services\Enums\EventAssetTypeEnum;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -303,7 +304,27 @@ class EventService
     }
 
     /**
-     * 
+     * @param Order $order
+     * @param User $user
+     * @return ?Event
+     */
+    public function createDemo(Order $order, User $user): ?Event
+    {
+        $event = new Event;
+        $event->name = 'האירוע של ' . $user->first_name;
+        $event->order_id = $order->id;
+        $event->path = TokenService::generate(12);
+        $event->user_id = $order->user_id;
+        $event->status = StatusEnum::ACTIVE;
+        $event->starts_at = now()->format('Y-m-d H:i:s');
+        $event->finished_at = now()->addHours(1)->format('Y-m-d H:i:s');
+        $event->save();
+
+        $this->createEventConfig($event->id);
+        return $event;
+    }
+
+    /**
      * @param array $data
      * @return ?Event
      */
@@ -606,6 +627,7 @@ class EventService
         $event_config->preview_site_display_date = true;
         $event_config->preview_guests_assets_in_gallery = true;
         $event_config->preview_owners_assets_in_gallery = true;
+        $event_config->preview_qr_in_gallery = true;
         $event_config->save();
     }
 

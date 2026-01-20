@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Events\EventService;
 use Exception;
 use App\Services\Users\UserService;
 use App\Services\Enums\MessagesEnum;
@@ -20,6 +21,23 @@ class StoreController extends Controller
         try {
             $order_service = new StoreService();
             $response = $order_service->get();
+            return $this->successResponse(MessagesEnum::ORDER_CREATED_SUCCESS, $response);
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex);
+        }
+    }
+
+    public function createDemo(CreateOrderRequest $request)
+    {
+        try {
+            $order_service = new StoreService(
+                new PaymentService,
+                null,
+                new SubscriptionService,
+                new UserService,
+                new EventService
+            );
+            $response = $order_service->createDemo($request->validated(), Auth::user()->id);
             return $this->successResponse(MessagesEnum::ORDER_CREATED_SUCCESS, $response);
         } catch (Exception $ex) {
             return $this->errorResponse($ex);
