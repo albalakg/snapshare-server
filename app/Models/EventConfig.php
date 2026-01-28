@@ -18,6 +18,7 @@ class EventConfig extends Model
         'preview_guests_assets_in_gallery',
         'preview_owners_assets_in_gallery',
         'preview_qr_in_gallery',
+        'displayed_gallery',
     ];
 
     protected $casts = [

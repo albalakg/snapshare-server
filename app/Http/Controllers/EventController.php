@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\EventGallerySettingsRequest;
 use Exception;
 use App\Services\Enums\StatusEnum;
 use App\Services\Users\UserService;
@@ -39,6 +40,20 @@ class EventController extends Controller
             );
             $response = $event_service->uploadFile($event_id, $request);
             return $this->successResponse(MessagesEnum::EVENT_FILE_UPLOADED_SUCCESS, $response);
+
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex);
+        }
+    }
+
+    public function updateGallerySettings(int $event_id, EventGallerySettingsRequest $request)
+    {
+        try {
+            $event_service = new EventService(
+                new UserService()
+            );
+            $response = $event_service->updateGallerySettings($event_id, $request->validated(), Auth::user()->id);
+            return $this->successResponse(MessagesEnum::EVENT_GALLERY_SETTINGS_UPDATED_SUCCESS, $response);
 
         } catch (Exception $ex) {
             return $this->errorResponse($ex);

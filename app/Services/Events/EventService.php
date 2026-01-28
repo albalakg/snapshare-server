@@ -23,6 +23,7 @@ use App\Services\Helpers\TokenService;
 use App\Http\Requests\UploadFileRequest;
 use App\Models\User;
 use App\Services\Enums\EventAssetTypeEnum;
+use App\Services\Enums\EventGalleryTypeEnum;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
@@ -106,7 +107,9 @@ class EventService
         return Event::where('user_id', $user_id)
             ->where('status', '!=', StatusEnum::INACTIVE)
             ->select('id', 'order_id', 'path', 'image', 'name', 'status', 'starts_at', 'finished_at')
-            ->with('assets:id,event_id,asset_type,path,is_displayed', 'activeDownloadProcess:id,path,status,event_id', 'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,preview_qr_in_gallery')
+            ->with('assets:id,event_id,asset_type,path,is_displayed',
+                'activeDownloadProcess:id,path,status,event_id',
+                'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,preview_qr_in_gallery,displayed_gallery')
             ->first();
     }
 
@@ -248,6 +251,27 @@ class EventService
         }
         
         return true;
+    }
+
+    public function updateGallerySettings(int $event_id, array $data, int $user_id): ?EventConfig
+    {
+        if (!$event = Event::find($event_id)) {
+            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+        }
+
+        if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+            throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+        }
+
+        $event_config = EventConfig::where('event_id', $event_id)->first();
+        if (!$event_config) {
+            throw new Exception(MessagesEnum::EVENT_CONFIG_NOT_FOUND);
+        }
+
+        $event_config->displayed_gallery = $data['selectedAlbum'];
+        $event_config->save();
+
+        return $event_config;
     }
 
     /**
@@ -628,6 +652,7 @@ class EventService
         $event_config->preview_guests_assets_in_gallery = true;
         $event_config->preview_owners_assets_in_gallery = true;
         $event_config->preview_qr_in_gallery = true;
+        $event_config->displayed_gallery = EventGalleryTypeEnum::SINGLE_GALLERY;
         $event_config->save();
     }
 

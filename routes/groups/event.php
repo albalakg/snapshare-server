@@ -8,6 +8,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('{event_id}/assets', [EventController::class, 'assets']);
     Route::get('{event_id}/gallery-assets', [EventController::class, 'galleryAssets']);
     Route::get('{event_id}/assets/download/status', [EventController::class, 'getDownloadStatus']);
+    Route::post('{event_id}/gallery/settings', [EventController::class, 'updateGallerySettings']);
     Route::post('{event_id}/assets/download', [EventController::class, 'downloadAssets']);
     Route::post('{event_id}/assets/delete', [EventController::class, 'deleteAssets']);
     Route::post('{event_id}/assets/hide', [EventController::class, 'hideAssets']);

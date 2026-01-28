@@ -16,17 +16,19 @@
 * Fix counter till files deletion - V
 * Add FAQ section - V
 * Add assets in modal view - ?
-* Add demo pricing - ?
+* Add demo subscription - V
 * Connect to payment service - ?
 * Create emails for payments - ?
 * Check all payment process flow - ? 
 * Add edited video - ?
 * Add FAQ content - ?
 * Add TNC - ?
-* Add multiple galleries - ?
+* Add multiple galleries - V
+* Improve multiple galleries - ?
 * Add editing option to the assets, adding text - ?
 * Add Cookie to when a user enters the upload asset page to recognize him - ?
 * Later if he comes back to the gallery he can see all the images he uploaded - ?
 * Bonus - If there is a selfie, can recognize him and give him all his images - ?
 * Add ability to add a selfie and check all your images in the gallery - ?
 * Send a whatsapp message to the guests with the links and info - ?
+* Add the ability to add dynamic topics like "singles" - ?

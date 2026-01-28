@@ -29,6 +29,7 @@ class MessagesEnum extends BaseEnum
     const FAILED_TO_DELETE_EVENT_ASSETS_FOLDER = 'Failed to delete event\'s assets folder';
     const ORDER_CALLBACK_PAYLOAD_INVALID = 'Order callback payload is invalid';
     const ORDER_IN_INVALID_STATUS_WHILE_SETTING_TO_IN_PROGRESS = 'Order isn\'t in "in_progress" status while receiving the order confirmation';
+    const EVENT_CONFIG_NOT_FOUND = 'Event config not found';
 
     // Info
     const LOGIN_SUCCESS = 'Logged in successfully';
@@ -56,6 +57,7 @@ class MessagesEnum extends BaseEnum
     const USER_DELETED_SUCCESS = 'User deleted successfully';
     const USERS_FETCHED_SUCCESS = 'Users fetched successfully';
     const USER_FOUND_SUCCESS = 'User found successfully';
+    const EVENT_GALLERY_SETTINGS_UPDATED_SUCCESS = 'Event gallery settings updated successfully';
 
 
     // Validations
