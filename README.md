@@ -25,7 +25,7 @@
 * Add TNC - ?
 * Add multiple galleries - V
 * Improve multiple galleries - ?
-* Add editing option to the assets, adding text - ?
+* Add editing option to the assets, adding text - V
 * Add Cookie to when a user enters the upload asset page to recognize him - ?
 * Later if he comes back to the gallery he can see all the images he uploaded - ?
 * Bonus - If there is a selfie, can recognize him and give him all his images - ?
