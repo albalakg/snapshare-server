@@ -50,7 +50,6 @@ class RouteServiceProvider extends ServiceProvider
                 ->group(base_path('routes/groups/store.php'));
 
             Route::prefix('api/subscriptions')
-                ->middleware('auth:api')
                 ->group(base_path('routes/groups/subscription.php'));
         });
     }
