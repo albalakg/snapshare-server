@@ -1,0 +1,17 @@
+7915b1f0-b0b9-4a45-b0f7-9634bad21837
+
+KEY: 269f1b94-ac2b-45b4-921c-782c9bd6fcc1
+secret: 2d098aa7-9252-475d-af3f-55855459858f
+
+DEMO:
+KEY: ef31a802-4d9d-420b-a101-66384287f76f
+secret: 289ff847-2dc6-4a12-9387-e5f175172abb
+
+לחשבונית - initial_invoice = TRUE
+
+FAKE CREDIT CARD: https://docs.payplus.co.il/reference/sandbox-credit-card-numbers
+IF FAIL NOT WORKING: FAKE CREDIT number
+
+
+Stage/dev/sandbox/test = SAME!
+https://docs.payplus.co.il/reference/post_paymentpages-generatelink

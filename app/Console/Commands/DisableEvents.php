@@ -2,19 +2,17 @@
 
 namespace App\Console\Commands;
 
-use Carbon\Carbon;
 use App\Models\Event;
-use App\Mail\EventDisabledMail;
-use Illuminate\Console\Command;
 use App\Services\Enums\LogsEnum;
 use App\Services\Enums\MailEnum;
 use App\Services\Enums\StatusEnum;
-use App\Services\Users\UserService;
-use App\Services\Helpers\LogService;
-use App\Services\Events\EventService;
-use App\Services\Helpers\MailService;
 use App\Services\Enums\SubscriptionEnum;
+use App\Services\Events\EventService;
+use App\Services\Helpers\LogService;
+use App\Services\Helpers\MailService;
+use Carbon\Carbon;
 use Exception;
+use Illuminate\Console\Command;
 
 class DisableEvents extends Command
 {
@@ -37,8 +35,8 @@ class DisableEvents extends Command
      */
     public function handle()
     {
-        $event_service = new EventService();
-        $mail_service = new MailService();
+        $event_service = new EventService;
+        $mail_service = new MailService;
 
         $events = Event::join('users', 'users.id', 'events.user_id')
             ->join('orders', 'orders.id', 'events.order_id')
@@ -52,19 +50,20 @@ class DisableEvents extends Command
                 $finishedAt = Carbon::parse($event->finished_at);
                 $days_diff = $finishedAt->diffInDays(Carbon::now()->endOfDay());
                 if (
-                    ($event->subscription_id === SubscriptionEnum::NORMAL_ID &&
+                    ($event->subscription_id === SubscriptionEnum::CLASSIC_ID &&
                     $days_diff === 14) ||
                     ($event->subscription_id === SubscriptionEnum::PREMIUM_ID &&
                     $days_diff === 30)
                 ) {
                     $should_disable = true;
-                } 
+                }
 
-                if (!$should_disable) {
-                    LogService::init()->info(LogsEnum::EVENT_DISABLED . " SKIP", ['id' => $event->id]);
+                if (! $should_disable) {
+                    LogService::init()->info(LogsEnum::EVENT_DISABLED.' SKIP', ['id' => $event->id]);
+
                     continue;
                 }
-                
+
                 $event_service->disable($event->id);
                 $data = [
                     'event' => $event,
@@ -72,8 +71,8 @@ class DisableEvents extends Command
                 ];
                 $mail_service->send($event->email, MailEnum::EVENT_DISABLED, $data);
                 LogService::init()->info(LogsEnum::EVENT_DISABLED, ['id' => $event->id]);
-                
-            } catch(Exception $ex) {
+
+            } catch (Exception $ex) {
                 LogService::init()->error($ex, ['id' => $event->id, 'method' => LogsEnum::EVENT_DISABLED]);
             }
         }

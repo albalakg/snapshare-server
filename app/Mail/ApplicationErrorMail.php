@@ -13,10 +13,12 @@ class ApplicationErrorMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    protected array $mail_data;
     protected string $error_message;
+
     protected string $error_trace;
+
     protected string $request_url;
+
     protected array $request_data;
 
     /**
@@ -24,11 +26,13 @@ class ApplicationErrorMail extends Mailable implements ShouldQueue
      */
     public function __construct(array $mail_data)
     {
-        $this->mail_data = $mail_data;
-        $this->error_message = $mail_data['error_message'];
-        $this->error_trace = $mail_data['error_trace'];
-        $this->request_url = $mail_data['request_url'];
-        $this->request_data = $mail_data['request_data'];
+        $this->error_message = (string) ($mail_data['error_message'] ?? '');
+        $this->error_trace = (string) ($mail_data['error_trace'] ?? '');
+        $this->request_url = (string) ($mail_data['request_url'] ?? '');
+        $requestData = $mail_data['request_data'] ?? [];
+        $this->request_data = is_array($requestData)
+            ? $requestData
+            : ['payload' => is_scalar($requestData) ? (string) $requestData : get_debug_type($requestData)];
     }
 
     /**

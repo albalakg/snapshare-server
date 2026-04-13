@@ -14,7 +14,8 @@ class Order extends Model
     protected $fillable = [
         'status',
         'token',
-        'supplier_id'
+        'supplier_id',
+        'payment_page_link',
     ];
 
 

@@ -36,18 +36,22 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::prefix('api/auth')
                 ->middleware('throttle:100,10', 'guest')
-                ->group(base_path("routes/groups/auth.php"));
+                ->group(base_path('routes/groups/auth.php'));
 
             Route::prefix('api/user')
                 ->middleware('auth:api')
-                ->group(base_path("routes/groups/user.php"));
+                ->group(base_path('routes/groups/user.php'));
 
             Route::prefix('api/events')
-                ->group(base_path("routes/groups/event.php"));
+                ->group(base_path('routes/groups/event.php'));
 
             Route::prefix('api/store')
                 ->middleware('auth:api')
-                ->group(base_path("routes/groups/store.php"));
+                ->group(base_path('routes/groups/store.php'));
+
+            Route::prefix('api/subscriptions')
+                ->middleware('auth:api')
+                ->group(base_path('routes/groups/subscription.php'));
         });
     }
 

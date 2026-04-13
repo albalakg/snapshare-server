@@ -117,7 +117,22 @@ class StoreService
         }
 
         if ($this->hasOrderInProgress($user_id)) {
-            throw new Exception(MessagesEnum::ORDER_ALREADY_IN_PROGRESS);
+            $order = Order::where('user_id', $user_id)
+                ->where('status', StatusEnum::IN_PROGRESS)
+                ->where('subscription_id', $subscription->id)
+                ->first();
+
+            if ($order) {
+                return [
+                    'payment_page_link' => $order->payment_page_link,
+                ];
+            }
+            
+            Order::where('user_id', $user_id)
+                ->where('status', StatusEnum::IN_PROGRESS)
+                ->update([
+                    'status' => StatusEnum::INACTIVE,
+                ]);
         }
 
         $user = $this->user_service->find($user_id);
@@ -130,15 +145,16 @@ class StoreService
             $new_order = $this->addNewOrder($subscription, $user_id);
             $transaction_response = $this->payment_service->startTransaction($new_order, $user, $subscription);
             $new_order->update([
-                'token'       => $transaction_response['token'],
-                'supplier_id' => $transaction_response['supplier_id'],
-                'status' => StatusEnum::IN_PROGRESS,
+                'token'             => $transaction_response['token'],
+                'supplier_id'       => $transaction_response['supplier_id'],
+                'status'            => StatusEnum::IN_PROGRESS,
+                'payment_page_link' => $transaction_response['link'],
             ]);
 
             $this->sendInvoice($new_order, $user, $subscription);
 
             return [
-                'payment_page_link' => $transaction_response['link']
+                'payment_page_link' => $new_order->payment_page_link,
             ];
         } catch (Exception $e) {
             $new_order->update([

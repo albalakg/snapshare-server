@@ -21,8 +21,10 @@ class PayPlusProvider implements IPaymentProvider
     const INVOICE_PATH                          = 'books/docs/new/purchase';
     const CURRENCY_CODE                         = 'ILS';
     const INVOICE_QUANTITY                      = 1;
-    const INVOICE_TRANSACTION_TYPE               = 'normal';
+    const INVOICE_TRANSACTION_TYPE              = 'normal';
     const INVOICE_NUMBER_OF_PAYMENTS            = 1;
+    const INITIAL_INVOICE                       = true;
+    const EXPIRY_DATETIME                       = 30;
 
     private Order $order;
 
@@ -37,34 +39,31 @@ class PayPlusProvider implements IPaymentProvider
     private LogService $log_service;
 
     private $provider_browser = 'PayPlus';
+  
+    private array $page_generation_payload = [];
 
-    private array $page_generation_payload = [
-        'payment_page_uid'          => '',
-        'charge_method'             => self::PAYMENT_METHOD_CHARGE,
-        'charge_default'            => self::DEFAULT_CHARGE_METHOD,
-        'hide_other_charge_methods' => true,
-        'amount'                    => null,
-        'currency_code'             => self::CURRENCY_CODE,
-        'sendEmailApproval'         => true,
-        'sendEmailFailure'          => true,
-        'sendEmailApproval'         => true,
-        'create_hash'               => true,
-        'refURL_success'            => '',
-        'refURL_failure'            => '',
-        'refURL_callback'           => '',
-        'refURL_cancel'             => '',
-        'customer'                  => [
-            'customer_name'         => '',
-            'email'                 => '',
-        ],
-        'items'                     => [
-            [
-                'name'              => '',
-                'quantity'          => 1,
-                'price'             => null,
-            ]
-        ],
-    ];
+    /**
+     * Keys sent to PaymentPages/generateLink (minimal payload).
+     *
+     * @return array<string, mixed>
+     */
+    private function getPageGenerationPayloadTemplate(): array
+    {
+        return [
+            'payment_page_uid'  => '',
+            'charge_method'     => self::PAYMENT_METHOD_CHARGE,
+            'amount'            => null,
+            'currency_code'     => self::CURRENCY_CODE,
+            'expiry_datetime'   => self::EXPIRY_DATETIME,
+            'refURL_success'    => '',
+            'refURL_failure'    => '',
+            'refURL_cancel'     => '',
+            'refURL_callback'   => '',
+            'initial_invoice'   => self::INITIAL_INVOICE,
+            'payments'          => self::INVOICE_NUMBER_OF_PAYMENTS,
+            'create_hash'       => false,
+        ];
+    }
 
     public function __construct()
     {
@@ -116,10 +115,11 @@ class PayPlusProvider implements IPaymentProvider
         $this->user = $user;
         $this->subscription = $subscription;
 
-        $this->setPageUuid()
+        $this->initializePageGenerationPayload()
+            ->setPageUuid()
+            ->setCurrencyAndExpiry()
             ->setCallbackUrls()
-            ->setCustomer()
-            ->setItem();
+            ->setAmount();
 
         return $this;
     }
@@ -131,12 +131,26 @@ class PayPlusProvider implements IPaymentProvider
      */
     public function startTransaction()
     {
+        $this->log_service->info('test', $this->getAuthorization());
         $this->log_service->info('Send a request to Payplus provider for transaction', $this->page_generation_payload);
         $response = Http::withHeaders([
-            'Authorization' => $this->getAuthorization()
+            ...$this->getAuthorization()
             ])->post(config('payment.payplus.address') . self::PAGE_GENERATION_PATH, $this->page_generation_payload);
-        $this->transaction_response = json_decode($response->body());
-        $this->log_service->info('Response from Payplus provider for transaction', (array) $this->transaction_response);
+
+        $body = $response->body();
+        $this->transaction_response = json_decode($body);
+
+        if ($this->transaction_response === null) {
+            $this->log_service->error('PayPlus generateLink: expected JSON but got empty or non-JSON body', [
+                'http_status' => $response->status(),
+                'body'        => $body,
+            ]);
+        } else {
+            $this->log_service->info('Response from Payplus provider for transaction', [
+                'http_status' => $response->status(),
+                'response'    => $this->transaction_response,
+            ]);
+        }
     }
 
     /**
@@ -152,7 +166,7 @@ class PayPlusProvider implements IPaymentProvider
         $this->subscription = $subscription;
         $this->log_service->info('Send a request to Payplus provider for invoice');
         $response = Http::withHeaders([
-            'Authorization' => $this->getAuthorization()
+            ...$this->getAuthorization()
             ])->post(config('payment.payplus.address') . self::INVOICE_PATH, $this->getInvoicePayload());
         $this->invoice_response = json_decode($response->body());
         $this->log_service->info('Response from Payplus provider for invoice', (array) $this->invoice_response);
@@ -166,6 +180,10 @@ class PayPlusProvider implements IPaymentProvider
     public function isTransactionValid(): bool
     {
         try {
+            if(!$this->transaction_response) {
+                throw new Exception('The response from the transaction is invalid');
+            }
+
             if ($this->transaction_response->results->status !== 'success') {
                 throw new Exception('The response status from the transaction indicates for an error');
             }
@@ -233,14 +251,28 @@ class PayPlusProvider implements IPaymentProvider
     /**
      * @return self
      */
-    private function setItem(): self
+    private function setAmount(): self
     {
-        $this->page_generation_payload['amount']            = 0.1;
-        $this->page_generation_payload['items'][0]['name']  = $this->subscription->name;
-        $this->page_generation_payload['items'][0]['price'] = 0.1;
-        // $this->page_generation_payload['amount']            = $this->order->price;
-        // $this->page_generation_payload['items'][0]['name']  = $this->subscription->name;
-        // $this->page_generation_payload['items'][0]['price'] = $this->order->price;
+        $this->page_generation_payload['amount'] = $this->order->price;
+        return $this;
+    }
+
+    /**
+     * @return self
+     */
+    private function initializePageGenerationPayload(): self
+    {
+        $this->page_generation_payload = $this->getPageGenerationPayloadTemplate();
+        return $this;
+    }
+
+    /**
+     * @return self
+     */
+    private function setCurrencyAndExpiry(): self
+    {
+        $this->page_generation_payload['currency_code']   = config('payment.payplus.currency_code', self::CURRENCY_CODE);
+        $this->page_generation_payload['expiry_datetime'] = (int) config('payment.payplus.expiry_datetime', self::EXPIRY_DATETIME);
         return $this;
     }
 
@@ -258,20 +290,10 @@ class PayPlusProvider implements IPaymentProvider
      */
     private function setCallbackUrls(): self
     {
-        $this->page_generation_payload['refURL_success']     = config('app.client_url') . '/orders/success';
-        $this->page_generation_payload['refURL_failure']     = config('app.client_url') . '/orders/failure';
-        $this->page_generation_payload['refURL_callback']    = config('app.url') . '/api/store/callback';
-        $this->page_generation_payload['refURL_cancel']      = config('app.client_url');
-        return $this;
-    }
-
-    /**
-     * @return self
-     */
-    private function setCustomer(): self
-    {
-        $this->page_generation_payload['customer']['customer_name'] = $this->user->getFullName();
-        $this->page_generation_payload['customer']['email']         = $this->user->email;
+        $this->page_generation_payload['refURL_success']   = config('app.client_url') . '/orders/success';
+        $this->page_generation_payload['refURL_failure']   = config('app.client_url') . '/orders/failure';
+        $this->page_generation_payload['refURL_callback'] = config('app.url') . '/api/store/callback';
+        $this->page_generation_payload['refURL_cancel']     = config('app.client_url');
         return $this;
     }
 
@@ -288,7 +310,6 @@ class PayPlusProvider implements IPaymentProvider
             "customer"      => [
                 "name"  => $this->user->getFullName(),
                 "email" => $this->user->email,
-                // "phone" => $this->user->phone,
             ],
             "items"         => [
                 [
@@ -339,10 +360,14 @@ class PayPlusProvider implements IPaymentProvider
     }
 
     /**
-     * @return string
+     * @return array
      */
-    private function getAuthorization(): string
+    private function getAuthorization(): array
     {
-        return json_encode(["api_key" => config('payment.payplus.api_key'), "secret_key" => config('payment.payplus.secret_key')]);
+        // PayPlus REST API expects these exact header names (same as Postman), not api_key / secret_key.
+        return [
+            'api-key'    => config('payment.payplus.api_key'),
+            'secret-key' => config('payment.payplus.secret_key'),
+        ];
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Services\Helpers;
 
 use Exception;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
@@ -216,6 +217,67 @@ class LogService
     private function sendMail(Exception $ex)
     {
         $mail_service = new MailService;
-        $mail_service->send(MailService::SYSTEM_EMAILS, ApplicationErrorMail::class, ['data' => $ex]);
+        $mail_service->send(
+            MailService::SYSTEM_EMAILS,
+            ApplicationErrorMail::class,
+            $this->buildApplicationErrorMailPayload($ex)
+        );
+    }
+
+    /**
+     * Only scalar/array payload so queued mailables can serialize (no Exception / Closure objects).
+     */
+    private function buildApplicationErrorMailPayload(Exception $ex): array
+    {
+        $url = '';
+        $requestData = [];
+
+        try {
+            if (app()->bound('request') && request()) {
+                $url = (string) request()->fullUrl();
+                $requestData = $this->sanitizeRequestDataForMail(request()->all());
+            }
+        } catch (\Throwable) {
+            // Avoid secondary failures while reporting the original error
+        }
+
+        return [
+            'error_message' => $ex->getMessage(),
+            'error_trace' => $ex->getTraceAsString(),
+            'request_url' => $url,
+            'request_data' => $requestData,
+        ];
+    }
+
+    private function sanitizeRequestDataForMail(array $data, int $depth = 0): array
+    {
+        if ($depth > 8) {
+            return ['…' => 'max nesting depth'];
+        }
+
+        $out = [];
+        foreach ($data as $key => $value) {
+            if ($value instanceof \Closure) {
+                continue;
+            }
+            if ($value instanceof UploadedFile) {
+                $out[$key] = $value->getClientOriginalName();
+                continue;
+            }
+            if (is_array($value)) {
+                $out[$key] = $this->sanitizeRequestDataForMail($value, $depth + 1);
+                continue;
+            }
+            if (is_object($value)) {
+                $out[$key] = '[' . get_class($value) . ']';
+                continue;
+            }
+            if (is_resource($value)) {
+                continue;
+            }
+            $out[$key] = $value;
+        }
+
+        return $out;
     }
 }
