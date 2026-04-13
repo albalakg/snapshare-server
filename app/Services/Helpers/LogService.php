@@ -244,6 +244,8 @@ class LogService
         return [
             'error_message' => $ex->getMessage(),
             'error_trace' => $ex->getTraceAsString(),
+            'error_file' => $ex->getFile(),
+            'error_line' => $ex->getLine(),
             'request_url' => $url,
             'request_data' => $requestData,
         ];
