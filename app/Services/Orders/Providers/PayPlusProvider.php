@@ -290,9 +290,9 @@ class PayPlusProvider implements IPaymentProvider
      */
     private function setCallbackUrls(): self
     {
-        $this->page_generation_payload['refURL_success']   = config('app.client_url') . '/orders/success';
-        $this->page_generation_payload['refURL_failure']   = config('app.client_url') . '/orders/failure';
-        $this->page_generation_payload['refURL_callback'] = config('app.url') . '/api/store/callback';
+        $this->page_generation_payload['refURL_success']   = config('app.client_url') . '/order/success';
+        $this->page_generation_payload['refURL_failure']   = config('app.client_url') . '/order/failure';
+        $this->page_generation_payload['refURL_callback'] = config('app.url') . '/api/store/order-confirmation';
         $this->page_generation_payload['refURL_cancel']     = config('app.client_url');
         return $this;
     }

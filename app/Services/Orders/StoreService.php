@@ -21,13 +21,17 @@ use function Aws\boolean_value;
 
 class StoreService
 {
+    private LogService $log_service;
+
     public function __construct(
         private ?PaymentService $payment_service = null,
         private ?MailService $mail_service = null,
         private ?SubscriptionService $subscription_service = null,
         private ?UserService $user_service = null,
         private ?EventService $event_service = null,
-    ) {}
+    ) {
+        $this->log_service  = new LogService('payment');
+    }
 
     /**
      * @param int $order_id
@@ -173,6 +177,8 @@ class StoreService
      */
     public function orderConfirmed(array $data)
     {
+        $this->log_service->info('Order callback received', ['data' => $data]);
+
         if (!$order = $this->findByToken($data['page_request_uid'])) {
             throw new Exception(MessagesEnum::ORDER_NOT_FOUND);
         }
