@@ -179,7 +179,20 @@ class StoreService
     {
         $this->log_service->info('Order callback received', ['data' => $data]);
 
-        if (!$order = $this->findByToken($data['page_request_uid'])) {
+        $pageRequestUid = $data['page_request_uid'] ?? null;
+        if (!is_string($pageRequestUid) || $pageRequestUid === '') {
+            throw new Exception(MessagesEnum::ORDER_CALLBACK_PAYLOAD_INVALID);
+        }
+
+        $hash = $data['hash'] ?? null;
+        if (!is_string($hash) || $hash === '') {
+            $this->log_service->info('Order callback has no hash; skipping (unsigned IPN until signed callback arrives)', [
+                'page_request_uid' => $pageRequestUid,
+            ]);
+            return;
+        }
+
+        if (!$order = $this->findByToken($pageRequestUid)) {
             throw new Exception(MessagesEnum::ORDER_NOT_FOUND);
         }
 
@@ -191,7 +204,7 @@ class StoreService
             throw new Exception(MessagesEnum::USER_NOT_FOUND);
         }
 
-        if ($this->payment_service->isPaymentCallbackValid($data)) {
+        if (!$this->payment_service->isPaymentCallbackValid($data)) {
             $this->updateStatus(StatusEnum::INACTIVE, $order->id);
             $this->mail_service->send($user->email, MailEnum::ORDER_FAILED, [
                 'order' => $order,
@@ -209,7 +222,8 @@ class StoreService
             'event_url' => config('app.client_url') . '/event',
         ]);
 
-        foreach ($order->subscription->events_allowed ?? 1 as $event) {
+        $eventsCount = (int) ($order->subscription->events_allowed ?? 1);
+        for ($i = 0; $i < $eventsCount; $i++) {
             $this->event_service->create($order);
         }
     }

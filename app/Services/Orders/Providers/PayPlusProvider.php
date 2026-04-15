@@ -230,18 +230,26 @@ class PayPlusProvider implements IPaymentProvider
      */
     public function isPaymentCallbackValid(array $response): bool
     {
-        if (!is_string($response['approval_number'])) {
-            $this->log_service->error('The approval number is invalid', ['approval_number' => $response['approval_number']]);
-            return false;
-        }
-        
-        if ($response['browser'] !== $this->provider_browser) {
-            $this->log_service->error('The response user agent is invalid', ['browser' => $response['browser']]);
+        $approvalNumber = $response['approval_number'] ?? null;
+        if (!is_string($approvalNumber) || $approvalNumber === '') {
+            $this->log_service->error('The approval number is invalid', ['approval_number' => $approvalNumber]);
             return false;
         }
 
-        if(!$this->isHashValid($response['hash'])) {
-            $this->log_service->error('The response hash is invalid', ['hash' => $response['hash']]);
+        $browser = $response['browser'] ?? null;
+        if (!is_string($browser) || $browser !== $this->provider_browser) {
+            $this->log_service->error('The response user agent is invalid', ['browser' => $browser]);
+            return false;
+        }
+
+        $hash = $response['hash'] ?? null;
+        if (!is_string($hash) || $hash === '') {
+            $this->log_service->error('The response hash is missing or invalid', ['hash' => $hash]);
+            return false;
+        }
+
+        if (!$this->isHashValid($hash)) {
+            $this->log_service->error('The response hash is invalid', ['hash' => $hash]);
             return false;
         }
 

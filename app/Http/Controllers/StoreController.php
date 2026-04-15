@@ -71,16 +71,22 @@ class StoreController extends Controller
                 new PaymentService,
                 new MailService,
                 new SubscriptionService,
-                new UserService
+                new UserService,
+                new EventService
             );
 
-            $transition = $request->input('transaction');
+            // PayPlus sends either a full "Charge" payload (transaction.*) or a minimal signed payload (top-level page_request_uid).
+            $pageRequestUid = $request->input('page_request_uid')
+                ?? data_get($request->all(), 'transaction.payment_page_request_uid');
+
             $data = [
-                'page_request_uid'  => $transition['payment_page_request_uid']  ?? null,
-                'approval_number'   => $transition['approval_number']           ?? null,
-                'browser'           => $request->header('user-agent'),
-                'hash'              => $request->header('hash'),
+                'page_request_uid' => is_string($pageRequestUid) ? $pageRequestUid : null,
+                'approval_number'  => data_get($request->all(), 'transaction.approval_number') ?? $request->input('approval_number'),
+                'browser'          => $request->input('browser') ?? $request->userAgent(),
+                'hash'             => $request->input('hash') ?? $request->header('hash'),
             ];
+
+            $log->info('test data', ['data' => $data]);
             
             $response = $order_service->orderConfirmed($data);
             return $this->successResponse('Order\'s status updated successfully to completed', $response);
