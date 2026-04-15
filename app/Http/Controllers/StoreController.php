@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Services\Helpers\MailService;
 use App\Services\Orders\StoreService;
 use App\Services\Orders\PaymentService;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 use App\Http\Requests\CreateOrderRequest;
 use App\Services\Helpers\LogService;
 use App\Services\Orders\SubscriptionService;
