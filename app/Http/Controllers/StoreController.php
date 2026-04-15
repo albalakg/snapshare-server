@@ -12,6 +12,7 @@ use App\Services\Orders\StoreService;
 use App\Services\Orders\PaymentService;
 use Illuminate\Support\Facades\Request;
 use App\Http\Requests\CreateOrderRequest;
+use App\Services\Helpers\LogService;
 use App\Services\Orders\SubscriptionService;
 
 class StoreController extends Controller
@@ -62,6 +63,9 @@ class StoreController extends Controller
 
     public function orderCallback(Request $request)
     {
+        $log = new LogService('payment');
+        $log->info('Order callback received', ['data' => $request->all()]);
+        
         try {
             $order_service = new StoreService(
                 new PaymentService,
