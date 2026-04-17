@@ -18,6 +18,7 @@ class PayPlusProvider implements IPaymentProvider
     const PAYMENT_METHOD_CHARGE                 = 1;
     const DEFAULT_CHARGE_METHOD                 = 'credit-card';
     const PAGE_GENERATION_PATH                  = 'PaymentPages/generateLink';
+    const IPN_PATH                              = 'PaymentPages/ipn';
     const INVOICE_PATH                          = 'books/docs/new/purchase';
     const CURRENCY_CODE                         = 'ILS';
     const INVOICE_QUANTITY                      = 1;
@@ -236,11 +237,11 @@ class PayPlusProvider implements IPaymentProvider
             return false;
         }
 
-        $browser = $response['browser'] ?? null;
-        if (!is_string($browser) || $browser !== $this->provider_browser) {
-            $this->log_service->error('The response user agent is invalid', ['browser' => $browser]);
-            return false;
-        }
+        // $browser = $response['browser'] ?? null;
+        // if (!is_string($browser) || $browser !== $this->provider_browser) {
+        //     $this->log_service->error('The response user agent is invalid', ['browser' => $browser]);
+        //     return false;
+        // }
 
         $hash = $response['hash'] ?? null;
         if (!is_string($hash) || $hash === '') {
@@ -250,6 +251,11 @@ class PayPlusProvider implements IPaymentProvider
 
         if (!$this->isHashValid($hash)) {
             $this->log_service->error('The response hash is invalid', ['hash' => $hash]);
+            return false;
+        }
+
+        if(!$this->isIPNVerified($response)) {
+            $this->log_service->error('The IPN is not verified', ['response' => $response]);
             return false;
         }
 
@@ -339,22 +345,58 @@ class PayPlusProvider implements IPaymentProvider
     }
 
     /**
+     * Validates the PayPlus response hash.
+     *
+     * Mirrors PayPlus's reference Node.js implementation:
+     *   genHash = base64( HMAC_SHA256(secret_key, JSON.stringify(response.body)) )
+     *   return genHash === response.headers['hash']
+     *
      * @param string $hash
      * @return bool
      */
     private function isHashValid(string $hash): bool
     {
-        $message = request()->getContent();
-        if(!$message) {
+        $raw = request()->getContent();
+        if (!$raw) {
             $this->log_service->error('Hash is invalid, no message found');
             return false;
         }
-        
-        $message        = json_encode(json_decode($message, true), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $genHash        = hash_hmac('sha256', $message, config('payment.payplus.secret_key'), true);
+
+        $decoded = json_decode($raw, true);
+        if (!is_array($decoded) || json_last_error() !== JSON_ERROR_NONE) {
+            $this->log_service->error('Hash is invalid, body is not valid JSON', [
+                'json_error' => json_last_error_msg(),
+            ]);
+            return false;
+        }
+
+        $message        = json_encode($decoded, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $secret         = (string) config('payment.payplus.secret_key');
+        $genHash        = hash_hmac('sha256', $message, $secret, true);
         $genHash_base64 = base64_encode($genHash);
+
+        return hash_equals($genHash_base64, $hash);
+    }
+
+    /**
+     * @param array $response
+     * @return bool
+     */
+    private function isIPNVerified(array $response): bool
+    {
+        try {
+            $response = Http::withHeaders([
+                ...$this->getAuthorization()
+            ])->post(config('payment.payplus.address') . self::IPN_PATH, [
+                'payment_request_uid' => $response['page_request_uid'],
+            ]);
     
-        return $genHash_base64 === $hash;
+            $body = $response->body();
+            return $body['results']['status'] === 'success';
+        } catch (Exception $ex) {
+            $this->log_service->critical($ex);
+            return false;
+        }
     }
 
     /**

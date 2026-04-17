@@ -35,20 +35,20 @@ class StoreService
 
     /**
      * @param int $order_id
-     * @return Order
+     * @return ?Order
      */
-    public function find(int $order_id): Order
+    public function find(int $order_id): ?Order
     {
         return Order::with('subscription')->find($order_id);
     }
 
     /**
-     * @param string $token
-     * @return Order
+     * @param string $pageUid
+     * @return ?Order
      */
-    public function findByToken(string $token): Order
+    public function findByPageUid(string $pageUid): ?Order
     {
-        return Order::where('token', $token)->first();
+        return Order::where('token', $pageUid)->first();
     }
 
     /**
@@ -131,7 +131,7 @@ class StoreService
                     'payment_page_link' => $order->payment_page_link,
                 ];
             }
-            
+
             Order::where('user_id', $user_id)
                 ->where('status', StatusEnum::IN_PROGRESS)
                 ->update([
@@ -171,6 +171,23 @@ class StoreService
         }
     }
 
+    public function cancelOrder(string $pageRequestUid)
+    {
+        try {
+            $order = $this->findByPageUid($pageRequestUid);
+            if (!$order) {
+                throw new Exception(MessagesEnum::ORDER_NOT_FOUND);
+            }
+
+            $order->update(['status' => StatusEnum::INACTIVE]);
+            $this->log_service->info('Order cancelled', ['order_id' => $order->id]);
+            return true;
+        } catch (Exception $ex) {
+            $this->log_service->error('Failed to cancel order', ['error' => $ex->getMessage()]);
+            return false;
+        }
+    }
+
     /**
      * @param array $data
      * @return void
@@ -184,15 +201,7 @@ class StoreService
             throw new Exception(MessagesEnum::ORDER_CALLBACK_PAYLOAD_INVALID);
         }
 
-        $hash = $data['hash'] ?? null;
-        if (!is_string($hash) || $hash === '') {
-            $this->log_service->info('Order callback has no hash; skipping (unsigned IPN until signed callback arrives)', [
-                'page_request_uid' => $pageRequestUid,
-            ]);
-            return;
-        }
-
-        if (!$order = $this->findByToken($pageRequestUid)) {
+        if (!$order = $this->findByPageUid($pageRequestUid)) {
             throw new Exception(MessagesEnum::ORDER_NOT_FOUND);
         }
 
@@ -215,17 +224,19 @@ class StoreService
             throw new Exception(MessagesEnum::ORDER_CALLBACK_PAYLOAD_INVALID);
         }
 
+        $this->log_service->info('Payment callback is valid', ['Uid' => $pageRequestUid]);
+
+        $eventsCount = (int) ($order->subscription->events_allowed ?? 1);
+        for ($i = 0; $i < $eventsCount; $i++) {
+            $this->event_service->create($order);
+        }
+
         $this->updateStatus(StatusEnum::ACTIVE, $order->id);
         $this->mail_service->send($user->email, MailEnum::ORDER_CONFIRMED, [
             'order' => $order,
             'first_name' => $user->first_name,
             'event_url' => config('app.client_url') . '/event',
         ]);
-
-        $eventsCount = (int) ($order->subscription->events_allowed ?? 1);
-        for ($i = 0; $i < $eventsCount; $i++) {
-            $this->event_service->create($order);
-        }
     }
 
     /**

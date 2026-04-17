@@ -76,11 +76,8 @@ class StoreController extends Controller
             );
 
             // PayPlus sends either a full "Charge" payload (transaction.*) or a minimal signed payload (top-level page_request_uid).
-            $pageRequestUid = $request->input('page_request_uid')
-                ?? data_get($request->all(), 'transaction.payment_page_request_uid');
-
             $data = [
-                'page_request_uid' => is_string($pageRequestUid) ? $pageRequestUid : null,
+                'page_request_uid' => $request->input('transaction.payment_page_request_uid') ?? null,
                 'approval_number'  => data_get($request->all(), 'transaction.approval_number') ?? $request->input('approval_number'),
                 'browser'          => $request->input('browser') ?? $request->userAgent(),
                 'hash'             => $request->input('hash') ?? $request->header('hash'),
@@ -91,6 +88,7 @@ class StoreController extends Controller
             $response = $order_service->orderConfirmed($data);
             return $this->successResponse('Order\'s status updated successfully to completed', $response);
         } catch (Exception $ex) {
+            $order_service->cancelOrder($request->input('transaction.payment_page_request_uid'));
             return $this->errorResponse($ex);
         }
     }
