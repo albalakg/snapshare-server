@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('event_assets', function (Blueprint $table) {
-            $table->boolean('created_by_guest')->default(true)->nullable();
-        });
+        if (!Schema::hasColumn('event_assets', 'created_by_guest')) {
+            Schema::table('event_assets', function (Blueprint $table) {
+                $table->boolean('created_by_guest')->default(true)->nullable();
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('event_assets', function (Blueprint $table) {
-            $table->dropColumn('created_by_guest');
-        });
+        if (Schema::hasColumn('event_assets', 'created_by_guest')) {
+            Schema::table('event_assets', function (Blueprint $table) {
+                $table->dropColumn('created_by_guest');
+            });
+        }
     }
 };
