@@ -237,11 +237,11 @@ class PayPlusProvider implements IPaymentProvider
             return false;
         }
 
-        // $browser = $response['browser'] ?? null;
-        // if (!is_string($browser) || $browser !== $this->provider_browser) {
-        //     $this->log_service->error('The response user agent is invalid', ['browser' => $browser]);
-        //     return false;
-        // }
+        $browser = $response['browser'] ?? null;
+        if (!is_string($browser) || $browser !== $this->provider_browser) {
+            $this->log_service->error('The response user agent is invalid', ['browser' => $browser]);
+            return false;
+        }
 
         $hash = $response['hash'] ?? null;
         if (!is_string($hash) || $hash === '') {
@@ -385,14 +385,18 @@ class PayPlusProvider implements IPaymentProvider
     private function isIPNVerified(array $response): bool
     {
         try {
+            $this->log_service->info('Send request to Payplus provider for IPN', ['payment_request_uid' => $response['page_request_uid']]);
+
             $response = Http::withHeaders([
                 ...$this->getAuthorization()
             ])->post(config('payment.payplus.address') . self::IPN_PATH, [
                 'payment_request_uid' => $response['page_request_uid'],
             ]);
-    
+
             $body = $response->body();
-            return $body['results']['status'] === 'success';
+            $this->log_service->info('Response from Payplus provider for IPN', ['response' => $response->body(), 'test' => json_decode($body)->results->status]);
+            
+            return json_decode($body)->results->status === 'success';
         } catch (Exception $ex) {
             $this->log_service->critical($ex);
             return false;
