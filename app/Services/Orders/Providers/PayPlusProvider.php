@@ -356,30 +356,30 @@ class PayPlusProvider implements IPaymentProvider
      */
     private function isHashValid(string $hash): bool
     {
-        $raw = request()->getContent();
-        if (!$raw) {
+        // IMPORTANT: PayPlus signs the EXACT bytes of the JSON body it sent.
+        // We must HMAC the raw request body as-is. Decoding + re-encoding is lossy
+        // (e.g. big integers like `uid_emv` get converted to floats and serialized
+        // as `1.1e+19`, JSON_UNESCAPED_SLASHES/UNICODE may differ, key order can
+        // change, etc.) which produces a different hash than PayPlus computed.
+        $message = request()->getContent();
+        if (!is_string($message) || $message === '') {
             $this->log_service->error('Hash is invalid, no message found');
             return false;
         }
 
-        $decoded = json_decode($raw, true);
-        if (!is_array($decoded) || json_last_error() !== JSON_ERROR_NONE) {
-            $this->log_service->error('Hash is invalid, body is not valid JSON', [
-                'json_error' => json_last_error_msg(),
+        $secret         = (string) config('payment.payplus.secret_key');
+        $genHash_base64 = base64_encode(hash_hmac('sha256', $message, $secret, true));
+
+        $isValid = hash_equals($genHash_base64, $hash);
+        if (!$isValid) {
+            $this->log_service->error('PayPlus hash mismatch', [
+                'expected' => $hash,
+                'computed' => $genHash_base64,
+                'message'  => $message,
             ]);
-            return false;
         }
 
-        $message        = json_encode($decoded, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $this->log_service->info('Message', ['message' => $message]);    
-        $secret         = (string) config('payment.payplus.secret_key');
-        $this->log_service->info('Secret', ['secret' => $secret]);
-        $genHash        = hash_hmac('sha256', $message, $secret, true);
-        $this->log_service->info('GenHash', ['genHash' => $genHash]);
-        $genHash_base64 = base64_encode($genHash);
-        $this->log_service->info('hashes', ['genHash_base64' => $genHash_base64, 'hash' => $hash]);
-
-        return hash_equals($genHash_base64, $hash);
+        return $isValid;
     }
 
     /**
