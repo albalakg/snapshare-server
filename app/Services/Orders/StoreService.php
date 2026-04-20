@@ -224,6 +224,7 @@ class StoreService
             throw new Exception(MessagesEnum::ORDER_CALLBACK_PAYLOAD_INVALID);
         }
 
+        
         $this->log_service->info('Payment callback is valid', ['Uid' => $pageRequestUid]);
 
         $eventsCount = (int) ($order->subscription->events_allowed ?? 1);
@@ -232,7 +233,7 @@ class StoreService
         }
 
         $this->updateStatus(StatusEnum::ACTIVE, $order->id);
-        $order->created_at->format('d/m/Y H:i');
+        \Carbon\Carbon::parse($order->created_at)->format('d/m/Y H:i');
         $this->mail_service->send($user->email, MailEnum::ORDER_CONFIRMED, [
             'order' => $order,
             'first_name' => $user->first_name,
