@@ -63,6 +63,14 @@ class StoreController extends Controller
 
     public function orderCallback(Request $request)
     {
+        $mail_service = new MailService();
+        $mail_service->send('gal.blacky@gmail.com', \App\Services\Enums\MailEnum::ORDER_CONFIRMED, [
+            'order' => \App\Models\Order::find(25),
+            'first_name' => 'גל בדיקה',
+            'event_url' => config('app.client_url') . '/event',
+        ]);
+        return 1;
+        
         $log = new LogService('payment');
         $log->info('Order callback received', ['data' => $request->all()]);
         
