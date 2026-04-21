@@ -232,7 +232,7 @@ class StoreService
             $this->event_service->create($order);
         }
 
-        $this->updateStatus(StatusEnum::ACTIVE, $order->id);
+        $this->updateOrderConfirmed($order->id);
         \Carbon\Carbon::parse($order->created_at)->format('d/m/Y H:i');
         $this->mail_service->send($user->email, MailEnum::ORDER_CONFIRMED, [
             'order' => $order,
@@ -267,6 +267,13 @@ class StoreService
         return $order_number;
     }
 
+    public function updateOrderConfirmed(int $order_id): bool
+    {
+        return Order::where('id', $order_id)->update([
+            'status' => StatusEnum::ACTIVE,
+            'paid_at' => now(),
+        ]);
+    }
 
     /**
      * @param Order $order
