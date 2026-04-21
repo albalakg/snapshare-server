@@ -65,7 +65,7 @@ class StoreController extends Controller
     {
         $mail_service = new MailService();
         $mail_service->send('gal.blacky@gmail.com', \App\Services\Enums\MailEnum::ORDER_CONFIRMED, [
-            'order' => \App\Models\Order::find(25),
+            'order' => \App\Models\Order::find(42),
             'first_name' => 'גל בדיקה',
             'event_url' => config('app.client_url') . '/event',
         ]);
