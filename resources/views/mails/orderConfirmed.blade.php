@@ -7,7 +7,7 @@
     <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
         <h3>פרטי ההזמנה</h3>
         <p><strong>מספר הזמנה:</strong> {{ $order->id }}</p>
-        <p><strong>סכום:</strong> ₪{{ number_format($order->amount, 2) }}</p>
+        <p><strong>סכום:</strong> ₪{{ number_format($order->price, 2) }}</p>
         <p><strong>תאריך:</strong> {{ $order->created_at }}</p>
         @if($order->subscription)
             <p><strong>חבילה:</strong> {{ $order->subscription->name }}</p>
