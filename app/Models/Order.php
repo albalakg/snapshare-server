@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Models\Subscription;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Order extends Model
@@ -18,11 +17,9 @@ class Order extends Model
         'payment_page_link',
     ];
 
-
-    protected function createdAt(): Attribute
-    {
-        return Attribute::get(fn($value) => \Carbon\Carbon::parse($value)->format('d/m/Y'));
-    }
+    protected $casts = [
+        'paid_at' => 'datetime',
+    ];
 
     public function events()
     {

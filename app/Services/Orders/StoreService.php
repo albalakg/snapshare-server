@@ -233,7 +233,7 @@ class StoreService
         }
 
         $this->updateOrderConfirmed($order->id);
-        \Carbon\Carbon::parse($order->created_at)->format('d/m/Y H:i');
+
         $this->mail_service->send($user->email, MailEnum::ORDER_CONFIRMED, [
             'order' => $order,
             'first_name' => $user->first_name,
