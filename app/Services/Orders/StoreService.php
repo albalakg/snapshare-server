@@ -4,6 +4,7 @@ namespace App\Services\Orders;
 
 use App\Services\Helpers\LogService;
 use Exception;
+use App\Models\Event;
 use App\Models\User;
 use App\Models\Order;
 use App\Models\Subscription;
@@ -234,10 +235,7 @@ class StoreService
         
         $this->log_service->info('Payment callback is valid', ['Uid' => $pageRequestUid]);
 
-        $eventsCount = (int) ($order->subscription->events_allowed ?? 1);
-        for ($i = 0; $i < $eventsCount; $i++) {
-            $this->event_service->create($order);
-        }
+        $this->syncConfirmedOrderEvents($order);
 
         $this->updateOrderConfirmed($order->id);
 
@@ -285,6 +283,40 @@ class StoreService
     private function isSamePrice(float $first_price, float $second_price): bool
     {
         return abs($first_price - $second_price) < 0.01;
+    }
+
+    private function syncConfirmedOrderEvents(Order $order): void
+    {
+        $current_order = $this->getCurrentActiveOrder($order->user_id);
+
+        if ($this->isSubscriptionUpgrade($order, $current_order)) {
+            Event::where('user_id', $order->user_id)
+                ->where('order_id', $current_order->id)
+                ->update([
+                    'order_id' => $order->id,
+                ]);
+
+            $this->updateStatus(StatusEnum::INACTIVE, $current_order->id);
+            return;
+        }
+
+        $eventsCount = (int) ($order->subscription->events_allowed ?? 1);
+        for ($i = 0; $i < $eventsCount; $i++) {
+            $this->event_service->create($order);
+        }
+    }
+
+    private function isSubscriptionUpgrade(Order $order, ?Order $current_order = null): bool
+    {
+        if (!$current_order || $current_order->id === $order->id) {
+            return false;
+        }
+
+        if (!$current_order->subscription || !$order->subscription) {
+            return false;
+        }
+
+        return (float) $order->subscription->price > (float) $current_order->subscription->price;
     }
 
     private function calculateOrderPrice(Subscription $subscription, int $user_id): float
