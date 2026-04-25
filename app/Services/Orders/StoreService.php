@@ -120,13 +120,15 @@ class StoreService
             throw new Exception(MessagesEnum::SUBSCRIPTION_NOT_FOUND);
         }
 
+        $order_price = $this->calculateOrderPrice($subscription, $user_id);
+
         if ($this->hasOrderInProgress($user_id)) {
             $order = Order::where('user_id', $user_id)
                 ->where('status', StatusEnum::IN_PROGRESS)
                 ->where('subscription_id', $subscription->id)
                 ->first();
 
-            if ($order) {
+            if ($order && $this->isSamePrice((float) $order->price, $order_price)) {
                 return [
                     'payment_page_link' => $order->payment_page_link,
                 ];
@@ -146,7 +148,12 @@ class StoreService
 
 
         try {
-            $new_order = $this->addNewOrder($subscription, $user_id);
+            $new_order = $this->addNewOrder(
+                $subscription,
+                $user_id,
+                StatusEnum::PENDING,
+                $order_price
+            );
             $transaction_response = $this->payment_service->startTransaction($new_order, $user, $subscription);
             $new_order->update([
                 'token'             => $transaction_response['token'],
@@ -275,6 +282,39 @@ class StoreService
         ]);
     }
 
+    private function isSamePrice(float $first_price, float $second_price): bool
+    {
+        return abs($first_price - $second_price) < 0.01;
+    }
+
+    private function calculateOrderPrice(Subscription $subscription, int $user_id): float
+    {
+        $new_subscription_price = (float) $subscription->price;
+        $current_order = $this->getCurrentActiveOrder($user_id);
+
+        if (!$current_order || !$current_order->subscription) {
+            return $new_subscription_price;
+        }
+
+        $current_subscription_price = (float) $current_order->subscription->price;
+
+        if ($new_subscription_price <= $current_subscription_price) {
+            return $new_subscription_price;
+        }
+
+        return round($new_subscription_price - $current_subscription_price, 2);
+    }
+
+    private function getCurrentActiveOrder(int $user_id): ?Order
+    {
+        return Order::with('subscription')
+            ->where('user_id', $user_id)
+            ->where('status', StatusEnum::ACTIVE)
+            ->orderByDesc('paid_at')
+            ->orderByDesc('created_at')
+            ->first();
+    }
+
     /**
      * @param Order $order
      * @param User $user
@@ -293,12 +333,12 @@ class StoreService
      * @param int $status
      * @return Order
      */
-    private function addNewOrder(Subscription $subscription, int $user_id, int $status = StatusEnum::PENDING): Order
+    private function addNewOrder(Subscription $subscription, int $user_id, int $status = StatusEnum::PENDING, ?float $price = null): Order
     {
         $new_order = new Order();
         $new_order->user_id = $user_id;
         $new_order->subscription_id = $subscription->id;
-        $new_order->price = $subscription->price;
+        $new_order->price = $price ?? $subscription->price;
         $new_order->status = $status;
         $new_order->order_number = $this->generateOrderNumber();
         $new_order->save();
