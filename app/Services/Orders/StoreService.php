@@ -207,48 +207,95 @@ class StoreService
      */
     public function orderConfirmed(array $data)
     {
-        $this->log_service->info('Order callback received', ['data' => $data]);
+        $this->log_service->info('Order callback: step 1 — payload received', ['data' => $data]);
 
         $pageRequestUid = $data['page_request_uid'] ?? null;
         if (!is_string($pageRequestUid) || $pageRequestUid === '') {
+            $this->log_service->info('Order callback: step 2 — abort, page_request_uid missing or invalid', [
+                'page_request_uid' => $pageRequestUid,
+            ]);
             throw new Exception(MessagesEnum::ORDER_CALLBACK_PAYLOAD_INVALID);
         }
+        $this->log_service->info('Order callback: step 2 — page_request_uid OK', ['page_request_uid' => $pageRequestUid]);
 
         if (!$order = $this->findByPageUid($pageRequestUid)) {
+            $this->log_service->info('Order callback: step 3 — abort, order not found for token', [
+                'page_request_uid' => $pageRequestUid,
+            ]);
             throw new Exception(MessagesEnum::ORDER_NOT_FOUND);
         }
+        $this->log_service->info('Order callback: step 3 — order loaded', [
+            'order_id' => $order->id,
+            'status' => $order->status,
+            'user_id' => $order->user_id,
+        ]);
 
         if ($order->status !== StatusEnum::IN_PROGRESS) {
+            $this->log_service->info('Order callback: step 4 — abort, order not IN_PROGRESS', [
+                'order_id' => $order->id,
+                'status' => $order->status,
+            ]);
             throw new Exception(MessagesEnum::ORDER_IN_INVALID_STATUS_WHILE_SETTING_TO_IN_PROGRESS);
         }
+        $this->log_service->info('Order callback: step 4 — order status OK (IN_PROGRESS)', ['order_id' => $order->id]);
 
         if (!$user = $this->user_service->find($order->user_id)) {
+            $this->log_service->info('Order callback: step 5 — abort, user not found', [
+                'order_id' => $order->id,
+                'user_id' => $order->user_id,
+            ]);
             throw new Exception(MessagesEnum::USER_NOT_FOUND);
         }
+        $this->log_service->info('Order callback: step 5 — user loaded', [
+            'order_id' => $order->id,
+            'user_id' => $user->id,
+        ]);
 
         if (!$this->payment_service->isPaymentCallbackValid($data)) {
+            $this->log_service->info('Order callback: step 6 — payment signature/payload validation failed', [
+                'order_id' => $order->id,
+            ]);
             $this->updateStatus(StatusEnum::INACTIVE, $order->id);
+            $this->log_service->info('Order callback: step 6a — order set to INACTIVE', ['order_id' => $order->id]);
             $this->mail_service->send($user->email, MailEnum::ORDER_FAILED, [
                 'order' => $order,
                 'first_name' => $user->first_name,
                 'failure_reason' => 'ההזמנה נכשלה מסיבה לא ידועה, אנו מציעים לנסות שוב',
                 'retry_url' => config('app.client_url') . '/order',
             ]);
+            $this->log_service->info('Order callback: step 6b — failure mail dispatched', [
+                'order_id' => $order->id,
+                'email' => $user->email,
+            ]);
             throw new Exception(MessagesEnum::ORDER_CALLBACK_PAYLOAD_INVALID);
         }
+        $this->log_service->info('Order callback: step 6 — payment validation OK', ['order_id' => $order->id]);
 
         DB::transaction(function () use ($order, $pageRequestUid) {
-            $this->log_service->info('Payment callback is valid', ['Uid' => $pageRequestUid]);
+            $this->log_service->info('Order callback: step 7 — DB transaction started', [
+                'order_id' => $order->id,
+                'page_request_uid' => $pageRequestUid,
+            ]);
 
             $this->syncConfirmedOrderEvents($order);
 
+            $this->log_service->info('Order callback: step 8 — events synced for confirmed order', ['order_id' => $order->id]);
+
             $this->updateOrderConfirmed($order->id);
+
+            $this->log_service->info('Order callback: step 9 — order updated to ACTIVE with paid_at', ['order_id' => $order->id]);
         });
+
+        $this->log_service->info('Order callback: step 10 — DB transaction finished', ['order_id' => $order->id]);
 
         $this->mail_service->send($user->email, MailEnum::ORDER_CONFIRMED, [
             'order' => $order,
             'first_name' => $user->first_name,
             'event_url' => config('app.client_url') . '/event',
+        ]);
+        $this->log_service->info('Order callback: step 11 — confirmation mail dispatched', [
+            'order_id' => $order->id,
+            'email' => $user->email,
         ]);
     }
 
@@ -297,9 +344,19 @@ class StoreService
      */
     private function syncConfirmedOrderEvents(Order $order): void
     {
+        $this->log_service->info('Order callback: sync events — start', [
+            'order_id' => $order->id,
+            'user_id' => $order->user_id,
+        ]);
+
         $current_order = $this->getCurrentActiveOrder($order->user_id);
 
         if ($this->isSubscriptionUpgrade($order, $current_order)) {
+            $this->log_service->info('Order callback: sync events — upgrade path', [
+                'order_id' => $order->id,
+                'previous_active_order_id' => $current_order->id,
+            ]);
+
             Event::where('user_id', $order->user_id)
                 ->where('order_id', $current_order->id)
                 ->update([
@@ -310,17 +367,28 @@ class StoreService
 
             $allowed = (int) ($order->subscription->events_allowed ?? 1);
             $existing = (int) Event::where('order_id', $order->id)->count();
+            $this->log_service->info('Order callback: sync events — upgrade, creating slot events', [
+                'order_id' => $order->id,
+                'events_allowed' => $allowed,
+                'existing_on_order' => $existing,
+            ]);
             for ($i = $existing; $i < $allowed; $i++) {
                 $this->event_service->create($order);
             }
 
+            $this->log_service->info('Order callback: sync events — upgrade path done', ['order_id' => $order->id]);
             return;
         }
 
         $eventsCount = (int) ($order->subscription->events_allowed ?? 1);
+        $this->log_service->info('Order callback: sync events — new order path', [
+            'order_id' => $order->id,
+            'events_to_create' => $eventsCount,
+        ]);
         for ($i = 0; $i < $eventsCount; $i++) {
             $this->event_service->create($order);
         }
+        $this->log_service->info('Order callback: sync events — new order path done', ['order_id' => $order->id]);
     }
 
     private function isSubscriptionUpgrade(Order $order, ?Order $current_order = null): bool
