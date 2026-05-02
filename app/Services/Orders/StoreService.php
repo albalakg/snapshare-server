@@ -129,7 +129,11 @@ class StoreService
                 ->where('subscription_id', $subscription->id)
                 ->first();
 
-            if ($order && $this->isSamePrice((float) $order->price, $order_price)) {
+            if (
+                $order
+                && $this->isSamePrice((float) $order->price, $order_price)
+                && $order->created_at >= now()->subHour()
+            ) {
                 return [
                     'payment_page_link' => $order->payment_page_link,
                 ];
