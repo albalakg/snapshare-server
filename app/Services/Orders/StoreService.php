@@ -265,7 +265,6 @@ class StoreService
             ]);
             $this->log_service->info('Order callback: step 6b — failure mail dispatched', [
                 'order_id' => $order->id,
-                'email' => $user->email,
             ]);
             throw new Exception(MessagesEnum::ORDER_CALLBACK_PAYLOAD_INVALID);
         }
@@ -295,7 +294,6 @@ class StoreService
         ]);
         $this->log_service->info('Order callback: step 11 — confirmation mail dispatched', [
             'order_id' => $order->id,
-            'email' => $user->email,
         ]);
     }
 
