@@ -17,6 +17,7 @@ use App\Services\Events\EventService;
 use App\Services\Helpers\MailService;
 use App\Services\Orders\SubscriptionService;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
 use function Aws\boolean_value;
 
@@ -49,7 +50,7 @@ class StoreService
      */
     public function findByPageUid(string $pageUid): ?Order
     {
-        return Order::where('token', $pageUid)->first();
+        return Order::with('subscription')->where('token', $pageUid)->first();
     }
 
     /**
@@ -236,12 +237,13 @@ class StoreService
             throw new Exception(MessagesEnum::ORDER_CALLBACK_PAYLOAD_INVALID);
         }
 
-        
-        $this->log_service->info('Payment callback is valid', ['Uid' => $pageRequestUid]);
+        DB::transaction(function () use ($order, $pageRequestUid) {
+            $this->log_service->info('Payment callback is valid', ['Uid' => $pageRequestUid]);
 
-        $this->syncConfirmedOrderEvents($order);
+            $this->syncConfirmedOrderEvents($order);
 
-        $this->updateOrderConfirmed($order->id);
+            $this->updateOrderConfirmed($order->id);
+        });
 
         $this->mail_service->send($user->email, MailEnum::ORDER_CONFIRMED, [
             'order' => $order,
@@ -289,6 +291,10 @@ class StoreService
         return abs($first_price - $second_price) < 0.01;
     }
 
+    /**
+     * Events store order_id only; subscription tier is on orders (subscription_id).
+     * On upgrade, events are reassigned to the new order so limits and SQL joins on orders.subscription_id use the upgraded plan.
+     */
     private function syncConfirmedOrderEvents(Order $order): void
     {
         $current_order = $this->getCurrentActiveOrder($order->user_id);
@@ -301,6 +307,13 @@ class StoreService
                 ]);
 
             $this->updateStatus(StatusEnum::INACTIVE, $current_order->id);
+
+            $allowed = (int) ($order->subscription->events_allowed ?? 1);
+            $existing = (int) Event::where('order_id', $order->id)->count();
+            for ($i = $existing; $i < $allowed; $i++) {
+                $this->event_service->create($order);
+            }
+
             return;
         }
 

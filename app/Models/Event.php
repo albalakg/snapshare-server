@@ -47,6 +47,9 @@ class Event extends Model
         return $this->hasOne(EventConfig::class, 'event_id', 'id');
     }
 
+    /**
+     * Billing plan for this event: orders.subscription_id. On subscription upgrade, StoreService points order_id at the new order.
+     */
     public function order()
     {
         return $this->hasOne(Order::class, 'id', 'order_id');
