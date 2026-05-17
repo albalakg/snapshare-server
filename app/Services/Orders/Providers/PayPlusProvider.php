@@ -132,24 +132,27 @@ class PayPlusProvider implements IPaymentProvider
      */
     public function startTransaction()
     {
+        $url = config('payment.payplus.address') . self::PAGE_GENERATION_PATH;
         $this->log_service->info('test', $this->getAuthorization());
         $this->log_service->info('Send a request to Payplus provider for transaction', $this->page_generation_payload);
         $response = Http::withHeaders([
             ...$this->getAuthorization()
-            ])->post(config('payment.payplus.address') . self::PAGE_GENERATION_PATH, $this->page_generation_payload);
+            ])->post($url, $this->page_generation_payload);
 
         $body = $response->body();
         $this->transaction_response = json_decode($body);
 
-        if ($this->transaction_response === null) {
+        if (empty($this->transaction_response) || $this->transaction_response === null) {
             $this->log_service->error('PayPlus generateLink: expected JSON but got empty or non-JSON body', [
                 'http_status' => $response->status(),
                 'body'        => $body,
+                'url'         => $url,
             ]);
         } else {
             $this->log_service->info('Response from Payplus provider for transaction', [
                 'http_status' => $response->status(),
                 'response'    => $this->transaction_response,
+                'url'         => $url,
             ]);
         }
     }
