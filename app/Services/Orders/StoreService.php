@@ -168,8 +168,6 @@ class StoreService
                 'payment_page_link' => $transaction_response['link'],
             ]);
 
-            $this->sendInvoice($new_order, $user, $subscription);
-
             return [
                 'payment_page_link' => $new_order->payment_page_link,
             ];
@@ -428,18 +426,6 @@ class StoreService
             ->orderByDesc('paid_at')
             ->orderByDesc('created_at')
             ->first();
-    }
-
-    /**
-     * @param Order $order
-     * @param User $user
-     * @param Subscription $course
-     * @return void
-     */
-    private function sendInvoice(Order $order, User $user, Subscription $subscription)
-    {
-        $this->payment_service = new PaymentService();
-        $this->payment_service->sendInvoice($order, $user, $subscription);
     }
 
     /**

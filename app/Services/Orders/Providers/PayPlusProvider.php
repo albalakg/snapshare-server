@@ -133,7 +133,6 @@ class PayPlusProvider implements IPaymentProvider
     public function startTransaction()
     {
         $url = config('payment.payplus.address') . self::PAGE_GENERATION_PATH;
-        $this->log_service->info('test', $this->getAuthorization());
         $this->log_service->info('Send a request to Payplus provider for transaction', $this->page_generation_payload);
         $response = Http::withHeaders([
             ...$this->getAuthorization()
@@ -168,12 +167,31 @@ class PayPlusProvider implements IPaymentProvider
         $this->order = $order;
         $this->user = $user;
         $this->subscription = $subscription;
-        $this->log_service->info('Send a request to Payplus provider for invoice');
+
+        $url = config('payment.payplus.address') . self::INVOICE_PATH;
+        $payload = $this->getInvoicePayload();
+        $this->log_service->info('Send a request to Payplus provider for invoice', ['url' => $url]);
+
         $response = Http::withHeaders([
             ...$this->getAuthorization()
-            ])->post(config('payment.payplus.address') . self::INVOICE_PATH, $this->getInvoicePayload());
-        $this->invoice_response = json_decode($response->body());
-        $this->log_service->info('Response from Payplus provider for invoice', (array) $this->invoice_response);
+        ])->post($url, $payload);
+
+        $body = $response->body();
+        $this->invoice_response = json_decode($body);
+
+        if (empty($this->invoice_response) || $this->invoice_response === null) {
+            $this->log_service->error('PayPlus invoice: expected JSON but got empty or non-JSON body', [
+                'http_status' => $response->status(),
+                'body'        => $body,
+                'url'         => $url,
+            ]);
+        } else {
+            $this->log_service->info('Response from Payplus provider for invoice', [
+                'http_status' => $response->status(),
+                'response'    => $this->invoice_response,
+                'url'         => $url,
+            ]);
+        }
     }
 
     /**
@@ -211,11 +229,23 @@ class PayPlusProvider implements IPaymentProvider
     public function isInvoiceValid(): bool
     {
         try {
-            if ($this->invoice_response->status !== 'success') {
+            if (!$this->invoice_response) {
+                throw new Exception('The response from the invoice is invalid');
+            }
+
+            $status = $this->invoice_response->status
+                ?? $this->invoice_response->results?->status
+                ?? null;
+
+            if ($status !== 'success') {
                 throw new Exception('The response status from the invoice indicates for an error');
             }
 
-            if (empty($this->invoice_response->details->docUID) || !Str::isUuid($this->invoice_response->details->docUID)) {
+            $docUid = $this->invoice_response->details?->docUID
+                ?? $this->invoice_response->data?->docUID
+                ?? null;
+
+            if (empty($docUid) || !Str::isUuid($docUid)) {
                 throw new Exception('The response docUID from the invoice is invalid');
             }
 
