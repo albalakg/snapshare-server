@@ -63,6 +63,10 @@ class PayPlusProvider implements IPaymentProvider
             'initial_invoice'   => self::INITIAL_INVOICE,
             'payments'          => self::INVOICE_NUMBER_OF_PAYMENTS,
             'create_hash'       => false,
+            'customer'          => [
+                'customer_name' => $this->user->getFullName(),
+                'email'         => $this->user->email,
+            ],
         ];
     }
 
