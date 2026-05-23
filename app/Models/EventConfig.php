@@ -19,6 +19,7 @@ class EventConfig extends Model
         'preview_owners_assets_in_gallery',
         'preview_qr_in_gallery',
         'displayed_gallery',
+        'video_upload_enabled',
     ];
 
     protected $casts = [
@@ -28,6 +29,7 @@ class EventConfig extends Model
         'preview_guests_assets_in_gallery'  => 'boolean',
         'preview_owners_assets_in_gallery'  => 'boolean',
         'preview_qr_in_gallery'             => 'boolean',
+        'video_upload_enabled'              => 'boolean',
     ];
 
     public function event()

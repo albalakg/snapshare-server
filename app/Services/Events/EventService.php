@@ -24,6 +24,7 @@ use App\Http\Requests\UploadFileRequest;
 use App\Models\User;
 use App\Services\Enums\EventAssetTypeEnum;
 use App\Services\Enums\EventGalleryTypeEnum;
+use App\Jobs\ModerateEventAssetJob;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
@@ -60,7 +61,7 @@ class EventService
         return Event::where('path', $event_path)
             ->select('id', 'image', 'name', 'starts_at', 'user_id', 'status')
             ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::READY, StatusEnum::PENDING, StatusEnum::IN_PROGRESS])
-            ->with('config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery')
+            ->with('config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,video_upload_enabled')
             ->first();
     }
 
@@ -75,7 +76,7 @@ class EventService
             ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::READY, StatusEnum::PENDING, StatusEnum::IN_PROGRESS])
             ->with(
                 'displayedAssets:id,event_id,asset_type,path', 
-                'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery'
+                'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,video_upload_enabled'
             )
             ->first();
     }
@@ -109,7 +110,7 @@ class EventService
             ->select('id', 'order_id', 'path', 'image', 'name', 'status', 'starts_at', 'finished_at')
             ->with('assets:id,event_id,asset_type,path,is_displayed',
                 'activeDownloadProcess:id,path,status,event_id',
-                'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,preview_qr_in_gallery,displayed_gallery')
+                'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,preview_qr_in_gallery,displayed_gallery,video_upload_enabled')
             ->first();
     }
 
@@ -142,7 +143,7 @@ class EventService
      * @param int $user_id
      * @return Collection
      */
-    public function getEventAssets(int $id, int $user_id): Collection
+    public function getEventAssets(int $id, int $user_id, bool $includeBlocked = false): array
     {
         if (!$event = Event::find($id)) {
             throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
@@ -152,9 +153,24 @@ class EventService
             throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
         }
 
-        return EventAsset::where('event_id', $id)
-            ->select('id', 'event_id', 'asset_type', 'path', 'is_displayed')
+        $statuses = [StatusEnum::ACTIVE, StatusEnum::PENDING];
+        if ($includeBlocked) {
+            $statuses[] = StatusEnum::BLOCKED;
+        }
+
+        $assets = EventAsset::where('event_id', $id)
+            ->whereIn('status', $statuses)
+            ->select('id', 'event_id', 'asset_type', 'path', 'is_displayed', 'status', 'moderation_labels')
             ->get();
+
+        $blockedCount = EventAsset::where('event_id', $id)
+            ->where('status', StatusEnum::BLOCKED)
+            ->count();
+
+        return [
+            'assets' => $assets,
+            'blocked_count' => $blockedCount,
+        ];
     }
     
     /**
@@ -187,6 +203,7 @@ class EventService
 
         
         $query = EventAsset::where('event_id', $id)
+                           ->where('status', StatusEnum::ACTIVE)
                            ->where('is_displayed', true);
         
         if(!$event->config->preview_guests_assets_in_gallery || !$event->config->preview_owners_assets_in_gallery) {
@@ -505,16 +522,34 @@ class EventService
             throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
         }
 
+        $asset_type = $this->getFileType($request);
+        if ($asset_type === EventAssetTypeEnum::VIDEO_ID) {
+            $event->loadMissing('config');
+            if (!$event->config?->video_upload_enabled) {
+                throw new Exception(MessagesEnum::EVENT_VIDEO_UPLOAD_DISABLED);
+            }
+        }
+
         $event_asset = new EventAsset;
         $event_asset->path = FileService::create($request->file('file'), "events/$event_id/gallery");
         $event_asset->event_id = $event_id;
         $event_asset->is_displayed = true;
-        $event_asset->asset_type = $this->getFileType($request);
+        $event_asset->asset_type = $asset_type;
         $event_asset->user_agent = $request->userAgent();
         $event_asset->ip = $request->ip();
-        $event_asset->status = StatusEnum::ACTIVE;
         $event_asset->created_by_guest = !boolval($user_id);
+
+        if ($event_asset->asset_type === EventAssetTypeEnum::IMAGE_ID && config('moderation.enabled')) {
+            $event_asset->status = StatusEnum::PENDING;
+        } else {
+            $event_asset->status = StatusEnum::ACTIVE;
+        }
+
         $event_asset->save();
+
+        if ($event_asset->asset_type === EventAssetTypeEnum::IMAGE_ID && config('moderation.enabled')) {
+            ModerateEventAssetJob::dispatch($event_asset->id);
+        }
 
         return $event_asset;
     }
@@ -629,7 +664,9 @@ class EventService
      */
     private function getEventTotalAssets(int $event_id): int
     {
-        return EventAsset::where('event_id', $event_id)->count();
+        return EventAsset::where('event_id', $event_id)
+            ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::PENDING])
+            ->count();
     }
 
     /**
@@ -653,6 +690,7 @@ class EventService
         $event_config->preview_owners_assets_in_gallery = true;
         $event_config->preview_qr_in_gallery = true;
         $event_config->displayed_gallery = EventGalleryTypeEnum::SINGLE_GALLERY;
+        $event_config->video_upload_enabled = true;
         $event_config->save();
     }
 
@@ -667,6 +705,7 @@ class EventService
                 'preview_guests_assets_in_gallery'  => ($config['preview_guests_assets_in_gallery'] === 'true') ?? true,
                 'preview_owners_assets_in_gallery'  => ($config['preview_owners_assets_in_gallery'] === 'true') ?? true,
                 'preview_qr_in_gallery'             => ($config['preview_qr_in_gallery'] === 'true') ?? true,
+                'video_upload_enabled'              => ($config['video_upload_enabled'] === 'true') ?? true,
             ]
         );
     }

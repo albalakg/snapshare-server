@@ -45,6 +45,7 @@ class ZipEventAssetsForDownload
         // Validate assets exist and belong to the event
         $total_assets = EventAsset::whereIn('id', $this->asset_ids)
             ->where('event_id', $this->event->id)
+            ->where('status', StatusEnum::ACTIVE)
             ->count();
 
         if ($total_assets !== count($this->asset_ids)) {

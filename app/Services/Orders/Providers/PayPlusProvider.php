@@ -59,9 +59,13 @@ class PayPlusProvider implements IPaymentProvider
             'refURL_success'    => '',
             'refURL_failure'    => '',
             'refURL_cancel'     => '',
+            'refURL_cancel'     => '',
             'refURL_callback'   => '',
             'initial_invoice'   => self::INITIAL_INVOICE,
             'payments'          => self::INVOICE_NUMBER_OF_PAYMENTS,
+            'sendEmailApproval' => true,
+            'sendEmailFailure'  => false,
+            'send_failure_callback'  => false,
             'create_hash'       => false,
             'customer'          => [
                 'customer_name' => $this->user->getFullName(),

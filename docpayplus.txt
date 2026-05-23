@@ -1,0 +1,93 @@
+יצירת מסמך באמצעות API
+1. יצירת מסמך באופן רטרו מתוך בקשת Generate Payment Link:
+באופן הזה המידע שימשך למסך מבחינת פרטי הלקוח והשירותים נמשכים מתוך דף התשלום שיצרתם. המסמך ייצא בין 1-2 דקות.
+קישור לדוקומנטציה
+יש לשלוח ב-body את הפמטר הבא:
+intial_invoice: true
+לדוגמא:
+
+          {
+  "payment_page_uid": "7a0bc4d4-f35f-4301-a945-926378a2416d",
+  "charge_method": 1,
+  "amount": 1,
+  "currency_code": "ILS",
+  "sendEmailApproval": true,
+  "sendEmailFailure": false,
+  "send_failure_callback": false,
+  "initial_invoice": true
+}
+        
+2. יצירת מסמך בשליחת בקשה Create new document:
+קישור לדוקומנטציה
+באופן זה, עליכם להזין את הערכים שאתם מזינים בכל פרמטר. המסמך ייצא באופן מיידי.
+:Route
+סביבת staging
+https://restapidev.payplus.co.il/api/v1.0/books/docs/new/{docType}
+סביבת production
+https://restapi.payplus.co.il/api/v1.0/books/docs/new/{docType}
+Method: POST
+XXXXXXXXXXXXXXXXXXXXXXXXXX
+API Key
+XXXXXXXXXXXXXXXXXXXXXXXXXX
+Secret Key
+Path Params: Document type
+inv_tax_receipt - Tax invoice/receipt
+inv_tax - Tax invoice
+inv_receipt - Receipt
+inv_proforma - Proforma invoice
+inv_refund - Refund
+crt_delivery - Delivery/shipping certificate
+crt_return - Return certificate
+order_purchase - Order purchase
+certificatepurchase - Purchase certificate
+dc_quote - Quote
+inv_don_receipt - Donation receipt
+inv_pay_request - Payment request
+YYYY-MM-DD
+doc_date(string)
+מזהה מותג (נמשך מתוך ממשק חשבונית+)
+brand_uuid (string)
+צפייה מקדימה במסמך
+preview(boolean)
+הסתרת סכומים בשקל במסמך
+hide_base_currency(boolean)
+האם ליצור טיוטה
+draft (boolean)
+פרטים נוספים (בדרך כלל מזהה מסויים)
+more_info (string)
+ביטול מסמך באמצעות מסמך אחר, לדוגמה ע״י חשבונית זיכוי. יש להזין את שדה ה-UUID
+Cancel_doc (string)
+קישור לטרנזקציה שכבר בוצעה. יש להזין את הUUID
+Transaction_uuid (string)
+link-to-transaction-for-which-document-is-created
+Send_document_email (boolean)
+האם לשלוח ללקוח את המסמך במייל
+Send_document_email (boolean)
+האם לשלוח ללקוח את המסמך בSMS
+Send_document_sms (boolean)
+כתובת Callback URL
+Callback_url (string)
+סוג המע"מ של המסמך  Vat-type-included - כולל מע”מ Vat-type-not-included - לפני מע”מ Vat-type-exempt - פטור מע”מ
+vatType (string)
+אחוז המע"מ על המסמך 
+Vat_percentage (integer)
+שפת מסמך  He - עברית En - אנגלית
+Language (string)
+קוד מטבע (יש להיעזר ברשימה באזור האישי בפיי פלוס במטבעות שאנו מקבלים)
+Currency_code (string)
+שער המרה
+Conversion_rate (float)
+עיגול אגורות
+Autocalculate_rate (boolean)
+למנוע משליחת המסמך ללקוח 
+prevent_email (boolean)
+אובייקט לקוח, מכיל את פרטים אודות הלקוח. השדות שהם חובה: שם לקוח, אימייל לקוח.
+Customer (object)
+מערך של מחרוזות. תגים לקיטלוג המסמך.
+Tags (array of strings)
+מערך של אובייקטים מסוג תשלומים. כאן תוכלו להזין את התקבול על גבי המסמך.
+payments(array of objects)
+סכום כולל של המסמך
+totalAmount(integer)
+מערך של אובייקטים מסוג מוצרים. לכל מוצר הגדרות מסויימות של שם פריט, ברקוד, מחיר, כמות, מע"מ, הנחה וכו'.
+items(array of objects)

@@ -29,6 +29,7 @@ class UpdateEventRequest extends FormRequest
             'config.preview_guests_assets_in_gallery'   => ['nullable', 'in:true,false'],
             'config.preview_owners_assets_in_gallery'   => ['nullable', 'in:true,false'],
             'config.preview_qr_in_gallery'              => ['nullable', 'in:true,false'],
+            'config.video_upload_enabled'               => ['nullable', 'in:true,false'],
         ];
     }
 }

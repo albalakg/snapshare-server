@@ -15,6 +15,11 @@ class EventAsset extends Model
 
     protected $hidden = ['asset_type'];
 
+    protected $casts = [
+        'moderation_labels' => 'array',
+        'is_displayed' => 'boolean',
+    ];
+
     public function getTypeAttribute()
     {
         return EventAssetTypeEnum::getNameById($this->asset_type);  

@@ -51,6 +51,8 @@ class MessagesEnum extends BaseEnum
 
     const EVENT_CONFIG_NOT_FOUND = 'Event config not found';
 
+    const EVENT_VIDEO_UPLOAD_DISABLED = 'Video uploads are not enabled for this event';
+
     // Info
     const LOGIN_SUCCESS = 'Logged in successfully';
 

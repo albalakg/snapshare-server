@@ -87,11 +87,12 @@ class EventController extends Controller
         }
     }
 
-    public function assets(int $event_id)
+    public function assets(int $event_id, Request $request)
     {
         try {
             $event_service = new EventService(new UserService());
-            $response = $event_service->getEventAssets($event_id, Auth::user()->id);
+            $includeBlocked = filter_var($request->query('include_blocked'), FILTER_VALIDATE_BOOLEAN);
+            $response = $event_service->getEventAssets($event_id, Auth::user()->id, $includeBlocked);
             return $this->successResponse(MessagesEnum::EVENT_FOUND_SUCCESS, $response);
         } catch (Exception $ex) {
             return $this->errorResponse($ex);
