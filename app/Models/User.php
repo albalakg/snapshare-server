@@ -6,6 +6,7 @@ namespace App\Models;
 use App\Models\Role;
 use App\Services\Enums\RoleEnum;
 use App\Services\Enums\StatusEnum;
+use App\Services\Enums\AuthProviderEnum;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -22,7 +23,9 @@ class User extends Authenticatable
         'first_name',
         'last_name',
         'password',
-        'status'
+        'status',
+        'google_id',
+        'auth_provider',
     ];
 
     protected $hidden = [
@@ -36,8 +39,13 @@ class User extends Authenticatable
      * @param string $password
      * @return void
     */
-    public function setPasswordAttribute(string $password)
+    public function setPasswordAttribute(?string $password)
     {
+        if ($password === null || $password === '') {
+            $this->attributes['password'] = null;
+            return;
+        }
+
         $this->attributes['password'] = bcrypt($password);
     }
 
@@ -111,5 +119,11 @@ class User extends Authenticatable
     public function getFullName(): string
     {
         return $this->first_name . ' ' . $this->last_name;
+    }
+
+    public function isGoogleOnly(): bool
+    {
+        return $this->auth_provider === AuthProviderEnum::GOOGLE
+            || ($this->google_id && empty($this->attributes['password'] ?? $this->password));
     }
 }

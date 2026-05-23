@@ -16,6 +16,8 @@ use App\Http\Requests\CreateEventRequest;
 use App\Http\Requests\UpdateEventRequest;
 use App\Http\Requests\DeleteEventAssetsRequest;
 use App\Http\Requests\HideEventAssetsRequest;
+use App\Http\Requests\BlockEventAssetsRequest;
+use App\Http\Requests\UnblockEventAssetsRequest;
 use Illuminate\Http\Request;
 
 class EventController extends Controller
@@ -91,8 +93,7 @@ class EventController extends Controller
     {
         try {
             $event_service = new EventService(new UserService());
-            $includeBlocked = filter_var($request->query('include_blocked'), FILTER_VALIDATE_BOOLEAN);
-            $response = $event_service->getEventAssets($event_id, Auth::user()->id, $includeBlocked);
+            $response = $event_service->getEventAssets($event_id, Auth::user()->id);
             return $this->successResponse(MessagesEnum::EVENT_FOUND_SUCCESS, $response);
         } catch (Exception $ex) {
             return $this->errorResponse($ex);
@@ -143,6 +144,28 @@ class EventController extends Controller
             $event_service = new EventService(new UserService());
             $response = $event_service->hideEventAssets($event_id, $request->validated(), Auth::user()->id);
             return $this->successResponse(MessagesEnum::DELETED_EVENT_ASSET_SUCCESS, $response);
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex);
+        }
+    }
+
+    public function blockAssets(int $event_id, BlockEventAssetsRequest $request)
+    {
+        try {
+            $event_service = new EventService(new UserService());
+            $response = $event_service->blockEventAssets($event_id, $request->validated(), Auth::user()->id);
+            return $this->successResponse(MessagesEnum::BLOCKED_EVENT_ASSET_SUCCESS, $response);
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex);
+        }
+    }
+
+    public function unblockAssets(int $event_id, UnblockEventAssetsRequest $request)
+    {
+        try {
+            $event_service = new EventService(new UserService());
+            $response = $event_service->unblockEventAssets($event_id, $request->validated(), Auth::user()->id);
+            return $this->successResponse(MessagesEnum::UNBLOCKED_EVENT_ASSET_SUCCESS, $response);
         } catch (Exception $ex) {
             return $this->errorResponse($ex);
         }

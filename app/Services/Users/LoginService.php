@@ -40,7 +40,18 @@ class LoginService
             throw new Exception(MessagesEnum::INVALID_CREDENTIALS);
         }
 
-        $this->user = Auth::user();
+        return $this->buildResponseForUser(Auth::user());
+    }
+
+    /**
+     * Build login response for an already-authenticated user.
+     *
+     * @param User $user
+     * @return self
+     */
+    public function buildResponseForUser(User $user): self
+    {
+        $this->user = $user;
         $this->isUserAuthorizedToAccess();
         $this->buildUserDetails();
         return $this;

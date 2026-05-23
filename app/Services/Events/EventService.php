@@ -143,7 +143,7 @@ class EventService
      * @param int $user_id
      * @return Collection
      */
-    public function getEventAssets(int $id, int $user_id, bool $includeBlocked = false): array
+    public function getEventAssets(int $id, int $user_id, bool $includeBlocked = true): array
     {
         if (!$event = Event::find($id)) {
             throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
@@ -203,8 +203,7 @@ class EventService
 
         
         $query = EventAsset::where('event_id', $id)
-                           ->where('status', StatusEnum::ACTIVE)
-                           ->where('is_displayed', true);
+            ->visibleInGallery();
         
         if(!$event->config->preview_guests_assets_in_gallery || !$event->config->preview_owners_assets_in_gallery) {
             $query = $query->where('created_by_guest', boolval($event->config->preview_guests_assets_in_gallery));
@@ -267,6 +266,83 @@ class EventService
             $event_asset->save();
         }
         
+        return true;
+    }
+
+    /**
+     * @param int $id
+     * @param array $data
+     * @param int $user_id
+     * @return bool
+     */
+    public function blockEventAssets(int $id, array $data, int $user_id): bool
+    {
+        if (!$event = Event::find($id)) {
+            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+        }
+
+        if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+            throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+        }
+
+        $blockableCount = EventAsset::whereIn('id', $data['assets'])
+            ->where('event_id', $id)
+            ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::PENDING])
+            ->count();
+
+        if ($blockableCount !== count($data['assets'])) {
+            throw new Exception(MessagesEnum::EVENTS_ASSETS_NOT_FOUND);
+        }
+
+        EventAsset::whereIn('id', $data['assets'])
+            ->where('event_id', $id)
+            ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::PENDING])
+            ->update([
+                'status' => StatusEnum::BLOCKED,
+                'is_displayed' => false,
+                'moderation_labels' => [
+                    'reasons' => ['Manually blocked'],
+                    'labels' => [],
+                ],
+            ]);
+
+        return true;
+    }
+
+    /**
+     * @param int $id
+     * @param array $data
+     * @param int $user_id
+     * @return bool
+     */
+    public function unblockEventAssets(int $id, array $data, int $user_id): bool
+    {
+        if (!$event = Event::find($id)) {
+            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+        }
+
+        if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+            throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+        }
+
+        $blockedCount = EventAsset::whereIn('id', $data['assets'])
+            ->where('event_id', $id)
+            ->where('status', StatusEnum::BLOCKED)
+            ->count();
+
+        if ($blockedCount !== count($data['assets'])) {
+            throw new Exception(MessagesEnum::EVENTS_ASSETS_NOT_FOUND);
+        }
+
+        EventAsset::whereIn('id', $data['assets'])
+            ->where('event_id', $id)
+            ->where('status', StatusEnum::BLOCKED)
+            ->update([
+                'status' => StatusEnum::ACTIVE,
+                'is_displayed' => true,
+                'moderation_labels' => null,
+            ]);
+
         return true;
     }
 

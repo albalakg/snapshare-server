@@ -126,6 +126,10 @@ class UserService
         if (!$user || !$user->isActive()) {
             return;
         }
+
+        if ($user->isGoogleOnly()) {
+            throw new Exception(MessagesEnum::GOOGLE_SIGNIN_REQUIRED);
+        }
         
         if (!$this->canResetPassword($email)) {
             LogService::init()->info(LogsEnum::MAX_PASSWORD_RESET_ATTEMPTS, ['user_id' => $user->id]);

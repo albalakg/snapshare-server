@@ -15,6 +15,10 @@ use App\Http\Requests\UploadFileRequest;
 use App\Http\Requests\ConfirmEmailRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Requests\ForgotPasswordRequest;
+use App\Http\Requests\GoogleRedirectRequest;
+use App\Http\Requests\GoogleAuthExchangeRequest;
+use App\Services\Auth\GoogleAuthService;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -70,6 +74,46 @@ class AuthController extends Controller
             return $this->successResponse(MessagesEnum::CONFIRM_EMAIL);
         } catch (Exception $ex) {
             return $this->errorResponse($ex);
+        }
+    }
+
+    public function googleRedirect(GoogleRedirectRequest $request)
+    {
+        try {
+            return app(GoogleAuthService::class)->redirectToGoogle(
+                $request->input('redirect'),
+                $request->input('post_login_redirect')
+            );
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex);
+        }
+    }
+
+    public function googleCallback(Request $request)
+    {
+        try {
+            $redirectUrl = app(GoogleAuthService::class)->handleCallback(
+                $request->query('code'),
+                $request->query('state'),
+                $request->query('error')
+            );
+
+            return redirect()->away($redirectUrl);
+        } catch (Exception $ex) {
+            $feRedirect = rtrim(config('app.client_url'), '/') . '/auth/google/callback';
+
+            return redirect()->away($feRedirect . '?error=access_denied');
+        }
+    }
+
+    public function googleExchange(GoogleAuthExchangeRequest $request)
+    {
+        try {
+            $response = app(GoogleAuthService::class)->exchangeCode($request->input('code'));
+
+            return $this->successResponse(MessagesEnum::LOGIN_SUCCESS, $response);
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex, null, $ex->getCode() ?: 400);
         }
     }
 }

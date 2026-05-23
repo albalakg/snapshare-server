@@ -39,6 +39,7 @@ class ModerateEventAssetJob implements ShouldQueue
 
         try {
             $result = $moderationService->checkImage($asset->path);
+            LogService::init()->info('Moderation result', ['result' => $result]);
         } catch (Throwable $e) {
             LogService::init()->error($e, [
                 'event_asset_id' => $this->eventAssetId,
@@ -57,6 +58,7 @@ class ModerateEventAssetJob implements ShouldQueue
 
         $asset->update([
             'status' => StatusEnum::BLOCKED,
+            'is_displayed' => false,
             'moderation_labels' => [
                 'reasons' => $result['reasons'],
                 'labels' => $result['labels'],

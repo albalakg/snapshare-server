@@ -12,6 +12,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::post('{event_id}/assets/download', [EventController::class, 'downloadAssets']);
     Route::post('{event_id}/assets/delete', [EventController::class, 'deleteAssets']);
     Route::post('{event_id}/assets/hide', [EventController::class, 'hideAssets']);
+    Route::post('{event_id}/assets/block', [EventController::class, 'blockAssets']);
+    Route::post('{event_id}/assets/unblock', [EventController::class, 'unblockAssets']);
     Route::post('{event_id}/update', [EventController::class, 'update']);
     Route::post('{event_id}/ready', [EventController::class, 'ready']);
     Route::post('{event_id}/pending', [EventController::class, 'pending']);

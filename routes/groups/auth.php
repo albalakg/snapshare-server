@@ -8,3 +8,7 @@ Route::post('signup', [AuthController::class, 'signup']);
 Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('reset-password', [AuthController::class, 'resetPassword']);
 Route::post('email-confirmation', [AuthController::class, 'confirmEmail']);
+Route::get('google/redirect', [AuthController::class, 'googleRedirect']);
+Route::get('google/callback', [AuthController::class, 'googleCallback']);
+Route::post('google/callback', [AuthController::class, 'googleExchange'])
+    ->middleware('throttle:google-auth-code');

@@ -41,6 +41,16 @@ class MessagesEnum extends BaseEnum
 
     const RESET_PASSWORD_REQUEST_NOT_FOUND = 'Reset Password request not found';
 
+    const GOOGLE_SIGNIN_REQUIRED = 'This account uses Google sign-in. Please sign in with Google.';
+
+    const GOOGLE_AUTH_INVALID_REDIRECT = 'Invalid redirect URL';
+
+    const GOOGLE_AUTH_STATE_INVALID = 'Invalid or expired OAuth state';
+
+    const GOOGLE_AUTH_CODE_INVALID = 'Invalid or expired authorization code';
+
+    const GOOGLE_ACCOUNT_CONFLICT = 'This email is linked to a different Google account';
+
     const DOWNLOAD_EVENT_ASSET_START_FAILED = 'Failed to prepare event assets for download';
 
     const FAILED_TO_DELETE_EVENT_ASSETS_FOLDER = 'Failed to delete event\'s assets folder';
@@ -77,6 +87,10 @@ class MessagesEnum extends BaseEnum
     const ORDER_DELETED_SUCCESS = 'Order deleted successfully';
 
     const DELETED_EVENT_ASSET_SUCCESS = 'Deleted event asset successfully';
+
+    const BLOCKED_EVENT_ASSET_SUCCESS = 'Blocked event asset successfully';
+
+    const UNBLOCKED_EVENT_ASSET_SUCCESS = 'Unblocked event asset successfully';
 
     const DOWNLOAD_EVENT_ASSET_START_SUCCESS = 'Started preparing event assets for download successfully';
 

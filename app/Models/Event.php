@@ -28,8 +28,7 @@ class Event extends Model
     public function displayedAssets()
     {
         return $this->hasMany(EventAsset::class, 'event_id', 'id')
-            ->where('status', StatusEnum::ACTIVE)
-            ->where('is_displayed', StatusEnum::ACTIVE);
+            ->visibleInGallery();
     }
 
     public function getFullPathAttribute()
