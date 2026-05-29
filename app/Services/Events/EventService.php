@@ -61,7 +61,7 @@ class EventService
         return Event::where('path', $event_path)
             ->select('id', 'image', 'name', 'starts_at', 'user_id', 'status')
             ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::READY, StatusEnum::PENDING, StatusEnum::IN_PROGRESS])
-            ->with('config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,video_upload_enabled')
+            ->with('config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,video_upload_enabled,qr_card_design,qr_card_text')
             ->first();
     }
 
@@ -110,7 +110,7 @@ class EventService
             ->select('id', 'order_id', 'path', 'image', 'name', 'status', 'starts_at', 'finished_at')
             ->with('assets:id,event_id,asset_type,path,is_displayed',
                 'activeDownloadProcess:id,path,status,event_id',
-                'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,preview_qr_in_gallery,displayed_gallery,video_upload_enabled')
+                'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,preview_qr_in_gallery,displayed_gallery,video_upload_enabled,qr_card_design,qr_card_text')
             ->first();
     }
 
@@ -362,6 +362,34 @@ class EventService
         }
 
         $event_config->displayed_gallery = $data['selectedAlbum'];
+        $event_config->save();
+
+        return $event_config;
+    }
+
+    public function updateQrCardSettings(int $event_id, array $data, int $user_id): ?EventConfig
+    {
+        if (!$event = Event::find($event_id)) {
+            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+        }
+
+        if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+            throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+        }
+
+        $event_config = EventConfig::where('event_id', $event_id)->first();
+        if (!$event_config) {
+            throw new Exception(MessagesEnum::EVENT_CONFIG_NOT_FOUND);
+        }
+
+        if (array_key_exists('design', $data)) {
+            $event_config->qr_card_design = $data['design'];
+        }
+
+        if (array_key_exists('text', $data)) {
+            $event_config->qr_card_text = $data['text'];
+        }
+
         $event_config->save();
 
         return $event_config;
@@ -673,6 +701,27 @@ class EventService
     private function deleteEventsDownloadProcesses(int $event_id): void
     {
         EventAssetDownload::where('event_id', $event_id)->delete();
+    }
+
+    /**
+     * @param int $event_id
+     * @param int $user_id
+     * @return Event
+     * @throws Exception
+     */
+    public function assertEventAccess(int $event_id, int $user_id): Event
+    {
+        $event = Event::find($event_id);
+
+        if (!$event) {
+            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+        }
+
+        if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+            throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+        }
+
+        return $event;
     }
 
     /**

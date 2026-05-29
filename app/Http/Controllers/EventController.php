@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\EventGallerySettingsRequest;
+use App\Http\Requests\UpdateQrCardSettingsRequest;
 use Exception;
 use App\Services\Enums\StatusEnum;
 use App\Services\Users\UserService;
@@ -56,6 +57,20 @@ class EventController extends Controller
             );
             $response = $event_service->updateGallerySettings($event_id, $request->validated(), Auth::user()->id);
             return $this->successResponse(MessagesEnum::EVENT_GALLERY_SETTINGS_UPDATED_SUCCESS, $response);
+
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex);
+        }
+    }
+
+    public function updateQrCardSettings(int $event_id, UpdateQrCardSettingsRequest $request)
+    {
+        try {
+            $event_service = new EventService(
+                new UserService()
+            );
+            $response = $event_service->updateQrCardSettings($event_id, $request->validated(), Auth::user()->id);
+            return $this->successResponse(MessagesEnum::EVENT_QR_CARD_SETTINGS_UPDATED_SUCCESS, $response);
 
         } catch (Exception $ex) {
             return $this->errorResponse($ex);

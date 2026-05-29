@@ -65,6 +65,16 @@ class Event extends Model
         return $this->hasMany(EventAssetDownload::class, 'event_id', 'id');
     }
 
+    public function guests()
+    {
+        return $this->hasMany(EventGuest::class, 'event_id', 'id');
+    }
+
+    public function whatsappCampaigns()
+    {
+        return $this->hasMany(WhatsAppCampaign::class, 'event_id', 'id');
+    }
+
     /**
      * @return bool
      */

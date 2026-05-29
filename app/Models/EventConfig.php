@@ -20,6 +20,8 @@ class EventConfig extends Model
         'preview_qr_in_gallery',
         'displayed_gallery',
         'video_upload_enabled',
+        'qr_card_design',
+        'qr_card_text',
     ];
 
     protected $casts = [
