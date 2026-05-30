@@ -132,8 +132,9 @@ class StoreService
 
             if (
                 $order
+                && !empty($order->payment_page_link)
                 && $this->isSamePrice((float) $order->price, $order_price)
-                && $order->created_at >= now()->subHour()
+                && $this->isPaymentPageLinkFresh($order)
             ) {
                 return [
                     'payment_page_link' => $order->payment_page_link,
@@ -332,6 +333,24 @@ class StoreService
     private function isSamePrice(float $first_price, float $second_price): bool
     {
         return abs($first_price - $second_price) < 0.01;
+    }
+
+    /**
+     * PayPlus payment links expire after payment.payplus.expiry_datetime minutes.
+     * Reuse only while the link is still valid (with a small buffer before expiry).
+     */
+    private function isPaymentPageLinkFresh(Order $order): bool
+    {
+        $expiryMinutes = (int) config('payment.payplus.expiry_datetime', 30);
+        if ($expiryMinutes <= 0) {
+            return false;
+        }
+
+        $bufferMinutes = 2;
+        $reuseWindowMinutes = max(1, $expiryMinutes - $bufferMinutes);
+        $reference = $order->updated_at ?? $order->created_at;
+
+        return $reference >= now()->subMinutes($reuseWindowMinutes);
     }
 
     /**
