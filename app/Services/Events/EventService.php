@@ -486,6 +486,8 @@ class EventService
             $event->finished_at = $this->getEventFinishTime($event->starts_at);
         }
         $event->save();
+
+        $this->createEventConfig($event->id);
         return $event;
     }
 
@@ -806,32 +808,52 @@ class EventService
 
     private function createEventConfig(int $event_id): void
     {
-        $event_config = new EventConfig;
-        $event_config->event_id = $event_id;
-        $event_config->preview_site_display_image = true;
-        $event_config->preview_site_display_name = true;
-        $event_config->preview_site_display_date = true;
-        $event_config->preview_guests_assets_in_gallery = true;
-        $event_config->preview_owners_assets_in_gallery = true;
-        $event_config->preview_qr_in_gallery = true;
-        $event_config->displayed_gallery = EventGalleryTypeEnum::SINGLE_GALLERY;
-        $event_config->video_upload_enabled = true;
-        $event_config->save();
+        EventConfig::firstOrCreate(
+            ['event_id' => $event_id],
+            $this->defaultEventConfigAttributes()
+        );
     }
 
     private function updateEventConfig(int $event_id, array $config): void
     {
-        EventConfig::updateOrCreate(
+        $event_config = EventConfig::firstOrNew(
             ['event_id' => $event_id],
-            [
-                'preview_site_display_image'        => ($config['preview_site_display_image'] === 'true') ?? true,
-                'preview_site_display_name'         => ($config['preview_site_display_name'] === 'true') ?? true,
-                'preview_site_display_date'         => ($config['preview_site_display_date'] === 'true') ?? true,
-                'preview_guests_assets_in_gallery'  => ($config['preview_guests_assets_in_gallery'] === 'true') ?? true,
-                'preview_owners_assets_in_gallery'  => ($config['preview_owners_assets_in_gallery'] === 'true') ?? true,
-                'preview_qr_in_gallery'             => ($config['preview_qr_in_gallery'] === 'true') ?? true,
-                'video_upload_enabled'              => ($config['video_upload_enabled'] === 'true') ?? true,
-            ]
+            $this->defaultEventConfigAttributes()
         );
+
+        foreach ($this->booleanEventConfigKeys() as $key) {
+            if (array_key_exists($key, $config) && $config[$key] !== null) {
+                $event_config->{$key} = $config[$key] === 'true';
+            }
+        }
+
+        $event_config->save();
+    }
+
+    private function defaultEventConfigAttributes(): array
+    {
+        return [
+            'preview_site_display_image'        => true,
+            'preview_site_display_name'         => true,
+            'preview_site_display_date'         => true,
+            'preview_guests_assets_in_gallery'  => true,
+            'preview_owners_assets_in_gallery'  => true,
+            'preview_qr_in_gallery'             => true,
+            'displayed_gallery'                 => EventGalleryTypeEnum::SINGLE_GALLERY,
+            'video_upload_enabled'              => true,
+        ];
+    }
+
+    private function booleanEventConfigKeys(): array
+    {
+        return [
+            'preview_site_display_image',
+            'preview_site_display_name',
+            'preview_site_display_date',
+            'preview_guests_assets_in_gallery',
+            'preview_owners_assets_in_gallery',
+            'preview_qr_in_gallery',
+            'video_upload_enabled',
+        ];
     }
 }

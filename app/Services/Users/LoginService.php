@@ -88,17 +88,23 @@ class LoginService
      */
     private function buildUserDetails()
     {
+        $this->user->loadMissing('order.subscription');
+        $order = $this->user->order;
+        $expiresAt = now()->addMinutes((int) config('session.lifetime'));
+
         $this->response = (object)[
             'user' => [
-                'id'         => $this->user->id,
-                'first_named' => config('session.lifetime'),
-                'first_name' => $this->user->first_name,
-                'last_name'  => $this->user->last_name,
-                'email'      => $this->user->email,
-                'role'       => $this->user->getRoleName(),
-                'expired_at' => now()->addMinutes((int) config('session.lifetime')),
-                'token'      => $this->setUserToken(),
-                'subscription_name' => $this->user->order->subscription->name ?? '',
+                'id'                => $this->user->id,
+                'first_name'        => $this->user->first_name,
+                'last_name'         => $this->user->last_name,
+                'email'             => $this->user->email,
+                'role'              => $this->user->getRoleName(),
+                'expired_at'        => $expiresAt->toIso8601String(),
+                'token'             => $this->setUserToken(),
+                'order'             => $order
+                    ? $order->only(['order_number', 'subscription', 'price', 'created_at'])
+                    : null,
+                'subscription_name' => $order?->subscription?->name ?? '',
             ],
         ];
     }

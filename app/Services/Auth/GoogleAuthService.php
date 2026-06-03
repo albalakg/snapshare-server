@@ -11,6 +11,7 @@ use App\Services\Enums\StatusEnum;
 use App\Services\Enums\MessagesEnum;
 use App\Services\Users\LoginService;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Crypt;
 use App\Services\Enums\AuthProviderEnum;
 use Laravel\Socialite\Facades\Socialite;
@@ -57,6 +58,11 @@ class GoogleAuthService
 
             return $this->buildFeRedirectUrl($feRedirect, ['code' => $authCode], $postLoginRedirect);
         } catch (Exception $ex) {
+            Log::warning('Google OAuth callback failed', [
+                'message' => $ex->getMessage(),
+                'fe_redirect' => $feRedirect,
+            ]);
+
             return $this->buildFeRedirectUrl($feRedirect, ['error' => 'access_denied'], $postLoginRedirect);
         }
     }
@@ -66,6 +72,10 @@ class GoogleAuthService
         $userId = Cache::pull(self::CACHE_PREFIX . $code);
 
         if (!$userId) {
+            Log::warning('Google auth code exchange failed: code missing or already used', [
+                'code_prefix' => substr($code, 0, 8),
+            ]);
+
             throw new Exception(MessagesEnum::GOOGLE_AUTH_CODE_INVALID, Response::HTTP_UNAUTHORIZED);
         }
 

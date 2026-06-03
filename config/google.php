@@ -7,7 +7,7 @@ return [
         ? array_values(array_filter(array_map('trim', explode(',', $clientUrls))))
         : [rtrim(env('APP_CLIENT_URL', 'https://snapshare-live.com'), '/')],
 
-    'auth_code_ttl' => (int) env('GOOGLE_AUTH_CODE_TTL', 60),
+    'auth_code_ttl' => (int) env('GOOGLE_AUTH_CODE_TTL', 120),
 
     'state_ttl' => (int) env('GOOGLE_STATE_TTL', 600),
 ];

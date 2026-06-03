@@ -55,7 +55,11 @@ class GoogleAuthTest extends TestCase
         $code = 'reusable-test-code-' . uniqid();
         Cache::put('google_auth_code:' . $code, $user->id, 60);
 
-        $this->postJson('/api/auth/google/callback', ['code' => $code])->assertStatus(200);
+        $first = $this->postJson('/api/auth/google/callback', ['code' => $code]);
+        $first->assertStatus(200);
+        $first->assertJsonPath('data.user.token', fn ($token) => is_string($token) && $token !== '');
+        $first->assertJsonPath('data.user.expired_at', fn ($value) => is_string($value) && $value !== '');
+
         $this->postJson('/api/auth/google/callback', ['code' => $code])->assertStatus(401);
 
         $user->delete();
