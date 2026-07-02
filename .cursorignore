@@ -1,0 +1,43 @@
+﻿# Environment & secrets
+.env
+.env.*
+!.env.example
+auth.json
+Homestead.json
+Homestead.yaml
+
+# Keys & certificates
+*.pem
+*.key
+*.p12
+*.crt
+/storage/*.key
+
+# Logs (may contain PII, tokens, stack traces)
+/storage/logs/
+*.log
+npm-debug.log
+yarn-error.log
+
+# Dependencies & build output (large, low value for indexing)
+/node_modules/
+/vendor/
+/public/build/
+/public/hot/
+
+# User uploads & generated storage
+/public/storage/
+/public/files/
+/public/events/
+/storage/app/
+
+# Database dumps & local DB files
+*.sql
+*.sqlite
+*.sqlite3
+
+# IDE / local tooling
+/.idea/
+/.vscode/
+/.fleet/
+/.phpunit.cache/

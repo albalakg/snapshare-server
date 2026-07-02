@@ -80,6 +80,8 @@ class MessagesEnum extends BaseEnum
     const WHATSAPP_CAMPAIGN_NOT_FOUND = 'WhatsApp campaign not found';
 
     const WHATSAPP_CAMPAIGN_NOT_CANCELLABLE = 'Only pending scheduled campaigns can be cancelled';
+    
+    const PAYMENT_TRANSACTION_FAILED = 'Payment transaction failed';
 
     // Info
     const LOGIN_SUCCESS = 'Logged in successfully';

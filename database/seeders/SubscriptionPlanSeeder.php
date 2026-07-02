@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 class SubscriptionPlanSeeder extends Seeder
 {
     /**
-     * Card-aligned plans. storage_time is always in hours (trial: 1h; classic: ~6 months; premium: ~12 months).
+     * Card-aligned plans. storage_time is always in hours (trial: 48h; classic: ~6 months; premium: ~12 months).
      */
     public function run(): void
     {
@@ -24,7 +24,7 @@ class SubscriptionPlanSeeder extends Seeder
                 'price' => 0,
                 'events_allowed' => 1,
                 'files_allowed' => 10,
-                'storage_time' => 1,
+                'storage_time' => 48,
                 'created_at' => $now,
                 'updated_at' => $now,
             ],

@@ -460,9 +460,10 @@ class EventService
         $event->order_id = $order->id;
         $event->path = TokenService::generate(12);
         $event->user_id = $order->user_id;
-        $event->status = StatusEnum::ACTIVE;
+        $event->status = StatusEnum::IN_PROGRESS;
         $event->starts_at = now()->format('Y-m-d H:i:s');
-        $event->finished_at = now()->addHours(1)->format('Y-m-d H:i:s');
+        $order->loadMissing('subscription');
+        $event->finished_at = now()->addHours((int) $order->subscription->storage_time)->format('Y-m-d H:i:s');
         $event->save();
 
         $this->createEventConfig($event->id);

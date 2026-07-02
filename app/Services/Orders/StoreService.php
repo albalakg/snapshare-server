@@ -162,6 +162,9 @@ class StoreService
                 $order_price
             );
             $transaction_response = $this->payment_service->startTransaction($new_order, $user, $subscription);
+            if(!$transaction_response) {
+                throw new Exception(MessagesEnum::PAYMENT_TRANSACTION_FAILED);
+            }
             $new_order->update([
                 'token'             => $transaction_response['token'],
                 'supplier_id'       => $transaction_response['supplier_id'],
