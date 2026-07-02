@@ -18,6 +18,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('event:notification-5-day')->dailyAt('17:30');
         $schedule->command('event:warning')->dailyAt('18:00');
         $schedule->command('whatsapp:dispatch-scheduled')->everyMinute();
+        $schedule->command('icebreaker:purge')->hourly();
         // $schedule->command('event:disable')->dailyAt('20:00');
     }
 

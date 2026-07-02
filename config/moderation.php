@@ -14,4 +14,12 @@ return [
 
     'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
 
+    'profanity_en' => [
+        'fuck', 'shit', 'bitch', 'asshole', 'damn',
+    ],
+
+    'profanity_he' => [
+        'זין', 'כוס', 'שרמוטה', 'מניאק',
+    ],
+
 ];

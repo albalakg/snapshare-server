@@ -12,6 +12,7 @@ use App\Services\Enums\StatusEnum;
 use App\Services\Helpers\LogService;
 use App\Services\Events\EventService;
 use App\Services\Helpers\MailService;
+use App\Services\Icebreaker\IcebreakerConfigService;
 
 class EndEvents extends Command
 {
@@ -36,6 +37,7 @@ class EndEvents extends Command
     {
         $mail_service = new MailService();
         $event_service = new EventService();
+        $icebreaker_service = new IcebreakerConfigService();
         $events = Event::join('users', 'users.id', 'events.user_id')
             ->where('events.finished_at', '<=', Carbon::now())
             ->where('events.status', StatusEnum::IN_PROGRESS)
@@ -50,6 +52,7 @@ class EndEvents extends Command
             try {
                 LogService::init()->info(LogsEnum::EVENT_ENDED . "START", ['id' => $event->id]);
                 $event_service->updateStatus(StatusEnum::ACTIVE, $event->id);
+                $icebreaker_service->cooldownOnEventEnd($event->id);
                 $data = [
                     'event' => $event,
                     'first_name' => $event->first_name ?? '',

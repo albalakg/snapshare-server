@@ -75,6 +75,21 @@ class Event extends Model
         return $this->hasMany(WhatsAppCampaign::class, 'event_id', 'id');
     }
 
+    public function hub()
+    {
+        return $this->hasOne(EventHub::class, 'event_id', 'id');
+    }
+
+    public function icebreakerConfig()
+    {
+        return $this->hasOne(IcebreakerConfig::class, 'event_id', 'id');
+    }
+
+    public function icebreakerProfiles()
+    {
+        return $this->hasMany(IcebreakerProfile::class, 'event_id', 'id');
+    }
+
     /**
      * @return bool
      */

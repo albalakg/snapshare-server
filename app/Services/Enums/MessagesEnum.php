@@ -170,6 +170,34 @@ class MessagesEnum extends BaseEnum
 
     const WHATSAPP_CAMPAIGN_CANCELLED = 'WhatsApp campaign cancelled successfully';
 
+    // Icebreaker / Connections
+    const ICEBREAKER_CONFIG_FETCHED = 'Icebreaker config fetched successfully';
+    const ICEBREAKER_CONFIG_UPDATED = 'Icebreaker config updated successfully';
+    const ICEBREAKER_PROFILE_CREATED = 'Icebreaker profile created successfully';
+    const ICEBREAKER_PROFILE_DEACTIVATED = 'Icebreaker profile deactivated successfully';
+    const ICEBREAKER_PROFILES_DISCOVERED = 'Icebreaker profiles discovered successfully';
+    const ICEBREAKER_INTERACTION_RECORDED = 'Icebreaker interaction recorded successfully';
+    const ICEBREAKER_CONFIG_NOT_FOUND = 'Icebreaker is not configured for this event';
+    const ICEBREAKER_NOT_ACTIVE = 'Icebreaker is not active for this event';
+    const ICEBREAKER_PROFILE_REQUIRED = 'You must create a profile before using this feature';
+    const ICEBREAKER_INVALID_TARGET = 'Invalid target profile';
+    const ICEBREAKER_ALREADY_INTERACTED = 'You have already interacted with this profile';
+    const ICEBREAKER_INVALID_SESSION = 'Invalid or missing session headers';
+    const ICEBREAKER_EVENT_ID_MISMATCH = 'X-Event-ID does not match the requested event';
+    const ICEBREAKER_CONTENT_REJECTED = 'Profile content was rejected by moderation';
+    const ICEBREAKER_INTENT_NOT_ALLOWED = 'This intent is not allowed for this event';
+    const ICEBREAKER_INVALID_STATUS_TRANSITION = 'Invalid icebreaker status transition';
+
+    const EVENT_HUB_FETCHED = 'Event hub fetched successfully';
+    const EVENT_HUB_UPDATED = 'Event hub updated successfully';
+    const EVENT_HUB_NOT_FOUND = 'Event hub not found';
+    const EVENT_HUB_INVALID_SLUG = 'Invalid event hub slug format';
+    const EVENT_HUB_SLUG_TAKEN = 'This event hub URL is already taken';
+    const EVENT_HUB_SLUG_RESERVED = 'This event hub URL is reserved';
+    const EVENT_HUB_INVALID_BLOCKS = 'Invalid event hub block configuration';
+    const EVENT_HUB_CONTENT_REJECTED = 'Event hub content was rejected by moderation';
+    const EVENT_HUB_SLUG_REQUIRED = 'A public URL slug is required to publish the event hub';
+
     // Validations
     const INVALID_PASSWORD = 'Password is required and must be minimum 8 characters, at least one lowercase letter, uppercase letter and one number';
 }
