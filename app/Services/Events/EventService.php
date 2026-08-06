@@ -61,7 +61,7 @@ class EventService
         return Event::where('path', $event_path)
             ->select('id', 'image', 'name', 'starts_at', 'user_id', 'status')
             ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::READY, StatusEnum::PENDING, StatusEnum::IN_PROGRESS])
-            ->with('config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,video_upload_enabled,qr_card_design,qr_card_text')
+            ->with('config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,video_upload_enabled,qr_card_design,qr_card_text,preview_link_to_album_page_from_upload_page')
             ->first();
     }
 
@@ -110,7 +110,7 @@ class EventService
             ->select('id', 'order_id', 'path', 'image', 'name', 'status', 'starts_at', 'finished_at')
             ->with('assets:id,event_id,asset_type,path,is_displayed',
                 'activeDownloadProcess:id,path,status,event_id',
-                'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,preview_qr_in_gallery,displayed_gallery,video_upload_enabled,qr_card_design,qr_card_text')
+                'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,preview_qr_in_gallery,displayed_gallery,video_upload_enabled,qr_card_design,qr_card_text,preview_link_to_album_page_from_upload_page')
             ->first();
     }
 
@@ -839,9 +839,10 @@ class EventService
             'preview_site_display_date'         => true,
             'preview_guests_assets_in_gallery'  => true,
             'preview_owners_assets_in_gallery'  => true,
-            'preview_qr_in_gallery'             => true,
-            'displayed_gallery'                 => EventGalleryTypeEnum::SINGLE_GALLERY,
-            'video_upload_enabled'              => true,
+            'preview_qr_in_gallery'                          => true,
+            'displayed_gallery'                              => EventGalleryTypeEnum::SINGLE_GALLERY,
+            'video_upload_enabled'                           => true,
+            'preview_link_to_album_page_from_upload_page'    => true,
         ];
     }
 
@@ -855,6 +856,7 @@ class EventService
             'preview_owners_assets_in_gallery',
             'preview_qr_in_gallery',
             'video_upload_enabled',
+            'preview_link_to_album_page_from_upload_page',
         ];
     }
 }

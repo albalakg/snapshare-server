@@ -28,8 +28,9 @@ class UpdateEventRequest extends FormRequest
             'config.preview_site_display_date'          => ['nullable', 'in:true,false'],
             'config.preview_guests_assets_in_gallery'   => ['nullable', 'in:true,false'],
             'config.preview_owners_assets_in_gallery'   => ['nullable', 'in:true,false'],
-            'config.preview_qr_in_gallery'              => ['nullable', 'in:true,false'],
-            'config.video_upload_enabled'               => ['nullable', 'in:true,false'],
+            'config.preview_qr_in_gallery'                          => ['nullable', 'in:true,false'],
+            'config.video_upload_enabled'                           => ['nullable', 'in:true,false'],
+            'config.preview_link_to_album_page_from_upload_page'    => ['nullable', 'in:true,false'],
         ];
     }
 }

@@ -22,16 +22,18 @@ class EventConfig extends Model
         'video_upload_enabled',
         'qr_card_design',
         'qr_card_text',
+        'preview_link_to_album_page_from_upload_page',
     ];
 
     protected $casts = [
-        'preview_site_display_image'        => 'boolean',
-        'preview_site_display_name'         => 'boolean',
-        'preview_site_display_date'         => 'boolean',
-        'preview_guests_assets_in_gallery'  => 'boolean',
-        'preview_owners_assets_in_gallery'  => 'boolean',
-        'preview_qr_in_gallery'             => 'boolean',
-        'video_upload_enabled'              => 'boolean',
+        'preview_site_display_image'                    => 'boolean',
+        'preview_site_display_name'                     => 'boolean',
+        'preview_site_display_date'                     => 'boolean',
+        'preview_guests_assets_in_gallery'              => 'boolean',
+        'preview_owners_assets_in_gallery'              => 'boolean',
+        'preview_qr_in_gallery'                         => 'boolean',
+        'video_upload_enabled'                          => 'boolean',
+        'preview_link_to_album_page_from_upload_page'   => 'boolean',
     ];
 
     public function event()
