@@ -198,6 +198,27 @@ class MessagesEnum extends BaseEnum
     const EVENT_HUB_CONTENT_REJECTED = 'Event hub content was rejected by moderation';
     const EVENT_HUB_SLUG_REQUIRED = 'A public URL slug is required to publish the event hub';
 
+    const TRIVIA_FETCHED = 'Trivia fetched successfully';
+    const TRIVIA_UPDATED = 'Trivia updated successfully';
+    const TRIVIA_QUESTIONS_UPDATED = 'Trivia questions updated successfully';
+    const TRIVIA_SHOWN = 'Trivia is now on screen';
+    const TRIVIA_RESULTS_SHOWN = 'Trivia results are now on screen';
+    const TRIVIA_PHOTOS_RESTORED = 'Photo gallery restored';
+    const TRIVIA_REPORT_FETCHED = 'Trivia report fetched successfully';
+    const TRIVIA_JOINED = 'Joined trivia successfully';
+    const TRIVIA_QUESTION_FETCHED = 'Trivia question fetched successfully';
+    const TRIVIA_ANSWER_RECORDED = 'Trivia answer recorded successfully';
+    const TRIVIA_NOT_LIVE = 'Trivia is not live';
+    const TRIVIA_NOT_FOUND = 'Trivia is not configured for this event';
+    const TRIVIA_QUESTIONS_REQUIRED = 'Add at least one trivia question before showing it';
+    const TRIVIA_QUESTIONS_LOCKED = 'Questions cannot be edited while trivia is on screen';
+    const TRIVIA_RESULTS_AFTER_START = 'Results time must be after the start time';
+    const TRIVIA_OPTION_CORRECT_REQUIRED = 'Each question needs at least one correct answer';
+    const TRIVIA_INVALID_SESSION = 'Invalid or missing trivia session';
+    const TRIVIA_PLAYER_NOT_FOUND = 'Trivia player was not found';
+    const TRIVIA_AVATAR_FAILED = 'Could not save the player image';
+    const TRIVIA_ANSWER_LOCKED = 'Answers are closed';
+
     // Validations
     const INVALID_PASSWORD = 'Password is required and must be minimum 8 characters, at least one lowercase letter, uppercase letter and one number';
 }

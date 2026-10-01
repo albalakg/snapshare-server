@@ -64,5 +64,6 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'icebreaker.session' => \App\Http\Middleware\EnsureIcebreakerSession::class,
+        'trivia.session' => \App\Http\Middleware\EnsureTriviaSession::class,
     ];
 }

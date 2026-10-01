@@ -14,11 +14,13 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('event:start')->everyMinute();
         $schedule->command('event:end')->everyFiveMinutes();
+        $schedule->command('event:notification-pending-1-day')->dailyAt('16:30');
         $schedule->command('event:notification-1-day')->dailyAt('17:00');
         $schedule->command('event:notification-5-day')->dailyAt('17:30');
         $schedule->command('event:warning')->dailyAt('18:00');
         $schedule->command('whatsapp:dispatch-scheduled')->everyMinute();
         $schedule->command('icebreaker:purge')->hourly();
+        $schedule->command('trivia:tick')->everyMinute();
         // $schedule->command('event:disable')->dailyAt('20:00');
     }
 

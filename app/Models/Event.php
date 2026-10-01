@@ -90,6 +90,11 @@ class Event extends Model
         return $this->hasMany(IcebreakerProfile::class, 'event_id', 'id');
     }
 
+    public function triviaGame()
+    {
+        return $this->hasOne(TriviaGame::class, 'event_id', 'id');
+    }
+
     /**
      * @return bool
      */

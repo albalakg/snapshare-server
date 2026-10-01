@@ -16,6 +16,7 @@ use App\Services\Enums\StatusEnum;
 use App\Services\Users\UserService;
 use App\Services\Enums\MessagesEnum;
 use App\Services\Helpers\LogService;
+use App\Services\Helpers\EventAuditLogger;
 use App\Services\Helpers\FileService;
 use App\Services\Helpers\MailService;
 use App\Services\Orders\StoreService;
@@ -24,6 +25,7 @@ use App\Http\Requests\UploadFileRequest;
 use App\Models\User;
 use App\Services\Enums\EventAssetTypeEnum;
 use App\Services\Enums\EventGalleryTypeEnum;
+use App\Services\Trivia\TriviaService;
 use App\Jobs\ModerateEventAssetJob;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -71,7 +73,7 @@ class EventService
      */
     public function getBaseGallery(string $event_path): ?Event
     {
-        return Event::where('path', $event_path)
+        $event = Event::where('path', $event_path)
             ->select('id', 'image', 'name', 'starts_at', 'user_id', 'status')
             ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::READY, StatusEnum::PENDING, StatusEnum::IN_PROGRESS])
             ->with(
@@ -79,6 +81,15 @@ class EventService
                 'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,video_upload_enabled'
             )
             ->first();
+
+        if ($event) {
+            $event->setAttribute(
+                'trivia_screen',
+                (new TriviaService())->publicScreen($event, $event_path)
+            );
+        }
+
+        return $event;
     }
 
     /**
@@ -221,27 +232,32 @@ class EventService
      */
     public function deleteEventAssets(int $id, array $data, int $user_id)
     {
-        if (!$event = Event::find($id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
-        }
-
-        if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
-        }
-
-        $event_assets = EventAsset::whereIn('id', $data['assets'])
-            ->select('id', 'event_id', 'path')
-            ->get();
-
-        foreach ($event_assets as $event_asset) {
-            try {
-                FileService::delete($event_asset->path);
-            } catch (Exception $ex) {
-                LogService::init()->error($ex, ['error' => LogsEnum::FAILED_TO_DELETE_EVENT_ASSET]);
+        return $this->auditAction('assets.delete', $id, function () use ($id, $data, $user_id) {
+            if (!$event = Event::find($id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
             }
-        }
 
-        return EventAsset::whereIn('id', $data['assets'])->delete();
+            if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+            }
+
+            $event_assets = EventAsset::whereIn('id', $data['assets'])
+                ->select('id', 'event_id', 'path')
+                ->get();
+
+            foreach ($event_assets as $event_asset) {
+                try {
+                    FileService::delete($event_asset->path);
+                } catch (Exception $ex) {
+                    LogService::init()->error($ex, ['error' => LogsEnum::FAILED_TO_DELETE_EVENT_ASSET]);
+                }
+            }
+
+            return EventAsset::whereIn('id', $data['assets'])->delete();
+        }, [
+            'user_id' => $user_id,
+            'assets_count' => count($data['assets'] ?? []),
+        ]);
     }
 
     /**
@@ -252,21 +268,26 @@ class EventService
      */
     public function hideEventAssets(int $id, array $data, int $user_id): bool
     {
-        if (!$event = Event::find($id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
-        }
+        return $this->auditAction('assets.hide', $id, function () use ($id, $data, $user_id) {
+            if (!$event = Event::find($id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+            }
 
-        if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
-        }
-            
-        foreach($data['assets'] as $event_asset_id) {
-            $event_asset = EventAsset::find($event_asset_id);
-            $event_asset->is_displayed = !$event_asset->is_displayed;
-            $event_asset->save();
-        }
-        
-        return true;
+            if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+            }
+
+            foreach($data['assets'] as $event_asset_id) {
+                $event_asset = EventAsset::find($event_asset_id);
+                $event_asset->is_displayed = !$event_asset->is_displayed;
+                $event_asset->save();
+            }
+
+            return true;
+        }, [
+            'user_id' => $user_id,
+            'assets_count' => count($data['assets'] ?? []),
+        ]);
     }
 
     /**
@@ -277,36 +298,41 @@ class EventService
      */
     public function blockEventAssets(int $id, array $data, int $user_id): bool
     {
-        if (!$event = Event::find($id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
-        }
+        return $this->auditAction('assets.block', $id, function () use ($id, $data, $user_id) {
+            if (!$event = Event::find($id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+            }
 
-        if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
-        }
+            if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+            }
 
-        $blockableCount = EventAsset::whereIn('id', $data['assets'])
-            ->where('event_id', $id)
-            ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::PENDING])
-            ->count();
+            $blockableCount = EventAsset::whereIn('id', $data['assets'])
+                ->where('event_id', $id)
+                ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::PENDING])
+                ->count();
 
-        if ($blockableCount !== count($data['assets'])) {
-            throw new Exception(MessagesEnum::EVENTS_ASSETS_NOT_FOUND);
-        }
+            if ($blockableCount !== count($data['assets'])) {
+                throw new Exception(MessagesEnum::EVENTS_ASSETS_NOT_FOUND);
+            }
 
-        EventAsset::whereIn('id', $data['assets'])
-            ->where('event_id', $id)
-            ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::PENDING])
-            ->update([
-                'status' => StatusEnum::BLOCKED,
-                'is_displayed' => false,
-                'moderation_labels' => [
-                    'reasons' => ['Manually blocked'],
-                    'labels' => [],
-                ],
-            ]);
+            EventAsset::whereIn('id', $data['assets'])
+                ->where('event_id', $id)
+                ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::PENDING])
+                ->update([
+                    'status' => StatusEnum::BLOCKED,
+                    'is_displayed' => false,
+                    'moderation_labels' => [
+                        'reasons' => ['Manually blocked'],
+                        'labels' => [],
+                    ],
+                ]);
 
-        return true;
+            return true;
+        }, [
+            'user_id' => $user_id,
+            'assets_count' => count($data['assets'] ?? []),
+        ]);
     }
 
     /**
@@ -317,82 +343,96 @@ class EventService
      */
     public function unblockEventAssets(int $id, array $data, int $user_id): bool
     {
-        if (!$event = Event::find($id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
-        }
+        return $this->auditAction('assets.unblock', $id, function () use ($id, $data, $user_id) {
+            if (!$event = Event::find($id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+            }
 
-        if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
-        }
+            if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+            }
 
-        $blockedCount = EventAsset::whereIn('id', $data['assets'])
-            ->where('event_id', $id)
-            ->where('status', StatusEnum::BLOCKED)
-            ->count();
+            $blockedCount = EventAsset::whereIn('id', $data['assets'])
+                ->where('event_id', $id)
+                ->where('status', StatusEnum::BLOCKED)
+                ->count();
 
-        if ($blockedCount !== count($data['assets'])) {
-            throw new Exception(MessagesEnum::EVENTS_ASSETS_NOT_FOUND);
-        }
+            if ($blockedCount !== count($data['assets'])) {
+                throw new Exception(MessagesEnum::EVENTS_ASSETS_NOT_FOUND);
+            }
 
-        EventAsset::whereIn('id', $data['assets'])
-            ->where('event_id', $id)
-            ->where('status', StatusEnum::BLOCKED)
-            ->update([
-                'status' => StatusEnum::ACTIVE,
-                'is_displayed' => true,
-                'moderation_labels' => null,
-            ]);
+            EventAsset::whereIn('id', $data['assets'])
+                ->where('event_id', $id)
+                ->where('status', StatusEnum::BLOCKED)
+                ->update([
+                    'status' => StatusEnum::ACTIVE,
+                    'is_displayed' => true,
+                    'moderation_labels' => null,
+                ]);
 
-        return true;
+            return true;
+        }, [
+            'user_id' => $user_id,
+            'assets_count' => count($data['assets'] ?? []),
+        ]);
     }
 
     public function updateGallerySettings(int $event_id, array $data, int $user_id): ?EventConfig
     {
-        if (!$event = Event::find($event_id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
-        }
+        return $this->auditAction('gallery.settings.update', $event_id, function () use ($event_id, $data, $user_id) {
+            if (!$event = Event::find($event_id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+            }
 
-        if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
-        }
+            if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+            }
 
-        $event_config = EventConfig::where('event_id', $event_id)->first();
-        if (!$event_config) {
-            throw new Exception(MessagesEnum::EVENT_CONFIG_NOT_FOUND);
-        }
+            $event_config = EventConfig::where('event_id', $event_id)->first();
+            if (!$event_config) {
+                throw new Exception(MessagesEnum::EVENT_CONFIG_NOT_FOUND);
+            }
 
-        $event_config->displayed_gallery = $data['selectedAlbum'];
-        $event_config->save();
+            $event_config->displayed_gallery = $data['selectedAlbum'];
+            $event_config->save();
 
-        return $event_config;
+            return $event_config;
+        }, [
+            'user_id' => $user_id,
+            'selected_album' => $data['selectedAlbum'] ?? null,
+        ]);
     }
 
     public function updateQrCardSettings(int $event_id, array $data, int $user_id): ?EventConfig
     {
-        if (!$event = Event::find($event_id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
-        }
+        return $this->auditAction('qr_card.settings.update', $event_id, function () use ($event_id, $data, $user_id) {
+            if (!$event = Event::find($event_id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+            }
 
-        if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
-        }
+            if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+            }
 
-        $event_config = EventConfig::where('event_id', $event_id)->first();
-        if (!$event_config) {
-            throw new Exception(MessagesEnum::EVENT_CONFIG_NOT_FOUND);
-        }
+            $event_config = EventConfig::where('event_id', $event_id)->first();
+            if (!$event_config) {
+                throw new Exception(MessagesEnum::EVENT_CONFIG_NOT_FOUND);
+            }
 
-        if (array_key_exists('design', $data)) {
-            $event_config->qr_card_design = $data['design'];
-        }
+            if (array_key_exists('design', $data)) {
+                $event_config->qr_card_design = $data['design'];
+            }
 
-        if (array_key_exists('text', $data)) {
-            $event_config->qr_card_text = $data['text'];
-        }
+            if (array_key_exists('text', $data)) {
+                $event_config->qr_card_text = $data['text'];
+            }
 
-        $event_config->save();
+            $event_config->save();
 
-        return $event_config;
+            return $event_config;
+        }, [
+            'user_id' => $user_id,
+        ]);
     }
 
     /**
@@ -403,30 +443,35 @@ class EventService
      */
     public function downloadEventAssets(int $id, array $data, int $user_id): ?array
     {
-        LogService::init()->info(MessagesEnum::EVENT_DOWNLOAD_PROCESS, ['event_id' => $id, 'step' => 1]);
-        if (!$event = Event::find($id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
-        }
+        return $this->auditAction('assets.download', $id, function () use ($id, $data, $user_id) {
+            LogService::init()->info(MessagesEnum::EVENT_DOWNLOAD_PROCESS, ['event_id' => $id, 'step' => 1]);
+            if (!$event = Event::find($id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+            }
 
-        if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
-        }
+            if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+            }
 
-        $download_job = new ZipEventAssetsForDownload(
-            $event, 
-            $data['assets'], 
-            $user_id,
-            $this->mail_service
-        );
-        LogService::init()->info(MessagesEnum::EVENT_DOWNLOAD_PROCESS, ['event_id' => $id, 'step' => 2]);
+            $download_job = new ZipEventAssetsForDownload(
+                $event,
+                $data['assets'],
+                $user_id,
+                $this->mail_service
+            );
+            LogService::init()->info(MessagesEnum::EVENT_DOWNLOAD_PROCESS, ['event_id' => $id, 'step' => 2]);
 
-        if (!$download_job->canStartNewProcess($event)) {
-            throw new Exception(MessagesEnum::FAILED_TO_START_DOWNLOAD_PROCESS);
-        }
-        
-        LogService::init()->info(MessagesEnum::EVENT_DOWNLOAD_PROCESS, ['event_id' => $id, 'step' => 3]);
+            if (!$download_job->canStartNewProcess($event)) {
+                throw new Exception(MessagesEnum::FAILED_TO_START_DOWNLOAD_PROCESS);
+            }
 
-        return $download_job->zip()->only(['id', 'event_id', 'status', 'path']) ?? null;
+            LogService::init()->info(MessagesEnum::EVENT_DOWNLOAD_PROCESS, ['event_id' => $id, 'step' => 3]);
+
+            return $download_job->zip()->only(['id', 'event_id', 'status', 'path']) ?? null;
+        }, [
+            'user_id' => $user_id,
+            'assets_count' => count($data['assets'] ?? []),
+        ]);
     }
 
     /**
@@ -500,31 +545,35 @@ class EventService
      */
     public function update(int $event_id, array $data, int $user_id): ?Event
     {
-        $event = Event::find($event_id);
-        if (!$event) {
-            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
-        }
-
-        if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
-        }
-
-        $event->name = $data['name'] ?? $event->name;
-        if ($data['image']) {
-            $event->image = FileService::create($data['image'], "events/$event_id");
-        }
-
-        if ($event->isPending()) {
-            $event->starts_at = $this->getEventStartTime($data['starts_at'] ?? '') ?? $event->starts_at;
-            if (!empty($data['starts_at'])) {
-                $event->finished_at = $this->getEventFinishTime($event->starts_at);
+        return $this->auditAction('event.update', $event_id, function () use ($event_id, $data, $user_id) {
+            $event = Event::find($event_id);
+            if (!$event) {
+                throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
             }
-        }
 
-        $event->save();
+            if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+            }
 
-        $this->updateEventConfig($event_id, $data['config'] ?? []);
-        return $event->load('config');
+            $event->name = $data['name'] ?? $event->name;
+            if ($data['image']) {
+                $event->image = FileService::create($data['image'], "events/$event_id");
+            }
+
+            if ($event->isPending()) {
+                $event->starts_at = $this->getEventStartTime($data['starts_at'] ?? '') ?? $event->starts_at;
+                if (!empty($data['starts_at'])) {
+                    $event->finished_at = $this->getEventFinishTime($event->starts_at);
+                }
+            }
+
+            $event->save();
+
+            $this->updateEventConfig($event_id, $data['config'] ?? []);
+            return $event->load('config');
+        }, [
+            'user_id' => $user_id,
+        ]);
     }
 
     /**
@@ -559,13 +608,23 @@ class EventService
      */
     public function updateStatus(int $status, int $event_id): bool
     {
-        if (!$event = Event::find($event_id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+        $context = ['to' => $status];
+        if ($status === StatusEnum::ACTIVE) {
+            $context['label'] = LogsEnum::EVENT_SET_ACTIVE;
+        } elseif ($status === StatusEnum::INACTIVE) {
+            $context['label'] = LogsEnum::EVENT_SET_INACTIVE;
         }
 
-        EventActionsGate::canUpdateEventStatus($event, $status);
-        
-        return $event->update(['status' => $status]);
+        return $this->auditAction('status.update', $event_id, function (array &$context) use ($status, $event_id) {
+            if (!$event = Event::find($event_id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+            }
+
+            $context['from'] = $event->status;
+            EventActionsGate::canUpdateEventStatus($event, $status);
+
+            return $event->update(['status' => $status]);
+        }, $context);
     }
 
     /**
@@ -575,20 +634,27 @@ class EventService
      */
     public function disable(int $event_id, ?int $user_id = null): bool
     {
-        $event = Event::find($event_id);
-        if (!$event) {
-            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+        $context = [];
+        if ($user_id !== null) {
+            $context['user_id'] = $user_id;
         }
 
-        if($user_id) {
-            if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
-                throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+        return $this->auditAction('event.disable', $event_id, function () use ($event_id, $user_id) {
+            $event = Event::find($event_id);
+            if (!$event) {
+                throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
             }
-        }
 
-        $this->deleteEventsAssetsByEvent($event_id);
-        $this->deleteEventsDownloadProcesses($event_id);
-        return $this->updateStatus(StatusEnum::INACTIVE, $event->id);
+            if($user_id) {
+                if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+                    throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+                }
+            }
+
+            $this->deleteEventsAssetsByEvent($event_id);
+            $this->deleteEventsDownloadProcesses($event_id);
+            return $this->updateStatus(StatusEnum::INACTIVE, $event->id);
+        }, $context);
     }
 
     /**
@@ -598,18 +664,22 @@ class EventService
      */
     public function delete(int $event_id, int $user_id): bool
     {
-        $event = Event::find($event_id);
-        if (!$event) {
-            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
-        }
+        return $this->auditAction('event.delete', $event_id, function () use ($event_id, $user_id) {
+            $event = Event::find($event_id);
+            if (!$event) {
+                throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+            }
 
-        if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
-        }
+            if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+            }
 
-        $this->deleteEventsAssetsByEvent($event_id);
-        $this->deleteEventsDownloadProcesses($event_id);
-        return $event->delete();
+            $this->deleteEventsAssetsByEvent($event_id);
+            $this->deleteEventsDownloadProcesses($event_id);
+            return $event->delete();
+        }, [
+            'user_id' => $user_id,
+        ]);
     }
 
     /**
@@ -620,45 +690,61 @@ class EventService
      */
     public function uploadFile(int $event_id, UploadFileRequest $request, ?int $user_id = null): EventAsset
     {
-        $event = Event::find($event_id);
-        if (!$event) {
-            throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
-        }
+        $context = ['user_id' => $user_id];
 
-        if (!$this->isAuthorizedToUploadAsset($event, $user_id)) {
-            throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
-        }
-
-        $asset_type = $this->getFileType($request);
-        if ($asset_type === EventAssetTypeEnum::VIDEO_ID) {
-            $event->loadMissing('config');
-            if (!$event->config?->video_upload_enabled) {
-                throw new Exception(MessagesEnum::EVENT_VIDEO_UPLOAD_DISABLED);
+        try {
+            $event = Event::find($event_id);
+            if (!$event) {
+                throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
             }
+
+            if (!$this->isAuthorizedToUploadAsset($event, $user_id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+            }
+
+            $asset_type = $this->getFileType($request);
+            if ($asset_type === EventAssetTypeEnum::VIDEO_ID) {
+                $event->loadMissing('config');
+                if (!$event->config?->video_upload_enabled) {
+                    throw new Exception(MessagesEnum::EVENT_VIDEO_UPLOAD_DISABLED);
+                }
+            }
+
+            $event_asset = new EventAsset;
+            $event_asset->path = FileService::create($request->file('file'), "events/$event_id/gallery");
+            $event_asset->event_id = $event_id;
+            $event_asset->is_displayed = true;
+            $event_asset->asset_type = $asset_type;
+            $event_asset->user_agent = $request->userAgent();
+            $event_asset->ip = $request->ip();
+            $event_asset->created_by_guest = !boolval($user_id);
+
+            if ($event_asset->asset_type === EventAssetTypeEnum::IMAGE_ID && config('moderation.enabled')) {
+                $event_asset->status = StatusEnum::PENDING;
+            } else {
+                $event_asset->status = StatusEnum::ACTIVE;
+            }
+
+            $event_asset->save();
+
+            if ($event_asset->asset_type === EventAssetTypeEnum::IMAGE_ID && config('moderation.enabled')) {
+                ModerateEventAssetJob::dispatch($event_asset->id);
+            }
+
+            if ($user_id) {
+                EventAuditLogger::success('asset.upload', $event_id, array_merge($context, [
+                    'asset_id' => $event_asset->id,
+                    'asset_type' => $event_asset->asset_type,
+                ]));
+            }
+
+            return $event_asset;
+        } catch (Exception $ex) {
+            EventAuditLogger::failure('asset.upload', $event_id, array_merge($context, [
+                'error' => $ex->getMessage(),
+            ]));
+            throw $ex;
         }
-
-        $event_asset = new EventAsset;
-        $event_asset->path = FileService::create($request->file('file'), "events/$event_id/gallery");
-        $event_asset->event_id = $event_id;
-        $event_asset->is_displayed = true;
-        $event_asset->asset_type = $asset_type;
-        $event_asset->user_agent = $request->userAgent();
-        $event_asset->ip = $request->ip();
-        $event_asset->created_by_guest = !boolval($user_id);
-
-        if ($event_asset->asset_type === EventAssetTypeEnum::IMAGE_ID && config('moderation.enabled')) {
-            $event_asset->status = StatusEnum::PENDING;
-        } else {
-            $event_asset->status = StatusEnum::ACTIVE;
-        }
-
-        $event_asset->save();
-
-        if ($event_asset->asset_type === EventAssetTypeEnum::IMAGE_ID && config('moderation.enabled')) {
-            ModerateEventAssetJob::dispatch($event_asset->id);
-        }
-
-        return $event_asset;
     }
 
     /**
@@ -858,5 +944,19 @@ class EventService
             'video_upload_enabled',
             'preview_link_to_album_page_from_upload_page',
         ];
+    }
+
+    private function auditAction(string $action, int $event_id, callable $callback, array $context = [])
+    {
+        try {
+            $result = $callback($context);
+            EventAuditLogger::success($action, $event_id, $context);
+            return $result;
+        } catch (Exception $ex) {
+            EventAuditLogger::failure($action, $event_id, array_merge($context, [
+                'error' => $ex->getMessage(),
+            ]));
+            throw $ex;
+        }
     }
 }

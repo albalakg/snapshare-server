@@ -2,6 +2,7 @@
 
 namespace App\Services\ActionGates;
 
+use Exception;
 use App\Models\Event;
 use App\Services\Enums\MessagesEnum;
 use App\Services\Enums\StatusEnum;

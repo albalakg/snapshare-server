@@ -54,6 +54,9 @@ class RouteServiceProvider extends ServiceProvider
             Route::prefix('api/events')
                 ->group(base_path('routes/groups/event_hub.php'));
 
+            Route::prefix('api/events')
+                ->group(base_path('routes/groups/event_trivia.php'));
+
             Route::prefix('api/public')
                 ->group(base_path('routes/groups/public.php'));
 
