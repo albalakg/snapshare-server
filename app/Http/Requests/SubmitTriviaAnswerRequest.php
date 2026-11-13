@@ -15,8 +15,9 @@ class SubmitTriviaAnswerRequest extends FormRequest
     {
         return [
             'question_id' => 'required|integer',
-            'option_ids' => 'present|array|max:6',
+            'option_ids' => 'nullable|array|max:6',
             'option_ids.*' => 'integer',
+            'value_number' => 'nullable|numeric',
         ];
     }
 }

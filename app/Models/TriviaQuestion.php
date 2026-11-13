@@ -9,9 +9,20 @@ class TriviaQuestion extends Model
     protected $fillable = [
         'event_id',
         'prompt',
+        'type',
+        'fun_fact',
+        'media_asset_id',
+        'config',
         'sort_order',
         'time_limit_seconds',
         'max_points',
+    ];
+
+    protected $casts = [
+        'config' => 'array',
+        'sort_order' => 'integer',
+        'time_limit_seconds' => 'integer',
+        'max_points' => 'integer',
     ];
 
     public function options()
@@ -29,5 +40,10 @@ class TriviaQuestion extends Model
     public function game()
     {
         return $this->belongsTo(TriviaGame::class, 'event_id', 'event_id');
+    }
+
+    public function mediaAsset()
+    {
+        return $this->belongsTo(EventAsset::class, 'media_asset_id', 'id');
     }
 }

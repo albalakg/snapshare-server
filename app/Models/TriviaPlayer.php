@@ -11,6 +11,7 @@ class TriviaPlayer extends Model
         'session_token',
         'nickname',
         'avatar_path',
+        'team',
         'score',
         'finished_at',
     ];

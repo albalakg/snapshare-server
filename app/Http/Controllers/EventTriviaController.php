@@ -27,7 +27,13 @@ class EventTriviaController extends Controller
     {
         try {
             $service = new TriviaService();
-            $response = $service->join($event_path, $request->validated()['nickname'], $request->file('image'));
+            $data = $request->validated();
+            $response = $service->join(
+                $event_path,
+                $data['nickname'],
+                $request->file('image'),
+                $data['team'] ?? null
+            );
 
             return $this->successResponse(MessagesEnum::TRIVIA_JOINED, $response);
         } catch (Exception $ex) {
@@ -54,11 +60,13 @@ class EventTriviaController extends Controller
     {
         try {
             $service = new TriviaService();
+            $data = $request->validated();
             $response = $service->submitAnswer(
                 (int) $request->attributes->get('trivia_event_id'),
                 (string) $request->attributes->get('trivia_session_token'),
-                (int) $request->validated()['question_id'],
-                $request->validated()['option_ids'] ?? []
+                (int) $data['question_id'],
+                $data['option_ids'] ?? [],
+                $data['value_number'] ?? null
             );
 
             return $this->successResponse(MessagesEnum::TRIVIA_ANSWER_RECORDED, $response);

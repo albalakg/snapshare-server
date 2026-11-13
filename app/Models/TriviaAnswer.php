@@ -10,6 +10,7 @@ class TriviaAnswer extends Model
         'player_id',
         'question_id',
         'selected_option_ids',
+        'value_number',
         'is_correct',
         'points_awarded',
         'elapsed_ms',
@@ -19,6 +20,7 @@ class TriviaAnswer extends Model
 
     protected $casts = [
         'selected_option_ids' => 'array',
+        'value_number' => 'float',
         'is_correct' => 'boolean',
         'points_awarded' => 'integer',
         'elapsed_ms' => 'integer',
