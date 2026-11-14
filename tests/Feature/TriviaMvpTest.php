@@ -13,6 +13,8 @@ use App\Services\Enums\StatusEnum;
 use App\Services\Enums\TriviaPaceEnum;
 use App\Services\Enums\TriviaPhaseEnum;
 use App\Services\Enums\TriviaStatusEnum;
+use App\Services\Enums\TriviaQuestionTypeEnum;
+use App\Services\Trivia\TriviaIncompleteQuestionsException;
 use App\Services\Trivia\TriviaService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Str;
@@ -116,6 +118,22 @@ class TriviaMvpTest extends TestCase
         $this->assertTrue((bool) $option_with_flag['is_correct']);
         $this->assertNotNull($reveal['correct']);
         $this->assertSame('רקע קצר לבדיקה', $reveal['fun_fact']);
+
+        $scored = $this->service->submitAnswer(
+            (int) $this->event->id,
+            $player->session_token,
+            (int) $q->id,
+            [$correct_id]
+        );
+        $this->assertFalse($scored['waiting_for_reveal']);
+        $this->assertTrue($scored['is_correct']);
+        $this->assertNotNull($scored['points_awarded']);
+        $this->assertGreaterThan(0, (int) $scored['points_awarded']);
+
+        $waiting = $this->service->nextQuestion((int) $this->event->id, $player->session_token);
+        $this->assertTrue($waiting['waiting'] ?? false);
+        $this->assertTrue($waiting['answered'] ?? false);
+        $this->assertSame(TriviaPhaseEnum::REVEAL, $waiting['current_phase']);
     }
 
     public function test_patch_question_does_not_reset_scores(): void
@@ -314,6 +332,252 @@ class TriviaMvpTest extends TestCase
         $ids = $questions->pluck('id')->reverse()->values()->all();
         $reordered = $this->service->reorderQuestions((int) $this->event->id, (int) $this->user->id, $ids);
         $this->assertSame($ids[0], collect($reordered['questions'])->first()['id']);
+    }
+
+    public function test_blank_draft_questions_can_be_created_and_patched_for_each_mvp_type(): void
+    {
+        $this->ensureGame(TriviaPaceEnum::HOST);
+
+        foreach (TriviaQuestionTypeEnum::mvp() as $type) {
+            $created = $this->service->appendQuestion((int) $this->event->id, (int) $this->user->id, $this->blankDraftPayload($type));
+            $question = collect($created['questions'])->last();
+            $this->assertNotNull($question['id'], "expected id for type {$type}");
+            $this->assertSame($type, $question['type']);
+            $this->assertSame('', $question['prompt']);
+            $this->assertSame(20, (int) $question['time_limit_seconds']);
+
+            $option_rows = collect($question['options'] ?? [])->map(static fn ($option) => [
+                'label' => $option['label'] ?? '',
+                'is_correct' => (bool) ($option['is_correct'] ?? false),
+            ])->all();
+
+            $patched = $this->service->patchQuestion(
+                (int) $this->event->id,
+                (int) $this->user->id,
+                (int) $question['id'],
+                [
+                    'prompt' => '',
+                    'options' => $type === TriviaQuestionTypeEnum::NUMBER ? [] : $option_rows,
+                ]
+            );
+            $updated = collect($patched['questions'])->firstWhere('id', $question['id']);
+            $this->assertSame('', $updated['prompt']);
+        }
+
+        $response = $this->actingAs($this->user, 'api')->postJson(
+            '/api/events/' . $this->event->id . '/trivia/admin/questions',
+            [
+                'type' => 'choice',
+                'prompt' => '',
+                'options' => [
+                    ['label' => '', 'is_correct' => true],
+                    ['label' => '', 'is_correct' => false],
+                ],
+            ]
+        );
+        $response->assertOk();
+        $response->assertJsonPath('data.questions.' . (count(TriviaQuestionTypeEnum::mvp())) . '.prompt', '');
+    }
+
+    public function test_starting_with_incomplete_question_returns_422_listing_errors(): void
+    {
+        $this->ensureGame(TriviaPaceEnum::HOST);
+        $admin = $this->service->appendQuestion((int) $this->event->id, (int) $this->user->id, [
+            'type' => 'choice',
+            'prompt' => '',
+            'time_limit_seconds' => 20,
+            'max_points' => 1000,
+            'options' => [
+                ['label' => '', 'is_correct' => true],
+                ['label' => '', 'is_correct' => false],
+            ],
+        ]);
+        $question = collect($admin['questions'])->last();
+
+        try {
+            $this->service->showNow((int) $this->event->id, (int) $this->user->id);
+            $this->fail('Expected TriviaIncompleteQuestionsException');
+        } catch (TriviaIncompleteQuestionsException $ex) {
+            $this->assertNotEmpty($ex->errors);
+            $fields = collect($ex->errors)->pluck('field')->all();
+            $this->assertContains('prompt', $fields);
+            $this->assertTrue(collect($ex->errors)->contains(
+                fn ($error) => (int) $error['question_id'] === (int) $question['id']
+                    && (int) $error['index'] === 0
+            ));
+        }
+
+        $response = $this->actingAs($this->user, 'api')->postJson(
+            '/api/events/' . $this->event->id . '/trivia/admin/show'
+        );
+        $response->assertStatus(422);
+        $response->assertJsonPath('status', false);
+        $this->assertStringContainsString('יש להשלים את השאלות הבאות לפני שמתחילים', (string) $response->json('message'));
+        $this->assertStringContainsString('שאלה 1', (string) $response->json('message'));
+        $this->assertStringContainsString('חסר נוסח השאלה', (string) $response->json('message'));
+        $errors = $response->json('data.errors');
+        $this->assertIsArray($errors);
+        $this->assertNotEmpty($errors);
+        $this->assertSame((int) $question['id'], (int) $errors[0]['question_id']);
+        $this->assertArrayHasKey('index', $errors[0]);
+        $this->assertArrayHasKey('field', $errors[0]);
+    }
+
+    public function test_empty_truefalse_prompt_creates_then_blocks_start_until_patched(): void
+    {
+        $this->ensureGame(TriviaPaceEnum::HOST);
+
+        $create = $this->actingAs($this->user, 'api')->postJson(
+            '/api/events/' . $this->event->id . '/trivia/admin/questions',
+            [
+                'type' => 'truefalse',
+                'prompt' => '',
+                'options' => [
+                    ['label' => 'נכון', 'is_correct' => true],
+                    ['label' => 'לא נכון', 'is_correct' => false],
+                ],
+                'time_limit_seconds' => 20,
+                'max_points' => 1000,
+                'config' => null,
+                'fun_fact' => null,
+                'media_asset_id' => null,
+            ]
+        );
+        $create->assertSuccessful();
+        $question = collect($create->json('data.questions'))->last();
+        $this->assertNotNull($question);
+        $this->assertSame('', $question['prompt']);
+        $this->assertSame('truefalse', $question['type']);
+        $question_id = (int) $question['id'];
+
+        $blocked = $this->actingAs($this->user, 'api')->postJson(
+            '/api/events/' . $this->event->id . '/trivia/admin/show'
+        );
+        $blocked->assertStatus(422);
+        $blocked->assertJsonPath('status', false);
+        $this->assertStringContainsString('יש להשלים את השאלות הבאות לפני שמתחילים', (string) $blocked->json('message'));
+        $this->assertStringContainsString('חסר נוסח השאלה', (string) $blocked->json('message'));
+        $errors = $blocked->json('data.errors');
+        $this->assertIsArray($errors);
+        $this->assertTrue(collect($errors)->contains(
+            fn ($error) => (int) $error['question_id'] === $question_id
+                && (int) $error['index'] === 0
+                && $error['field'] === 'prompt'
+        ));
+
+        $patched = $this->actingAs($this->user, 'api')->patchJson(
+            '/api/events/' . $this->event->id . '/trivia/admin/questions/' . $question_id,
+            ['prompt' => 'עמית וגל התארסו באותה שנה שבה נפגשו.']
+        );
+        $patched->assertSuccessful();
+        $updated = collect($patched->json('data.questions'))->firstWhere('id', $question_id);
+        $this->assertSame('עמית וגל התארסו באותה שנה שבה נפגשו.', $updated['prompt']);
+
+        $started = $this->actingAs($this->user, 'api')->postJson(
+            '/api/events/' . $this->event->id . '/trivia/admin/show'
+        );
+        $started->assertSuccessful();
+        $started->assertJsonPath('data.status', 'live');
+        $started->assertJsonPath('data.current_phase', 'lobby');
+    }
+
+    public function test_completing_draft_then_starting_succeeds(): void
+    {
+        $this->ensureGame(TriviaPaceEnum::HOST);
+        $admin = $this->service->appendQuestion((int) $this->event->id, (int) $this->user->id, [
+            'type' => 'choice',
+            'prompt' => '',
+            'options' => [
+                ['label' => '', 'is_correct' => true],
+                ['label' => '', 'is_correct' => false],
+                ['label' => '', 'is_correct' => false],
+                ['label' => '', 'is_correct' => false],
+            ],
+        ]);
+        $question = collect($admin['questions'])->last();
+
+        $this->service->patchQuestion((int) $this->event->id, (int) $this->user->id, (int) $question['id'], [
+            'prompt' => 'מי ארגן את האירוע?',
+            'options' => [
+                ['label' => 'עמית', 'is_correct' => true],
+                ['label' => 'גל', 'is_correct' => false],
+                ['label' => 'אורח', 'is_correct' => false],
+                ['label' => 'אף אחד', 'is_correct' => false],
+            ],
+        ]);
+
+        $live = $this->service->showNow((int) $this->event->id, (int) $this->user->id);
+        $this->assertSame('lobby', $live['current_phase']);
+        $this->assertSame('live', $live['status']);
+
+        $phase = $this->service->setPhase(
+            (int) $this->event->id,
+            (int) $this->user->id,
+            TriviaPhaseEnum::QUESTION,
+            (int) $question['id']
+        );
+        $this->assertSame('question', $phase['current_phase']);
+    }
+
+    private function blankDraftPayload(string $type): array
+    {
+        $payload = [
+            'type' => $type,
+            'prompt' => '',
+            'max_points' => in_array($type, TriviaQuestionTypeEnum::unscored(), true) ? 0 : 1000,
+        ];
+
+        if ($type === TriviaQuestionTypeEnum::NUMBER) {
+            $payload['options'] = [];
+            $payload['config'] = ['min' => 0, 'max' => 100, 'correct' => 50, 'unit' => ''];
+
+            return $payload;
+        }
+
+        if ($type === TriviaQuestionTypeEnum::TRUEFALSE) {
+            $payload['options'] = [
+                ['label' => 'נכון', 'is_correct' => true],
+                ['label' => 'לא נכון', 'is_correct' => false],
+            ];
+        } elseif (in_array($type, [TriviaQuestionTypeEnum::WHO, TriviaQuestionTypeEnum::WHOSAID], true)) {
+            $payload['options'] = [
+                ['label' => 'עמית', 'is_correct' => true],
+                ['label' => 'גל', 'is_correct' => false],
+            ];
+            $payload['config'] = [
+                'sides' => [
+                    ['name' => 'עמית', 'color' => '#1F6F6A', 'initial' => 'ע'],
+                    ['name' => 'גל', 'color' => '#DC5B66', 'initial' => 'ג'],
+                ],
+            ];
+        } elseif ($type === TriviaQuestionTypeEnum::THISORTHAT) {
+            $payload['options'] = [
+                ['label' => 'אפשרות א', 'is_correct' => false],
+                ['label' => 'אפשרות ב', 'is_correct' => false],
+            ];
+        } elseif ($type === TriviaQuestionTypeEnum::TWOTRUTHS) {
+            $payload['options'] = [
+                ['label' => 'אמת ראשונה', 'is_correct' => false],
+                ['label' => 'השקר', 'is_correct' => true],
+                ['label' => 'אמת שנייה', 'is_correct' => false],
+            ];
+        } elseif ($type === TriviaQuestionTypeEnum::POLL) {
+            $payload['options'] = [
+                ['label' => '', 'is_correct' => false],
+                ['label' => '', 'is_correct' => false],
+                ['label' => '', 'is_correct' => false],
+                ['label' => '', 'is_correct' => false],
+            ];
+        } else {
+            $payload['options'] = [
+                ['label' => '', 'is_correct' => true],
+                ['label' => '', 'is_correct' => false],
+                ['label' => '', 'is_correct' => false],
+                ['label' => '', 'is_correct' => false],
+            ];
+        }
+
+        return $payload;
     }
 
     private function ensureGame(string $pace): TriviaGame
