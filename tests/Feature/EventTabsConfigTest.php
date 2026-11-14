@@ -86,6 +86,40 @@ class EventTabsConfigTest extends TestCase
         $this->assertFalse((bool) $config->preview_qr_in_gallery);
     }
 
+    public function test_partial_config_update_does_not_wipe_other_fields(): void
+    {
+        $config = EventConfig::where('event_id', $this->event->id)->firstOrFail();
+        $config->welcome_text = 'טקסט מקורי';
+        $config->manual_photo_approval = true;
+        $config->preview_guests_assets_in_gallery = true;
+        $config->video_upload_enabled = true;
+        $config->image_display_time = 7;
+        $config->video_display_time = 15;
+        $config->save();
+
+        $response = $this->actingAs($this->user, 'api')->post(
+            "/api/events/{$this->event->id}/update",
+            [
+                'config' => [
+                    'preview_site_display_name' => 'false',
+                    'image_display_time' => 4,
+                ],
+            ]
+        );
+
+        $response->assertOk();
+        $config->refresh();
+
+        $this->assertFalse((bool) $config->preview_site_display_name);
+        $this->assertSame(4, (int) $config->image_display_time);
+        $this->assertSame('טקסט מקורי', $config->welcome_text);
+        $this->assertTrue((bool) $config->manual_photo_approval);
+        $this->assertTrue((bool) $config->preview_guests_assets_in_gallery);
+        $this->assertTrue((bool) $config->video_upload_enabled);
+        $this->assertSame(15, (int) $config->video_display_time);
+        $this->assertTrue((bool) $config->preview_site_display_date);
+    }
+
     public function test_favorite_and_approve_pending_assets(): void
     {
         $asset = new EventAsset();
