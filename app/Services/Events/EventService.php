@@ -44,7 +44,13 @@ class EventService
         private ?UserService $user_service = null,
         private ?StoreService $order_service = null,
         private ?MailService $mail_service = null,
-    ) {}
+    ) {
+        // Controllers usually resolve EventService via the container; some
+        // callers (e.g. TriviaService) still `new EventService()` without DI.
+        $this->user_service ??= new UserService();
+        $this->order_service ??= new StoreService();
+        $this->mail_service ??= new MailService();
+    }
 
     /**
      * @return Collection
@@ -352,23 +358,59 @@ class EventService
                 throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
             }
 
-            $blockedCount = EventAsset::whereIn('id', $data['assets'])
+            // Approve/unblock: blocked assets and pending manual-approval assets.
+            $approvableCount = EventAsset::whereIn('id', $data['assets'])
                 ->where('event_id', $id)
-                ->where('status', StatusEnum::BLOCKED)
+                ->whereIn('status', [StatusEnum::BLOCKED, StatusEnum::PENDING])
                 ->count();
 
-            if ($blockedCount !== count($data['assets'])) {
+            if ($approvableCount !== count($data['assets'])) {
                 throw new Exception(MessagesEnum::EVENTS_ASSETS_NOT_FOUND);
             }
 
             EventAsset::whereIn('id', $data['assets'])
                 ->where('event_id', $id)
-                ->where('status', StatusEnum::BLOCKED)
+                ->whereIn('status', [StatusEnum::BLOCKED, StatusEnum::PENDING])
                 ->update([
                     'status' => StatusEnum::ACTIVE,
                     'is_displayed' => true,
                     'moderation_labels' => null,
                 ]);
+
+            return true;
+        }, [
+            'user_id' => $user_id,
+            'assets_count' => count($data['assets'] ?? []),
+        ]);
+    }
+
+    public function favoriteEventAssets(int $id, array $data, int $user_id): bool
+    {
+        return $this->auditAction('assets.favorite', $id, function () use ($id, $data, $user_id) {
+            if (!$event = Event::find($id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_FOUND);
+            }
+
+            if (!$this->isAuthorizedToAccessEvent($event, $user_id)) {
+                throw new Exception(MessagesEnum::EVENT_NOT_AUTHORIZED);
+            }
+
+            $ids = $data['assets'] ?? [];
+            $favorite = array_key_exists('is_favorite', $data)
+                ? filter_var($data['is_favorite'], FILTER_VALIDATE_BOOLEAN)
+                : true;
+
+            $count = EventAsset::whereIn('id', $ids)
+                ->where('event_id', $id)
+                ->count();
+
+            if ($count !== count($ids)) {
+                throw new Exception(MessagesEnum::EVENTS_ASSETS_NOT_FOUND);
+            }
+
+            EventAsset::whereIn('id', $ids)
+                ->where('event_id', $id)
+                ->update(['is_favorite' => $favorite]);
 
             return true;
         }, [
@@ -556,7 +598,10 @@ class EventService
             }
 
             $event->name = $data['name'] ?? $event->name;
-            if ($data['image']) {
+            if (array_key_exists('event_type', $data)) {
+                $event->event_type = $data['event_type'];
+            }
+            if (!empty($data['image'])) {
                 $event->image = FileService::create($data['image'], "events/$event_id");
             }
 
@@ -910,8 +955,18 @@ class EventService
 
         foreach ($this->booleanEventConfigKeys() as $key) {
             if (array_key_exists($key, $config) && $config[$key] !== null) {
-                $event_config->{$key} = $config[$key] === 'true';
+                $event_config->{$key} = $config[$key] === 'true' || $config[$key] === true;
             }
+        }
+
+        if (array_key_exists('welcome_text', $config)) {
+            $event_config->welcome_text = $config['welcome_text'];
+        }
+        if (array_key_exists('image_display_time', $config) && $config['image_display_time'] !== null) {
+            $event_config->image_display_time = (int) $config['image_display_time'];
+        }
+        if (array_key_exists('video_display_time', $config) && $config['video_display_time'] !== null) {
+            $event_config->video_display_time = (int) $config['video_display_time'];
         }
 
         $event_config->save();
@@ -929,6 +984,9 @@ class EventService
             'displayed_gallery'                              => EventGalleryTypeEnum::SINGLE_GALLERY,
             'video_upload_enabled'                           => true,
             'preview_link_to_album_page_from_upload_page'    => true,
+            'manual_photo_approval'                          => false,
+            'image_display_time'                             => 3,
+            'video_display_time'                             => 8,
         ];
     }
 
@@ -943,6 +1001,7 @@ class EventService
             'preview_qr_in_gallery',
             'video_upload_enabled',
             'preview_link_to_album_page_from_upload_page',
+            'manual_photo_approval',
         ];
     }
 

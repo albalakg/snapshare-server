@@ -20,9 +20,10 @@ class EventAsset extends Model
     protected $casts = [
         'moderation_labels' => 'array',
         'is_displayed' => 'boolean',
+        'is_favorite' => 'boolean',
     ];
 
-    protected $fillable = ['status'];
+    protected $fillable = ['status', 'is_favorite'];
 
     public function getTypeAttribute()
     {

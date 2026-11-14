@@ -23,6 +23,10 @@ class EventConfig extends Model
         'qr_card_design',
         'qr_card_text',
         'preview_link_to_album_page_from_upload_page',
+        'welcome_text',
+        'image_display_time',
+        'video_display_time',
+        'manual_photo_approval',
     ];
 
     protected $casts = [
@@ -34,6 +38,9 @@ class EventConfig extends Model
         'preview_qr_in_gallery'                         => 'boolean',
         'video_upload_enabled'                          => 'boolean',
         'preview_link_to_album_page_from_upload_page'   => 'boolean',
+        'manual_photo_approval'                         => 'boolean',
+        'image_display_time'                            => 'integer',
+        'video_display_time'                            => 'integer',
     ];
 
     public function event()

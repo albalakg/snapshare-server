@@ -19,6 +19,7 @@ use App\Http\Requests\DeleteEventAssetsRequest;
 use App\Http\Requests\HideEventAssetsRequest;
 use App\Http\Requests\BlockEventAssetsRequest;
 use App\Http\Requests\UnblockEventAssetsRequest;
+use App\Http\Requests\FavoriteEventAssetsRequest;
 use Illuminate\Http\Request;
 
 class EventController extends Controller
@@ -181,6 +182,17 @@ class EventController extends Controller
             $event_service = new EventService(new UserService());
             $response = $event_service->unblockEventAssets($event_id, $request->validated(), Auth::user()->id);
             return $this->successResponse(MessagesEnum::UNBLOCKED_EVENT_ASSET_SUCCESS, $response);
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex);
+        }
+    }
+
+    public function favoriteAssets(int $event_id, FavoriteEventAssetsRequest $request)
+    {
+        try {
+            $event_service = new EventService(new UserService());
+            $response = $event_service->favoriteEventAssets($event_id, $request->validated(), Auth::user()->id);
+            return $this->successResponse(MessagesEnum::EVENT_UPDATED_SUCCESS, $response);
         } catch (Exception $ex) {
             return $this->errorResponse($ex);
         }

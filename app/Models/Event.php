@@ -17,7 +17,7 @@ class Event extends Model
 
     protected $appends = ['fullPath'];
 
-    protected $fillable = ['status'];
+    protected $fillable = ['status', 'event_type'];
 
     public function assets()
     {
@@ -33,7 +33,11 @@ class Event extends Model
 
     public function getFullPathAttribute()
     {
-        return config('app.storage_url') . '/' . $this->image;  
+        if (empty($this->image)) {
+            return '';
+        }
+
+        return config('app.storage_url') . '/' . $this->image;
     }
 
     public function user()
