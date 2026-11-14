@@ -23,6 +23,14 @@ class EventHubCacheService
         Cache::forget($this->cacheKey($slug));
     }
 
+    public function forgetForEvent(int $event_id): void
+    {
+        $hub = \App\Models\EventHub::where('event_id', $event_id)->first();
+        if ($hub) {
+            $this->forget($hub->slug);
+        }
+    }
+
     private function cacheKey(string $slug): string
     {
         return config('event_hub.cache_prefix', 'hub:slug:') . strtolower($slug);

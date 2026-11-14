@@ -197,6 +197,10 @@ class MessagesEnum extends BaseEnum
     const EVENT_HUB_INVALID_BLOCKS = 'Invalid event hub block configuration';
     const EVENT_HUB_CONTENT_REJECTED = 'Event hub content was rejected by moderation';
     const EVENT_HUB_SLUG_REQUIRED = 'A public URL slug is required to publish the event hub';
+    const EVENT_HUB_PUBLISHED = 'Event hub publish state updated';
+    const EVENT_HUB_SLUG_CHECKED = 'Event hub slug availability checked';
+    const EVENT_HUB_ASSETS_FETCHED = 'Event hub assets fetched successfully';
+    const EVENT_HUB_NOT_SAVED = 'Save the event hub before publishing';
 
     const TRIVIA_FETCHED = 'Trivia fetched successfully';
     const TRIVIA_UPDATED = 'Trivia updated successfully';
