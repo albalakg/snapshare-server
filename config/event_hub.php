@@ -31,5 +31,6 @@ return [
         'font_family'     => 'Rubik',
     ],
 
-    'default_snapshare_cta_text' => 'Find Your Photos via Face Recognition',
+    'default_snapshare_cta_text' => 'העלו תמונות',
+    'default_snapshare_cta_subtitle' => 'בלי אפליקציה',
 ];
