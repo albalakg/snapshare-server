@@ -10,6 +10,7 @@ use App\Http\Requests\StoreTriviaQuestionRequest;
 use App\Http\Requests\UpdateTriviaGameRequest;
 use App\Http\Requests\UpdateTriviaQuestionsRequest;
 use App\Services\Enums\MessagesEnum;
+use App\Services\Trivia\TriviaIncompleteQuestionsException;
 use App\Services\Trivia\TriviaService;
 use Exception;
 use Illuminate\Http\Response;
@@ -130,6 +131,8 @@ class EventTriviaAdminController extends Controller
                     isset($data['question_id']) ? (int) $data['question_id'] : null
                 )
             );
+        } catch (TriviaIncompleteQuestionsException $ex) {
+            return $this->incompleteQuestionsResponse($ex);
         } catch (Exception $ex) {
             return $this->errorResponse($ex, null, $ex->getCode() ?: Response::HTTP_BAD_REQUEST);
         }
@@ -180,6 +183,8 @@ class EventTriviaAdminController extends Controller
                 MessagesEnum::TRIVIA_SHOWN,
                 $service->showNow($event_id, Auth::user()->id)
             );
+        } catch (TriviaIncompleteQuestionsException $ex) {
+            return $this->incompleteQuestionsResponse($ex);
         } catch (Exception $ex) {
             return $this->errorResponse($ex, null, $ex->getCode() ?: Response::HTTP_BAD_REQUEST);
         }
@@ -225,5 +230,14 @@ class EventTriviaAdminController extends Controller
         } catch (Exception $ex) {
             return $this->errorResponse($ex, null, $ex->getCode() ?: Response::HTTP_BAD_REQUEST);
         }
+    }
+
+    private function incompleteQuestionsResponse(TriviaIncompleteQuestionsException $ex)
+    {
+        return response()->json([
+            'message' => $ex->getMessage(),
+            'status' => false,
+            'data' => ['errors' => $ex->errors],
+        ], Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 }

@@ -233,16 +233,20 @@ class TriviaService
 
         $merged = [
             'type' => $data['type'] ?? $question->type ?? TriviaQuestionTypeEnum::CHOICE,
-            'prompt' => $data['prompt'] ?? $question->prompt,
-            'time_limit_seconds' => $data['time_limit_seconds'] ?? $question->time_limit_seconds,
+            'prompt' => array_key_exists('prompt', $data) ? $data['prompt'] : $question->prompt,
+            'time_limit_seconds' => array_key_exists('time_limit_seconds', $data) && $data['time_limit_seconds'] !== null && $data['time_limit_seconds'] !== ''
+                ? $data['time_limit_seconds']
+                : $question->time_limit_seconds,
             'max_points' => $data['max_points'] ?? $question->max_points,
             'fun_fact' => array_key_exists('fun_fact', $data) ? $data['fun_fact'] : $question->fun_fact,
             'media_asset_id' => array_key_exists('media_asset_id', $data) ? $data['media_asset_id'] : $question->media_asset_id,
             'config' => array_key_exists('config', $data) ? $data['config'] : $question->config,
-            'options' => $data['options'] ?? $question->options->map(fn ($option) => [
-                'label' => $option->label,
-                'is_correct' => (bool) $option->is_correct,
-            ])->all(),
+            'options' => array_key_exists('options', $data)
+                ? $data['options']
+                : $question->options->map(fn ($option) => [
+                    'label' => $option->label,
+                    'is_correct' => (bool) $option->is_correct,
+                ])->all(),
         ];
 
         $this->assertQuestionPayload($merged);
@@ -250,8 +254,8 @@ class TriviaService
 
         DB::transaction(function () use ($question, $merged) {
             $question->type = $merged['type'];
-            $question->prompt = trim((string) $merged['prompt']);
-            $question->time_limit_seconds = (int) $merged['time_limit_seconds'];
+            $question->prompt = trim((string) ($merged['prompt'] ?? ''));
+            $question->time_limit_seconds = (int) ($merged['time_limit_seconds'] ?: 20);
             $question->max_points = in_array($merged['type'], TriviaQuestionTypeEnum::unscored(), true)
                 ? 0
                 : (int) $merged['max_points'];
@@ -266,7 +270,7 @@ class TriviaService
                 $question->options()->delete();
                 foreach (array_values($merged['options'] ?? []) as $option_index => $option) {
                     $question->options()->create([
-                        'label' => trim($option['label']),
+                        'label' => trim((string) ($option['label'] ?? '')),
                         'is_correct' => (bool) ($option['is_correct'] ?? false),
                         'sort_order' => $option_index,
                     ]);
@@ -368,6 +372,7 @@ class TriviaService
         }
 
         $this->assertHasQuestions($game);
+        $this->assertQuestionsReadyToGoLive($game);
         $game->enabled = true;
         $game->status = TriviaStatusEnum::LIVE;
 
@@ -461,6 +466,7 @@ class TriviaService
         $event = $this->event_service->assertEventAccess($event_id, $user_id);
         $game = $this->gameOrFail($event_id);
         $this->assertHasQuestions($game);
+        $this->assertQuestionsReadyToGoLive($game);
 
         $game->enabled = true;
         $game->status = TriviaStatusEnum::LIVE;
@@ -680,6 +686,16 @@ class TriviaService
         $pace = $game->pace ?? TriviaPaceEnum::HOST;
         if (TriviaPaceEnum::isShared($pace)) {
             $current_phase = $this->currentPhase($game, 'live');
+            $existing = TriviaAnswer::where('player_id', $player->id)
+                ->where('question_id', $question->id)
+                ->first();
+
+            // Guest already answered: allow re-read during reveal so the phone
+            // can fetch is_correct / points (host-paced feedback).
+            if ($existing?->answered_at) {
+                return $this->answerResult($player->fresh(), $existing, $game, $question);
+            }
+
             if (
                 $current_phase !== TriviaPhaseEnum::QUESTION
                 || (int) $game->current_question_id !== (int) $question->id
@@ -899,10 +915,19 @@ class TriviaService
         string $current_phase
     ): array {
         if ($current_phase !== TriviaPhaseEnum::QUESTION || !$game->current_question_id) {
+            $answered = false;
+            if ($game->current_question_id) {
+                $answered = TriviaAnswer::where('player_id', $player->id)
+                    ->where('question_id', $game->current_question_id)
+                    ->whereNotNull('answered_at')
+                    ->exists();
+            }
+
             return [
                 'waiting' => true,
                 'phase' => $current_phase,
                 'current_phase' => $current_phase,
+                'answered' => $answered,
                 'finished' => false,
                 'server_now' => now()->toIso8601String(),
             ];
@@ -1637,28 +1662,23 @@ class TriviaService
 
     private function createQuestionFromPayload(TriviaGame $game, array $question, int $index): TriviaQuestion
     {
-        $type = $question['type'] ?? TriviaQuestionTypeEnum::CHOICE;
-        $max_points = in_array($type, TriviaQuestionTypeEnum::unscored(), true)
-            ? 0
-            : (int) ($question['max_points'] ?? $game->default_points ?? 1000);
+        $normalized = $this->normalizeDraftQuestionPayload($question, $game);
 
         $created = TriviaQuestion::create([
             'event_id' => $game->event_id,
-            'prompt' => trim($question['prompt']),
-            'type' => $type,
-            'fun_fact' => isset($question['fun_fact']) && $question['fun_fact'] !== ''
-                ? trim((string) $question['fun_fact'])
-                : null,
-            'media_asset_id' => $question['media_asset_id'] ?? null,
-            'config' => $question['config'] ?? null,
+            'prompt' => $normalized['prompt'],
+            'type' => $normalized['type'],
+            'fun_fact' => $normalized['fun_fact'],
+            'media_asset_id' => $normalized['media_asset_id'],
+            'config' => $normalized['config'],
             'sort_order' => $index,
-            'time_limit_seconds' => (int) ($question['time_limit_seconds'] ?? $game->default_time ?? 20),
-            'max_points' => $max_points,
+            'time_limit_seconds' => $normalized['time_limit_seconds'],
+            'max_points' => $normalized['max_points'],
         ]);
 
-        foreach (array_values($question['options'] ?? []) as $option_index => $option) {
+        foreach (array_values($normalized['options']) as $option_index => $option) {
             $created->options()->create([
-                'label' => trim($option['label']),
+                'label' => $option['label'],
                 'is_correct' => (bool) ($option['is_correct'] ?? false),
                 'sort_order' => $option_index,
             ]);
@@ -1667,6 +1687,9 @@ class TriviaService
         return $created;
     }
 
+    /**
+     * Draft-friendly shape check only. Completeness is enforced when going live.
+     */
     private function assertQuestionPayload(array $question): void
     {
         $type = $question['type'] ?? TriviaQuestionTypeEnum::CHOICE;
@@ -1674,33 +1697,227 @@ class TriviaService
             throw new Exception(MessagesEnum::TRIVIA_INVALID_TYPE, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        if ($type === TriviaQuestionTypeEnum::NUMBER) {
-            $config = $question['config'] ?? null;
-            if (
-                !is_array($config)
-                || !isset($config['min'], $config['max'], $config['correct'])
-                || !is_numeric($config['min'])
-                || !is_numeric($config['max'])
-                || !is_numeric($config['correct'])
-                || (float) $config['max'] <= (float) $config['min']
-            ) {
-                throw new Exception(MessagesEnum::TRIVIA_INVALID_TYPE, Response::HTTP_UNPROCESSABLE_ENTITY);
-            }
-
-            return;
-        }
-
-        $options = $question['options'] ?? [];
-        if (!is_array($options) || count($options) < 2 || count($options) > 6) {
-            throw new Exception(MessagesEnum::TRIVIA_OPTION_CORRECT_REQUIRED, Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
-        if (TriviaQuestionTypeEnum::requiresCorrectOption($type)) {
-            $correct = collect($options)->contains(fn ($option) => !empty($option['is_correct']));
-            if (!$correct) {
+        if (array_key_exists('options', $question) && $question['options'] !== null) {
+            if (!is_array($question['options']) || count($question['options']) > 6) {
                 throw new Exception(MessagesEnum::TRIVIA_OPTION_CORRECT_REQUIRED, Response::HTTP_UNPROCESSABLE_ENTITY);
             }
         }
+
+        if (array_key_exists('config', $question) && $question['config'] !== null && !is_array($question['config'])) {
+            throw new Exception(MessagesEnum::TRIVIA_INVALID_TYPE, Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+    }
+
+    private function normalizeDraftQuestionPayload(array $question, ?TriviaGame $game = null): array
+    {
+        $type = $question['type'] ?? TriviaQuestionTypeEnum::CHOICE;
+        $default_time = (int) ($game->default_time ?? 20);
+        $default_points = (int) ($game->default_points ?? 1000);
+
+        $options = $question['options'] ?? null;
+        if ($type === TriviaQuestionTypeEnum::NUMBER) {
+            $options = [];
+        } elseif (!is_array($options)) {
+            $options = $this->defaultOptionsForType($type);
+        }
+
+        $config = $question['config'] ?? null;
+        if ($config === null) {
+            $config = $this->defaultConfigForType($type);
+        }
+
+        $max_points = in_array($type, TriviaQuestionTypeEnum::unscored(), true)
+            ? 0
+            : (int) ($question['max_points'] ?? $default_points);
+
+        $time_limit = $question['time_limit_seconds'] ?? null;
+        if ($time_limit === null || $time_limit === '') {
+            $time_limit = $default_time;
+        }
+
+        return [
+            'type' => $type,
+            'prompt' => trim((string) ($question['prompt'] ?? '')),
+            'fun_fact' => isset($question['fun_fact']) && $question['fun_fact'] !== ''
+                ? trim((string) $question['fun_fact'])
+                : null,
+            'media_asset_id' => $question['media_asset_id'] ?? null,
+            'config' => $config,
+            'time_limit_seconds' => (int) $time_limit,
+            'max_points' => $max_points,
+            'options' => array_map(static function ($option) {
+                return [
+                    'label' => trim((string) ($option['label'] ?? '')),
+                    'is_correct' => (bool) ($option['is_correct'] ?? false),
+                ];
+            }, array_values($options)),
+        ];
+    }
+
+    private function defaultOptionsForType(string $type): array
+    {
+        return match ($type) {
+            TriviaQuestionTypeEnum::TRUEFALSE => [
+                ['label' => 'נכון', 'is_correct' => true],
+                ['label' => 'לא נכון', 'is_correct' => false],
+            ],
+            TriviaQuestionTypeEnum::WHO, TriviaQuestionTypeEnum::WHOSAID => [
+                ['label' => 'עמית', 'is_correct' => true],
+                ['label' => 'גל', 'is_correct' => false],
+            ],
+            TriviaQuestionTypeEnum::THISORTHAT => [
+                ['label' => 'אפשרות א', 'is_correct' => false],
+                ['label' => 'אפשרות ב', 'is_correct' => false],
+            ],
+            TriviaQuestionTypeEnum::TWOTRUTHS => [
+                ['label' => 'אמת ראשונה', 'is_correct' => false],
+                ['label' => 'השקר', 'is_correct' => true],
+                ['label' => 'אמת שנייה', 'is_correct' => false],
+            ],
+            TriviaQuestionTypeEnum::NUMBER => [],
+            TriviaQuestionTypeEnum::POLL => [
+                ['label' => '', 'is_correct' => false],
+                ['label' => '', 'is_correct' => false],
+                ['label' => '', 'is_correct' => false],
+                ['label' => '', 'is_correct' => false],
+            ],
+            default => [
+                ['label' => '', 'is_correct' => true],
+                ['label' => '', 'is_correct' => false],
+                ['label' => '', 'is_correct' => false],
+                ['label' => '', 'is_correct' => false],
+            ],
+        };
+    }
+
+    private function defaultConfigForType(string $type): ?array
+    {
+        return match ($type) {
+            TriviaQuestionTypeEnum::NUMBER => [
+                'min' => 0,
+                'max' => 100,
+                'correct' => 50,
+                'unit' => '',
+            ],
+            TriviaQuestionTypeEnum::WHO, TriviaQuestionTypeEnum::WHOSAID => [
+                'sides' => [
+                    ['name' => 'עמית', 'color' => '#1F6F6A', 'initial' => 'ע'],
+                    ['name' => 'גל', 'color' => '#DC5B66', 'initial' => 'ג'],
+                ],
+            ],
+            TriviaQuestionTypeEnum::THISORTHAT => [
+                'sides' => [
+                    ['name' => 'אפשרות א', 'color' => '#1F6F6A', 'initial' => 'א'],
+                    ['name' => 'אפשרות ב', 'color' => '#6E4A8A', 'initial' => 'ב'],
+                ],
+            ],
+            default => null,
+        };
+    }
+
+    private function assertQuestionsReadyToGoLive(TriviaGame $game): void
+    {
+        $questions = TriviaQuestion::with('options')
+            ->where('event_id', $game->event_id)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        $errors = [];
+
+        foreach ($questions as $index => $question) {
+            $errors = array_merge($errors, $this->completenessErrorsForQuestion($question, $index));
+        }
+
+        if ($errors !== []) {
+            throw new TriviaIncompleteQuestionsException($errors);
+        }
+    }
+
+    /**
+     * @return array<int, array{question_id:int, index:int, field:string, message:string}>
+     */
+    private function completenessErrorsForQuestion(TriviaQuestion $question, int $index): array
+    {
+        $errors = [];
+        $qid = (int) $question->id;
+        $type = $question->type ?: TriviaQuestionTypeEnum::CHOICE;
+
+        if (trim((string) $question->prompt) === '') {
+            $errors[] = [
+                'question_id' => $qid,
+                'index' => $index,
+                'field' => 'prompt',
+                'message' => 'Prompt is required',
+            ];
+        }
+
+        if ($type === TriviaQuestionTypeEnum::NUMBER) {
+            $config = is_array($question->config) ? $question->config : [];
+            if (!isset($config['correct']) || !is_numeric($config['correct'])) {
+                $errors[] = [
+                    'question_id' => $qid,
+                    'index' => $index,
+                    'field' => 'config.correct',
+                    'message' => 'Number answer is required',
+                ];
+            }
+            if (
+                !isset($config['min'], $config['max'])
+                || !is_numeric($config['min'])
+                || !is_numeric($config['max'])
+                || (float) $config['max'] <= (float) $config['min']
+            ) {
+                $errors[] = [
+                    'question_id' => $qid,
+                    'index' => $index,
+                    'field' => 'config',
+                    'message' => 'Number range is invalid',
+                ];
+            }
+
+            return $errors;
+        }
+
+        $options = $question->options ?? collect();
+        $min_options = match ($type) {
+            TriviaQuestionTypeEnum::TWOTRUTHS => 3,
+            default => 2,
+        };
+
+        if ($options->count() < $min_options) {
+            $errors[] = [
+                'question_id' => $qid,
+                'index' => $index,
+                'field' => 'options',
+                'message' => "At least {$min_options} options are required",
+            ];
+        }
+
+        foreach ($options->values() as $option_index => $option) {
+            if (trim((string) $option->label) === '') {
+                $errors[] = [
+                    'question_id' => $qid,
+                    'index' => $index,
+                    'field' => "options.{$option_index}.label",
+                    'message' => 'Option label is required',
+                ];
+            }
+        }
+
+        if (TriviaQuestionTypeEnum::requiresCorrectOption($type)) {
+            $has_correct = $options->contains(fn ($option) => (bool) $option->is_correct);
+            if (!$has_correct) {
+                $errors[] = [
+                    'question_id' => $qid,
+                    'index' => $index,
+                    'field' => 'options',
+                    'message' => 'A correct answer is required',
+                ];
+            }
+        }
+
+        return $errors;
     }
 
     private function assertMediaBelongsToEvent(int $event_id, $media_asset_id): void
