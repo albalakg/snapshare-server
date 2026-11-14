@@ -201,6 +201,8 @@ class MessagesEnum extends BaseEnum
     const TRIVIA_FETCHED = 'Trivia fetched successfully';
     const TRIVIA_UPDATED = 'Trivia updated successfully';
     const TRIVIA_QUESTIONS_UPDATED = 'Trivia questions updated successfully';
+    const TRIVIA_QUESTION_SAVED = 'Trivia question saved successfully';
+    const TRIVIA_QUESTION_CREATED = 'Trivia question created successfully';
     const TRIVIA_SHOWN = 'Trivia is now on screen';
     const TRIVIA_RESULTS_SHOWN = 'Trivia results are now on screen';
     const TRIVIA_PHOTOS_RESTORED = 'Photo gallery restored';
@@ -212,6 +214,7 @@ class MessagesEnum extends BaseEnum
     const TRIVIA_NOT_FOUND = 'Trivia is not configured for this event';
     const TRIVIA_QUESTIONS_REQUIRED = 'Add at least one trivia question before showing it';
     const TRIVIA_QUESTIONS_LOCKED = 'Questions cannot be edited while trivia is on screen';
+    const TRIVIA_QUESTION_CAP = 'A trivia game can have at most 40 questions';
     const TRIVIA_RESULTS_AFTER_START = 'Results time must be after the start time';
     const TRIVIA_OPTION_CORRECT_REQUIRED = 'Each question needs at least one correct answer';
     const TRIVIA_INVALID_SESSION = 'Invalid or missing trivia session';
