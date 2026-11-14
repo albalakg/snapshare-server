@@ -44,7 +44,13 @@ class EventService
         private ?UserService $user_service = null,
         private ?StoreService $order_service = null,
         private ?MailService $mail_service = null,
-    ) {}
+    ) {
+        // Controllers usually resolve EventService via the container; some
+        // callers (e.g. TriviaService) still `new EventService()` without DI.
+        $this->user_service ??= new UserService();
+        $this->order_service ??= new StoreService();
+        $this->mail_service ??= new MailService();
+    }
 
     /**
      * @return Collection
