@@ -203,6 +203,10 @@ class MessagesEnum extends BaseEnum
     const TRIVIA_QUESTIONS_UPDATED = 'Trivia questions updated successfully';
     const TRIVIA_QUESTION_SAVED = 'Trivia question saved successfully';
     const TRIVIA_QUESTION_CREATED = 'Trivia question created successfully';
+    const TRIVIA_QUESTION_DELETED = 'Trivia question deleted successfully';
+    const TRIVIA_QUESTIONS_REORDERED = 'Trivia questions reordered successfully';
+    const TRIVIA_PHASE_UPDATED = 'Trivia phase updated successfully';
+    const TRIVIA_TEMPLATE_APPLIED = 'Trivia template applied successfully';
     const TRIVIA_SHOWN = 'Trivia is now on screen';
     const TRIVIA_RESULTS_SHOWN = 'Trivia results are now on screen';
     const TRIVIA_PHOTOS_RESTORED = 'Photo gallery restored';
@@ -221,6 +225,11 @@ class MessagesEnum extends BaseEnum
     const TRIVIA_PLAYER_NOT_FOUND = 'Trivia player was not found';
     const TRIVIA_AVATAR_FAILED = 'Could not save the player image';
     const TRIVIA_ANSWER_LOCKED = 'Answers are closed';
+    const TRIVIA_PHASE_INVALID = 'Invalid trivia phase transition';
+    const TRIVIA_TEMPLATE_NOT_FOUND = 'Trivia template was not found';
+    const TRIVIA_TEMPLATE_HAS_QUESTIONS = 'Confirm replace to overwrite existing trivia questions';
+    const TRIVIA_TEAM_REQUIRED = 'Pick a team to join';
+    const TRIVIA_INVALID_TYPE = 'Unsupported trivia question type';
 
     // Validations
     const INVALID_PASSWORD = 'Password is required and must be minimum 8 characters, at least one lowercase letter, uppercase letter and one number';
