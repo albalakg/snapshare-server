@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Services\Enums\TriviaPaceEnum;
+use App\Services\Trivia\TriviaService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -20,9 +21,9 @@ class UpdateTriviaGameRequest extends FormRequest
             'title' => 'required|string|min:1|max:80',
             'starts_at' => 'nullable|date',
             'results_at' => 'nullable|date',
-            'theme' => ['nullable', 'string', Rule::in(['elegant', 'neon'])],
+            'theme' => ['nullable', 'string', Rule::in(TriviaService::THEMES)],
             'pace' => ['nullable', 'string', Rule::in(TriviaPaceEnum::all())],
-            'teams_mode' => ['nullable', 'string', Rule::in(['none', 'sides'])],
+            'teams_mode' => ['nullable', 'string', Rule::in(TriviaService::TEAMS_MODES)],
             'team_labels' => 'nullable|array',
             'team_labels.a' => 'nullable|string|max:40',
             'team_labels.b' => 'nullable|string|max:40',

@@ -289,6 +289,8 @@ class EventService
                 $event_asset->save();
             }
 
+            (new \App\Services\EventHub\EventHubCacheService())->forgetForEvent($id);
+
             return true;
         }, [
             'user_id' => $user_id,
@@ -334,6 +336,8 @@ class EventService
                     ],
                 ]);
 
+            (new \App\Services\EventHub\EventHubCacheService())->forgetForEvent($id);
+
             return true;
         }, [
             'user_id' => $user_id,
@@ -376,6 +380,8 @@ class EventService
                     'is_displayed' => true,
                     'moderation_labels' => null,
                 ]);
+
+            (new \App\Services\EventHub\EventHubCacheService())->forgetForEvent($id);
 
             return true;
         }, [

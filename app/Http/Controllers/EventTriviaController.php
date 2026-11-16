@@ -66,7 +66,9 @@ class EventTriviaController extends Controller
                 (string) $request->attributes->get('trivia_session_token'),
                 (int) $data['question_id'],
                 $data['option_ids'] ?? [],
-                $data['value_number'] ?? null
+                $data['value_number'] ?? null,
+                $data['value_text'] ?? null,
+                $data['value_json'] ?? null
             );
 
             return $this->successResponse(MessagesEnum::TRIVIA_ANSWER_RECORDED, $response);
