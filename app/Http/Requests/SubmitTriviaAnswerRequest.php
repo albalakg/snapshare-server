@@ -18,6 +18,8 @@ class SubmitTriviaAnswerRequest extends FormRequest
             'option_ids' => 'nullable|array|max:6',
             'option_ids.*' => 'integer',
             'value_number' => 'nullable|numeric',
+            'value_text' => 'nullable|string|max:200',
+            'value_json' => 'nullable|array',
         ];
     }
 }

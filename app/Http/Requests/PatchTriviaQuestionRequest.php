@@ -43,7 +43,7 @@ class PatchTriviaQuestionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => ['sometimes', 'string', Rule::in(TriviaQuestionTypeEnum::mvp())],
+            'type' => ['sometimes', 'string', Rule::in(TriviaQuestionTypeEnum::playable())],
             'prompt' => 'sometimes|nullable|string|max:500',
             'time_limit_seconds' => 'sometimes|nullable|integer|min:5|max:120',
             'max_points' => 'sometimes|integer|min:0|max:10000',

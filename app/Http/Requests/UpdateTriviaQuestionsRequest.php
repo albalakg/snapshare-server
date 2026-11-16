@@ -64,7 +64,7 @@ class UpdateTriviaQuestionsRequest extends FormRequest
     public static function questionItemRules(string $prefix): array
     {
         return [
-            "{$prefix}.type" => ['nullable', 'string', Rule::in(TriviaQuestionTypeEnum::mvp())],
+            "{$prefix}.type" => ['nullable', 'string', Rule::in(TriviaQuestionTypeEnum::playable())],
             "{$prefix}.prompt" => 'nullable|string|max:500',
             "{$prefix}.time_limit_seconds" => 'nullable|integer|min:5|max:120',
             "{$prefix}.max_points" => 'nullable|integer|min:0|max:10000',

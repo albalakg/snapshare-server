@@ -39,7 +39,7 @@ class StoreTriviaQuestionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => ['nullable', 'string', Rule::in(TriviaQuestionTypeEnum::mvp())],
+            'type' => ['nullable', 'string', Rule::in(TriviaQuestionTypeEnum::playable())],
             'prompt' => 'nullable|string|max:500',
             'time_limit_seconds' => 'nullable|integer|min:5|max:120',
             'max_points' => 'nullable|integer|min:0|max:10000',
