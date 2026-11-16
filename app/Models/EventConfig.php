@@ -26,6 +26,7 @@ class EventConfig extends Model
         'welcome_text',
         'image_display_time',
         'video_display_time',
+        'live_screen_options',
         'manual_photo_approval',
     ];
 
@@ -41,6 +42,7 @@ class EventConfig extends Model
         'manual_photo_approval'                         => 'boolean',
         'image_display_time'                            => 'integer',
         'video_display_time'                            => 'integer',
+        'live_screen_options'                           => 'array',
     ];
 
     public function event()

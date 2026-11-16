@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Services\Enums\EventGalleryTypeEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateEventRequest extends FormRequest
 {
@@ -40,6 +42,35 @@ class UpdateEventRequest extends FormRequest
             'config.welcome_text'                                   => ['nullable', 'string', 'max:255'],
             'config.image_display_time'                             => ['nullable', 'integer', 'min:1', 'max:120'],
             'config.video_display_time'                             => ['nullable', 'integer', 'min:1', 'max:300'],
+            'config.displayed_gallery' => [
+                'nullable',
+                'string',
+                'max:30',
+                Rule::in(EventGalleryTypeEnum::allowedValues()),
+            ],
+            'config.live_screen_options' => ['nullable', 'array'],
+            'config.live_screen_options.qr_corner' => [
+                'nullable',
+                'string',
+                Rule::in(['bottom-start', 'bottom-end', 'top-start', 'top-end']),
+            ],
+            'config.live_screen_options.ken_burns_intensity' => [
+                'nullable',
+                'string',
+                Rule::in(['subtle', 'medium']),
+            ],
+            'config.live_screen_options.mosaic_size' => [
+                'nullable',
+                'string',
+                Rule::in(['3x3', '4x4']),
+            ],
+            'config.live_screen_options.masonry_density' => [
+                'nullable',
+                'string',
+                Rule::in(['cozy', 'dense']),
+            ],
+            'config.live_screen_options.polaroid_count' => ['nullable', 'integer', 'min:4', 'max:16'],
+            'config.live_screen_options.spotlight_hold_seconds' => ['nullable', 'integer', 'min:2', 'max:30'],
         ];
     }
 }

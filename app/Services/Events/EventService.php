@@ -69,7 +69,7 @@ class EventService
         return Event::where('path', $event_path)
             ->select('id', 'image', 'name', 'starts_at', 'user_id', 'status')
             ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::READY, StatusEnum::PENDING, StatusEnum::IN_PROGRESS])
-            ->with('config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,video_upload_enabled,qr_card_design,qr_card_text,preview_link_to_album_page_from_upload_page')
+            ->with('config:' . $this->eventConfigSelectColumns())
             ->first();
     }
 
@@ -83,8 +83,8 @@ class EventService
             ->select('id', 'image', 'name', 'starts_at', 'user_id', 'status')
             ->whereIn('status', [StatusEnum::ACTIVE, StatusEnum::READY, StatusEnum::PENDING, StatusEnum::IN_PROGRESS])
             ->with(
-                'displayedAssets:id,event_id,asset_type,path', 
-                'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,video_upload_enabled'
+                'displayedAssets:id,event_id,asset_type,path',
+                'config:' . $this->eventConfigSelectColumns()
             )
             ->first();
 
@@ -127,7 +127,7 @@ class EventService
             ->select('id', 'order_id', 'path', 'image', 'name', 'status', 'starts_at', 'finished_at')
             ->with('assets:id,event_id,asset_type,path,is_displayed',
                 'activeDownloadProcess:id,path,status,event_id',
-                'config:id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,preview_qr_in_gallery,displayed_gallery,video_upload_enabled,qr_card_design,qr_card_text,preview_link_to_album_page_from_upload_page')
+                'config:' . $this->eventConfigSelectColumns())
             ->first();
     }
 
@@ -442,6 +442,11 @@ class EventService
             }
 
             $event_config->displayed_gallery = $data['selectedAlbum'];
+            if (array_key_exists('live_screen_options', $data)) {
+                $event_config->live_screen_options = $this->normalizeLiveScreenOptions(
+                    $data['live_screen_options']
+                );
+            }
             $event_config->save();
 
             return $event_config;
@@ -974,6 +979,14 @@ class EventService
         if (array_key_exists('video_display_time', $config) && $config['video_display_time'] !== null) {
             $event_config->video_display_time = (int) $config['video_display_time'];
         }
+        if (array_key_exists('displayed_gallery', $config) && $config['displayed_gallery']) {
+            $event_config->displayed_gallery = (string) $config['displayed_gallery'];
+        }
+        if (array_key_exists('live_screen_options', $config)) {
+            $event_config->live_screen_options = $this->normalizeLiveScreenOptions(
+                $config['live_screen_options']
+            );
+        }
 
         $event_config->save();
     }
@@ -987,13 +1000,60 @@ class EventService
             'preview_guests_assets_in_gallery'  => true,
             'preview_owners_assets_in_gallery'  => true,
             'preview_qr_in_gallery'                          => true,
-            'displayed_gallery'                              => EventGalleryTypeEnum::SINGLE_GALLERY,
+            'displayed_gallery'                              => EventGalleryTypeEnum::KEN_BURNS_GALLERY,
             'video_upload_enabled'                           => true,
             'preview_link_to_album_page_from_upload_page'    => true,
             'manual_photo_approval'                          => false,
             'image_display_time'                             => 3,
             'video_display_time'                             => 8,
+            'live_screen_options'                            => null,
         ];
+    }
+
+    /**
+     * Shared eager-load column list for event_configs (host + public live screen).
+     */
+    private function eventConfigSelectColumns(): string
+    {
+        return 'id,event_id,preview_site_display_image,preview_site_display_name,preview_site_display_date,preview_guests_assets_in_gallery,preview_owners_assets_in_gallery,preview_qr_in_gallery,displayed_gallery,video_upload_enabled,qr_card_design,qr_card_text,preview_link_to_album_page_from_upload_page,welcome_text,image_display_time,video_display_time,live_screen_options,manual_photo_approval';
+    }
+
+    /**
+     * Keep only known live-screen option keys with safe types.
+     *
+     * @param mixed $options
+     * @return array|null
+     */
+    private function normalizeLiveScreenOptions($options): ?array
+    {
+        if ($options === null) {
+            return null;
+        }
+        if (!is_array($options)) {
+            return null;
+        }
+
+        $normalized = [];
+        if (isset($options['qr_corner']) && is_string($options['qr_corner'])) {
+            $normalized['qr_corner'] = $options['qr_corner'];
+        }
+        if (isset($options['ken_burns_intensity']) && is_string($options['ken_burns_intensity'])) {
+            $normalized['ken_burns_intensity'] = $options['ken_burns_intensity'];
+        }
+        if (isset($options['mosaic_size']) && is_string($options['mosaic_size'])) {
+            $normalized['mosaic_size'] = $options['mosaic_size'];
+        }
+        if (isset($options['masonry_density']) && is_string($options['masonry_density'])) {
+            $normalized['masonry_density'] = $options['masonry_density'];
+        }
+        if (array_key_exists('polaroid_count', $options) && $options['polaroid_count'] !== null) {
+            $normalized['polaroid_count'] = (int) $options['polaroid_count'];
+        }
+        if (array_key_exists('spotlight_hold_seconds', $options) && $options['spotlight_hold_seconds'] !== null) {
+            $normalized['spotlight_hold_seconds'] = (int) $options['spotlight_hold_seconds'];
+        }
+
+        return $normalized === [] ? null : $normalized;
     }
 
     private function booleanEventConfigKeys(): array
