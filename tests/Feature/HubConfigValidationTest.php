@@ -175,6 +175,40 @@ class HubConfigValidationTest extends TestCase
         ]));
     }
 
+    public function test_gift_block_accepted_for_wedding_and_party(): void
+    {
+        foreach (['wedding-1', 'party-1'] as $template_id) {
+            $config = $this->templateConfig($template_id);
+            $config['blocks'][] = [
+                'id' => 'gift1',
+                'type' => 'GIFT',
+                'enabled' => false,
+                'order' => count($config['blocks']) + 1,
+                'data' => [
+                    'button' => 'למתנה',
+                    'url' => null,
+                ],
+            ];
+            // Keep FOOTER last with contiguous orders
+            usort($config['blocks'], static function ($a, $b) {
+                $ao = ($a['type'] ?? '') === 'FOOTER' ? 9999 : (int) ($a['order'] ?? 0);
+                $bo = ($b['type'] ?? '') === 'FOOTER' ? 9999 : (int) ($b['order'] ?? 0);
+                return $ao <=> $bo;
+            });
+            foreach ($config['blocks'] as $i => $_) {
+                $config['blocks'][$i]['order'] = $i + 1;
+            }
+
+            $response = $this->putHub([
+                'slug' => null,
+                'is_published' => false,
+                'hub_config' => $config,
+            ]);
+            $response->assertOk();
+            $response->assertJsonPath('status', true);
+        }
+    }
+
     public function test_block_with_empty_data_object_saves(): void
     {
         $config = $this->wedding1Config();

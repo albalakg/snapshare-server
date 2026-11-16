@@ -181,6 +181,7 @@ return [
                 'SNAPSHARE_CTA',
                 'RICH_TEXT',
                 'TRIVIA_CTA',
+                'GIFT',
             ],
             'default_enabled' => [
                 'STORY' => true,
@@ -198,6 +199,7 @@ return [
                 'SNAPSHARE_CTA' => true,
                 'RICH_TEXT' => false,
                 'TRIVIA_CTA' => false,
+                'GIFT' => false,
             ],
             'palettes' => [
                 'default' => [
@@ -271,6 +273,7 @@ return [
                 'SNAPSHARE_CTA',
                 'RICH_TEXT',
                 'RSVP',
+                'GIFT',
             ],
             'default_enabled' => [
                 'QUOTE' => true,
@@ -288,6 +291,7 @@ return [
                 'SNAPSHARE_CTA' => true,
                 'RICH_TEXT' => false,
                 'RSVP' => false,
+                'GIFT' => false,
             ],
             'palettes' => [
                 'default' => [
@@ -635,6 +639,7 @@ return [
                 'SNAPSHARE_CTA',
                 'RICH_TEXT',
                 'TRIVIA_CTA',
+                'GIFT',
             ],
             'default_enabled' => [
                 'ABOUT' => true,
@@ -652,6 +657,7 @@ return [
                 'SNAPSHARE_CTA' => true,
                 'RICH_TEXT' => false,
                 'TRIVIA_CTA' => false,
+                'GIFT' => false,
             ],
             'palettes' => [
                 'default' => [
@@ -725,6 +731,7 @@ return [
                 'SNAPSHARE_CTA',
                 'RICH_TEXT',
                 'TRIVIA_CTA',
+                'GIFT',
             ],
             'default_enabled' => [
                 'ABOUT' => true,
@@ -742,6 +749,7 @@ return [
                 'SNAPSHARE_CTA' => true,
                 'RICH_TEXT' => false,
                 'TRIVIA_CTA' => false,
+                'GIFT' => false,
             ],
             'palettes' => [
                 'default' => [
@@ -815,6 +823,7 @@ return [
                 'SNAPSHARE_CTA',
                 'RICH_TEXT',
                 'TRIVIA_CTA',
+                'GIFT',
             ],
             'default_enabled' => [
                 'ABOUT' => true,
@@ -832,6 +841,7 @@ return [
                 'SNAPSHARE_CTA' => true,
                 'RICH_TEXT' => false,
                 'TRIVIA_CTA' => false,
+                'GIFT' => false,
             ],
             'palettes' => [
                 'default' => [
@@ -1094,6 +1104,7 @@ return [
                 'WISHING_WELL',
                 'RSVP',
                 'TRIVIA_CTA',
+                'GIFT',
             ],
             'default_enabled' => [
                 'ABOUT' => true,
@@ -1112,6 +1123,7 @@ return [
                 'WISHING_WELL' => false,
                 'RSVP' => false,
                 'TRIVIA_CTA' => false,
+                'GIFT' => false,
             ],
             'palettes' => [
                 'default' => [
@@ -1184,6 +1196,7 @@ return [
                 'RICH_TEXT',
                 'WISHING_WELL',
                 'TRIVIA_CTA',
+                'GIFT',
             ],
             'default_enabled' => [
                 'ABOUT' => true,
@@ -1201,6 +1214,7 @@ return [
                 'RICH_TEXT' => false,
                 'WISHING_WELL' => false,
                 'TRIVIA_CTA' => false,
+                'GIFT' => false,
             ],
             'palettes' => [
                 'default' => [
