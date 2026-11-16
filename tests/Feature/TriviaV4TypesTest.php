@@ -863,6 +863,46 @@ class TriviaV4TypesTest extends TestCase
         $text->assertStatus(422);
     }
 
+    /**
+     * Gal's 22:36 report: the editor's add-question payload for a new type (empty prompt,
+     * empty option labels, config null) must save as a draft; strictness applies at go-live only.
+     */
+    public function test_editor_empty_draft_payload_saves_for_every_new_type_and_go_live_rejects_each(): void
+    {
+        $this->ensureGame(TriviaPaceEnum::HOST);
+        $base = '/api/events/' . $this->event->id . '/trivia/admin';
+        $no_options = ['cloud', 'rate', 'finish', 'date', 'map', 'fillblank'];
+
+        foreach (self::NEW_TYPES as $type) {
+            $options = in_array($type, $no_options, true) ? [] : [
+                ['label' => '', 'is_correct' => true],
+                ['label' => '', 'is_correct' => false],
+                ['label' => '', 'is_correct' => false],
+                ['label' => '', 'is_correct' => false],
+            ];
+            $create = $this->actingAs($this->user, 'api')->postJson($base . '/questions', [
+                'type' => $type,
+                'prompt' => '',
+                'time_limit_seconds' => 20,
+                'max_points' => 1000,
+                'fun_fact' => null,
+                'media_asset_id' => null,
+                'config' => null,
+                'options' => $options,
+            ]);
+            $this->assertTrue($create->isSuccessful(), "draft {$type}: " . $create->getContent());
+            $question = collect($create->json('data.questions'))->last();
+            $this->assertSame($type, $question['type']);
+
+            $show = $this->actingAs($this->user, 'api')->postJson($base . '/show', []);
+            $this->assertSame(422, $show->status(), "go-live with empty {$type} must be rejected");
+
+            $this->actingAs($this->user, 'api')
+                ->deleteJson($base . '/questions/' . $question['id'])
+                ->assertSuccessful();
+        }
+    }
+
     private function ensureGame(string $pace, bool $speed_bonus = true): TriviaGame
     {
         $game = TriviaGame::firstOrNew(['event_id' => $this->event->id]);
