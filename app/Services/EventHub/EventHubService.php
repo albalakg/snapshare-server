@@ -171,6 +171,7 @@ class EventHubService
         return [
             'event_id'     => $event->id,
             'event_name'   => $event->name,
+            'event_path'   => $event->path,
             'theme'        => $config['theme'] ?? [],
             'blocks'       => $blocks,
             'integrations' => [

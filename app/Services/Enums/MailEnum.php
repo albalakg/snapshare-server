@@ -13,6 +13,8 @@ use App\Mail\EventStartNotificationFirstMail;
 use App\Mail\EventStartNotificationSecondMail;
 use App\Mail\EventWarningBeforeDeactivationMail;
 use App\Mail\ForgotPasswordMail;
+use App\Mail\NewSupportRequestAdminMail;
+use App\Mail\NewUserSignupAdminMail;
 use App\Mail\OrderConfirmedMail;
 use App\Mail\OrderFailedMail;
 use App\Mail\SubscriptionUpgradedMail;
@@ -38,4 +40,6 @@ class MailEnum extends BaseEnum
     const SUBSCRIPTION_UPGRADED = SubscriptionUpgradedMail::class;
     const CONTACT_CONFIRMATION = ContactConfirmationMail::class;
     const APPLICATION_ERROR = ApplicationErrorMail::class;
+    const NEW_USER_SIGNUP_ADMIN = NewUserSignupAdminMail::class;
+    const NEW_SUPPORT_REQUEST_ADMIN = NewSupportRequestAdminMail::class;
 }

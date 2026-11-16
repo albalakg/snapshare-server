@@ -763,6 +763,10 @@ class EventService
             $event_asset->user_agent = $request->userAgent();
             $event_asset->ip = $request->ip();
             $event_asset->created_by_guest = !boolval($user_id);
+            $device_id = $request->input('device_id');
+            if (is_string($device_id) && $device_id !== '') {
+                $event_asset->device_id = $device_id;
+            }
 
             if ($event_asset->asset_type === EventAssetTypeEnum::IMAGE_ID && config('moderation.enabled')) {
                 $event_asset->status = StatusEnum::PENDING;

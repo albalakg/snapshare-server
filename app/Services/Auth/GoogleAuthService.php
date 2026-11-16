@@ -10,6 +10,8 @@ use App\Services\Enums\RoleEnum;
 use App\Services\Enums\StatusEnum;
 use App\Services\Enums\MessagesEnum;
 use App\Services\Users\LoginService;
+use App\Services\Helpers\MailService;
+use App\Services\Users\UserService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Crypt;
@@ -141,6 +143,8 @@ class GoogleAuthService
         $user->password = null;
         $user->status = StatusEnum::ACTIVE;
         $user->save();
+
+        (new UserService(new MailService()))->notifyAdminOfSignup($user, 'Google');
 
         return $user;
     }

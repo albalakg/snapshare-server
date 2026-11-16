@@ -83,6 +83,12 @@ class MessagesEnum extends BaseEnum
     
     const PAYMENT_TRANSACTION_FAILED = 'Payment transaction failed';
 
+    const DISCOUNT_CODE_INVALID = 'Discount code is invalid or inactive';
+
+    const DISCOUNT_CODE_NOT_FOUND = 'Discount code not found';
+
+    const DISCOUNT_CODE_ALREADY_EXISTS = 'Discount code already exists';
+
     // Info
     const LOGIN_SUCCESS = 'Logged in successfully';
 
@@ -144,6 +150,14 @@ class MessagesEnum extends BaseEnum
 
     const SUBSCRIPTIONS_FETCHED_SUCCESS = 'Subscriptions fetched successfully';
 
+    const DISCOUNT_CODES_FETCHED_SUCCESS = 'Discount codes fetched successfully';
+
+    const DISCOUNT_CODE_CREATED_SUCCESS = 'Discount code created successfully';
+
+    const DISCOUNT_CODE_UPDATED_SUCCESS = 'Discount code updated successfully';
+
+    const DISCOUNT_CODE_VERIFIED_SUCCESS = 'Discount code verified successfully';
+
     const WHATSAPP_MESSAGES_QUEUED = 'WhatsApp messages queued successfully';
 
     const WHATSAPP_GUESTS_FETCHED = 'WhatsApp guests fetched successfully';
@@ -197,6 +211,10 @@ class MessagesEnum extends BaseEnum
     const EVENT_HUB_INVALID_BLOCKS = 'Invalid event hub block configuration';
     const EVENT_HUB_CONTENT_REJECTED = 'Event hub content was rejected by moderation';
     const EVENT_HUB_SLUG_REQUIRED = 'A public URL slug is required to publish the event hub';
+
+    const EVENT_ANALYTICS_TRACKED = 'Event analytics recorded successfully';
+
+    const EVENT_ANALYTICS_FETCHED = 'Event analytics fetched successfully';
 
     const TRIVIA_FETCHED = 'Trivia fetched successfully';
     const TRIVIA_UPDATED = 'Trivia updated successfully';

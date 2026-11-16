@@ -12,7 +12,9 @@ use App\Services\Orders\StoreService;
 use App\Services\Orders\PaymentService;
 use Illuminate\Http\Request;
 use App\Http\Requests\CreateOrderRequest;
+use App\Http\Requests\VerifyDiscountCodeRequest;
 use App\Services\Helpers\LogService;
+use App\Services\Orders\DiscountCodeService;
 use App\Services\Orders\SubscriptionService;
 
 class StoreController extends Controller
@@ -50,15 +52,34 @@ class StoreController extends Controller
         try {
             $order_service = new StoreService(
                 new PaymentService,
-                null,
+                new MailService,
                 new SubscriptionService,
-                new UserService
+                new UserService,
+                new EventService
             );
             $response = $order_service->createOrder($request->validated(), Auth::user()->id);
             return $this->successResponse(MessagesEnum::ORDER_CREATED_SUCCESS, $response);
         } catch (Exception $ex) {
             return $this->errorResponse($ex);
         }
+    }
+
+    public function verifyDiscountCode(VerifyDiscountCodeRequest $request, DiscountCodeService $discount_code_service)
+    {
+        $discount = $discount_code_service->findActiveByCode($request->input('code'));
+
+        return $this->successResponse(
+            MessagesEnum::DISCOUNT_CODE_VERIFIED_SUCCESS,
+            $discount
+                ? [
+                    'valid' => true,
+                    'code' => $discount->code,
+                    'percent' => (int) $discount->percent,
+                ]
+                : [
+                    'valid' => false,
+                ]
+        );
     }
 
     public function orderCallback(Request $request)

@@ -25,6 +25,8 @@ class StoreService
 {
     private LogService $log_service;
 
+    private DiscountCodeService $discount_code_service;
+
     public function __construct(
         private ?PaymentService $payment_service = null,
         private ?MailService $mail_service = null,
@@ -33,6 +35,7 @@ class StoreService
         private ?EventService $event_service = null,
     ) {
         $this->log_service  = new LogService('payment');
+        $this->discount_code_service = new DiscountCodeService();
     }
 
     /**
@@ -123,6 +126,13 @@ class StoreService
         }
 
         $order_price = $this->calculateOrderPrice($subscription, $user_id);
+        $discount_code = $this->resolveDiscountCode($data['discount_code'] ?? null);
+        if ($discount_code) {
+            $order_price = $this->discount_code_service->applyPercent(
+                $order_price,
+                (int) $discount_code->percent
+            );
+        }
 
         if ($this->hasOrderInProgress($user_id)) {
             $order = Order::where('user_id', $user_id)
@@ -130,9 +140,13 @@ class StoreService
                 ->where('subscription_id', $subscription->id)
                 ->first();
 
+            $sameDiscount = $order
+                && (int) ($order->discount_code_id ?? 0) === (int) ($discount_code?->id ?? 0);
+
             if (
                 $order
                 && !empty($order->payment_page_link)
+                && $sameDiscount
                 && $this->isSamePrice((float) $order->price, $order_price)
                 && $this->isPaymentPageLinkFresh($order)
             ) {
@@ -159,8 +173,19 @@ class StoreService
                 $subscription,
                 $user_id,
                 StatusEnum::PENDING,
-                $order_price
+                $order_price,
+                $discount_code?->id
             );
+
+            if ($discount_code && $order_price <= 0 && (float) $subscription->price > 0) {
+                $new_order->load('subscription');
+                $this->confirmFreeOrder($new_order, $user);
+
+                return [
+                    'confirmed' => true,
+                ];
+            }
+
             $transaction_response = $this->payment_service->startTransaction($new_order, $user, $subscription);
             if(!$transaction_response) {
                 throw new Exception(MessagesEnum::PAYMENT_TRANSACTION_FAILED);
@@ -456,7 +481,7 @@ class StoreService
      * @param int $status
      * @return Order
      */
-    private function addNewOrder(Subscription $subscription, int $user_id, int $status = StatusEnum::PENDING, ?float $price = null): Order
+    private function addNewOrder(Subscription $subscription, int $user_id, int $status = StatusEnum::PENDING, ?float $price = null, ?int $discount_code_id = null): Order
     {
         $new_order = new Order();
         $new_order->user_id = $user_id;
@@ -464,8 +489,53 @@ class StoreService
         $new_order->price = $price ?? $subscription->price;
         $new_order->status = $status;
         $new_order->order_number = $this->generateOrderNumber();
+        $new_order->discount_code_id = $discount_code_id;
         $new_order->save();
 
         return $new_order;
+    }
+
+    private function resolveDiscountCode(?string $code): ?\App\Models\DiscountCode
+    {
+        $normalized = $this->discount_code_service->normalize($code);
+        if ($normalized === '') {
+            return null;
+        }
+
+        $discount = $this->discount_code_service->findActiveByCode($normalized);
+        if (!$discount) {
+            throw new Exception(MessagesEnum::DISCOUNT_CODE_INVALID);
+        }
+
+        return $discount;
+    }
+
+    private function confirmFreeOrder(Order $order, User $user): void
+    {
+        if (!$this->event_service) {
+            throw new Exception(MessagesEnum::PAYMENT_TRANSACTION_FAILED);
+        }
+
+        DB::transaction(function () use ($order) {
+            $this->syncConfirmedOrderEvents($order);
+            $this->updateOrderConfirmed($order->id);
+        });
+
+        if (!$this->mail_service) {
+            return;
+        }
+
+        try {
+            $this->mail_service->send($user->email, MailEnum::ORDER_CONFIRMED, [
+                'order' => $order,
+                'first_name' => $user->first_name,
+                'event_url' => config('app.client_url') . '/event',
+            ]);
+        } catch (Exception $ex) {
+            $this->log_service->error('Failed to send free order confirmation mail', [
+                'order_id' => $order->id,
+                'error' => $ex->getMessage(),
+            ]);
+        }
     }
 }

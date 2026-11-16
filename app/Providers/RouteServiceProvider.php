@@ -66,6 +66,9 @@ class RouteServiceProvider extends ServiceProvider
             Route::prefix('api/subscriptions')
                 ->group(base_path('routes/groups/subscription.php'));
 
+            Route::prefix('api/discount-codes')
+                ->group(base_path('routes/groups/discount_code.php'));
+
             Route::middleware('api')
                 ->group(base_path('routes/groups/openwa_webhook.php'));
         });

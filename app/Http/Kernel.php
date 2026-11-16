@@ -65,5 +65,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'icebreaker.session' => \App\Http\Middleware\EnsureIcebreakerSession::class,
         'trivia.session' => \App\Http\Middleware\EnsureTriviaSession::class,
+        'admin' => \App\Http\Middleware\EnsureAdmin::class,
     ];
 }

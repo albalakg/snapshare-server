@@ -20,6 +20,7 @@ class UploadFileRequest extends FormRequest
                 'max:20480', // 20MB
                 'mimetypes:image/*,video/*',
             ],
+            'device_id' => ['nullable', 'uuid'],
         ];
     }
 }

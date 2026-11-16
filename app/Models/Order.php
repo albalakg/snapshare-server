@@ -36,4 +36,9 @@ class Order extends Model
         return $this->hasOne(Subscription::class, 'id', 'subscription_id')
             ->select('id', 'name', 'price', 'files_allowed', 'events_allowed', 'storage_time');
     }
+
+    public function discountCode()
+    {
+        return $this->belongsTo(DiscountCode::class, 'discount_code_id', 'id');
+    }
 }

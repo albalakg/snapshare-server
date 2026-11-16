@@ -64,6 +64,12 @@ class SupportService
         $support_ticket->status = StatusEnum::PENDING;
         $support_ticket->save();
 
+        $this->mail_service->send(MailService::SYSTEM_EMAILS, MailEnum::NEW_SUPPORT_REQUEST_ADMIN, [
+            'ticket_id' => $support_ticket->id,
+            'full_name' => $support_ticket->full_name,
+            'email' => $support_ticket->email,
+            'text' => $support_ticket->text,
+        ]);
         $this->mail_service->delay()->send($support_ticket->email, MailEnum::CONTACT_CONFIRMATION, [
             'first_name' => $support_ticket->full_name,
         ]);

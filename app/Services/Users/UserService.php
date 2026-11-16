@@ -93,6 +93,7 @@ class UserService
         $new_user->save();
 
         $this->sendEmailConfirmation($new_user);
+        $this->notifyAdminOfSignup($new_user, 'אימייל');
         return $new_user;
     }
 
@@ -312,6 +313,25 @@ class UserService
 
         $this->mail_service->send($user->email, MailEnum::USER_SIGNUP, $mail_data);
         $this->createEmailConfirmation($user, $token);
+    }
+
+    /**
+     * @param User $user
+     * @param string $method
+     * @return void
+     */
+    public function notifyAdminOfSignup(User $user, string $method): void
+    {
+        if (!$this->mail_service) {
+            $this->mail_service = new MailService();
+        }
+
+        $this->mail_service->send(MailService::SYSTEM_EMAILS, MailEnum::NEW_USER_SIGNUP_ADMIN, [
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'email' => $user->email,
+            'method' => $method,
+        ]);
     }
 
     /**

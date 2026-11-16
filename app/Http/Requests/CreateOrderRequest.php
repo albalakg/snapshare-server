@@ -15,6 +15,7 @@ class CreateOrderRequest extends FormRequest
     {
         return [
             'subscription' => 'bail|required|string|max:7|in:קלאסי,פרימיום,נסיון',
+            'discount_code' => 'sometimes|nullable|string|max:32',
         ];
     }
 }

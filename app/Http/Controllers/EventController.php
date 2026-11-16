@@ -13,6 +13,7 @@ use App\Services\Events\EventService;
 use App\Services\Helpers\MailService;
 use App\Services\Orders\StoreService;
 use App\Http\Requests\UploadFileRequest;
+use App\Http\Requests\TrackEventAnalyticsRequest;
 use App\Http\Requests\CreateEventRequest;
 use App\Http\Requests\UpdateEventRequest;
 use App\Http\Requests\DeleteEventAssetsRequest;
@@ -20,6 +21,7 @@ use App\Http\Requests\HideEventAssetsRequest;
 use App\Http\Requests\BlockEventAssetsRequest;
 use App\Http\Requests\UnblockEventAssetsRequest;
 use App\Http\Requests\FavoriteEventAssetsRequest;
+use App\Services\Events\EventAnalyticsService;
 use Illuminate\Http\Request;
 
 class EventController extends Controller
@@ -226,6 +228,28 @@ class EventController extends Controller
             $event_service = new EventService();
             $response = $event_service->getBaseInfo($event_path);
             return $this->successResponse(MessagesEnum::EVENT_FOUND_SUCCESS, $response);
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex);
+        }
+    }
+
+    public function trackAnalytics(string $event_path, TrackEventAnalyticsRequest $request)
+    {
+        try {
+            $service = new EventAnalyticsService();
+            $response = $service->track($event_path, $request->validated(), $request);
+            return $this->successResponse(MessagesEnum::EVENT_ANALYTICS_TRACKED, $response);
+        } catch (Exception $ex) {
+            return $this->errorResponse($ex);
+        }
+    }
+
+    public function analyticsOverview(int $event_id)
+    {
+        try {
+            $service = new EventAnalyticsService(new UserService());
+            $response = $service->overview($event_id, Auth::user()->id);
+            return $this->successResponse(MessagesEnum::EVENT_ANALYTICS_FETCHED, $response);
         } catch (Exception $ex) {
             return $this->errorResponse($ex);
         }

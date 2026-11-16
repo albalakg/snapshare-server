@@ -8,6 +8,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('{event_id}/assets', [EventController::class, 'assets']);
     Route::get('{event_id}/gallery-assets', [EventController::class, 'galleryAssets']);
     Route::get('{event_id}/assets/download/status', [EventController::class, 'getDownloadStatus']);
+    Route::get('{event_id}/analytics/overview', [EventController::class, 'analyticsOverview']);
     Route::post('{event_id}/gallery/settings', [EventController::class, 'updateGallerySettings']);
     Route::post('{event_id}/qr-card/settings', [EventController::class, 'updateQrCardSettings']);
     Route::post('{event_id}/assets/download', [EventController::class, 'downloadAssets']);
@@ -24,6 +25,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
 Route::get('{event_path}/base-info', [EventController::class, 'getBaseInfo']);
 Route::get('{event_path}/base-assets', [EventController::class, 'getBaseGallery']);
+Route::post('{event_path}/analytics', [EventController::class, 'trackAnalytics'])->middleware('throttle:60,1');
 Route::get('{event_id}/gallery-guests-assets', [EventController::class, 'galleryGuestAssets']);
 Route::post('{event_id}/upload', [EventController::class, 'uploadFile']);
 Route::post('{event_id}/auth/upload', [EventController::class, 'authenticatedUploadFile'])->middleware("auth:api");
