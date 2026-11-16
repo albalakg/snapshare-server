@@ -24,7 +24,8 @@ class UpdateEventHubRequest extends FormRequest
             'hub_config.blocks.*.type'     => 'required|string|max:64',
             'hub_config.blocks.*.enabled'  => 'required|boolean',
             'hub_config.blocks.*.order'    => 'required|integer|min:1',
-            'hub_config.blocks.*.data'     => 'required|array',
+            // present|array: allow empty data {} (Laravel "required" rejects empty arrays)
+            'hub_config.blocks.*.data'     => 'present|array',
         ];
     }
 }

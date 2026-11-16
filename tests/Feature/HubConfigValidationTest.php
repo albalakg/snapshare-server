@@ -175,6 +175,31 @@ class HubConfigValidationTest extends TestCase
         ]));
     }
 
+    public function test_block_with_empty_data_object_saves(): void
+    {
+        $config = $this->wedding1Config();
+        foreach ($config['blocks'] as $i => $block) {
+            if (($block['type'] ?? null) === 'FOOTER') {
+                $config['blocks'][$i]['data'] = [];
+            }
+        }
+
+        $response = $this->putHub([
+            'slug' => null,
+            'is_published' => false,
+            'hub_config' => $config,
+        ]);
+        $response->assertOk();
+        $response->assertJsonPath('status', true);
+
+        $get = $this->actingAs($this->user, 'api')
+            ->getJson("/api/events/{$this->event->id}/hub");
+        $get->assertOk();
+        $footer = collect($get->json('data.hub_config.blocks'))->firstWhere('type', 'FOOTER');
+        $this->assertIsArray($footer['data']);
+        $this->assertSame([], $footer['data']);
+    }
+
     public function test_hero_footer_enabled_false_forced_true(): void
     {
         $config = $this->wedding1Config();
