@@ -263,6 +263,7 @@ class EventHubService
             return [
                 'event_id'     => $event->id,
                 'event_name'   => $event->name,
+                'event_path'   => $event->path,
                 'template_id'  => $template_id,
                 'theme'        => $theme,
                 'blocks'       => $blocks,
