@@ -24,10 +24,12 @@ class EventHubService
         private ?HubContentSanitizer $content_sanitizer = null,
         private ?EventHubSlugValidator $slug_validator = null,
         private ?EventHubCacheService $cache_service = null,
+        private ?HubVariantNormalizer $variant_normalizer = null,
     ) {
         $this->event_service ??= new EventService(new UserService());
         $this->block_validator ??= new HubBlockValidator();
         $this->content_sanitizer ??= new HubContentSanitizer();
+        $this->variant_normalizer ??= new HubVariantNormalizer();
         $this->slug_validator ??= new EventHubSlugValidator();
         $this->cache_service ??= new EventHubCacheService();
     }
@@ -62,6 +64,8 @@ class EventHubService
             $this->slug_validator->validate($slug, $event_id);
         }
 
+        // Gen-2 layout variants: unknown values become null (the template preset) instead of a 422.
+        $hub_config = $this->variant_normalizer->normalize($hub_config);
         $this->block_validator->validate($hub_config, $event_id);
         $this->forceMandatoryBlocksEnabled($hub_config);
         $hub_config = $this->content_sanitizer->sanitizeHubConfig($hub_config);

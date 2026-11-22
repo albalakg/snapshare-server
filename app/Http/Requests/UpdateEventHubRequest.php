@@ -26,6 +26,9 @@ class UpdateEventHubRequest extends FormRequest
             'hub_config.blocks.*.order'    => 'required|integer|min:1',
             // present|array: allow empty data {} (Laravel "required" rejects empty arrays)
             'hub_config.blocks.*.data'     => 'present|array',
+            // Gen-2 layout variant (hero / gallery / schedule). No string rule on purpose: an unknown
+            // value is normalized to null by HubVariantNormalizer instead of failing with a 422.
+            'hub_config.blocks.*.variant'  => 'nullable',
         ];
     }
 }

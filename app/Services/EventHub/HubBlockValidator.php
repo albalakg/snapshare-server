@@ -345,6 +345,7 @@ class HubBlockValidator
                 'items.*.time'        => 'required|string|max:50',
                 'items.*.label'       => 'required|string|max:120',
                 'items.*.description' => 'nullable|string|max:500',
+                'items.*.icon'        => 'nullable|string|max:16',
             ],
             'CARDS' => [
                 'kicker'         => 'nullable|string|max:200',

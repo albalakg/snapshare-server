@@ -1,0 +1,2567 @@
+{
+ "classic": {
+  "template_id": "classic",
+  "theme": {
+   "palette_id": "default",
+   "background_type": "LIGHT",
+   "font_family": "Frank Ruhl Libre",
+   "scale": "M",
+   "cover": {
+    "stock": "classic/hero"
+   },
+   "colors": {
+    "primary": "#A9823F",
+    "secondary": "#D8B98A",
+    "accent": "#A9823F",
+    "background": "#F7F1E8",
+    "text": "#2B2119"
+   }
+  },
+  "blocks": [
+   {
+    "id": "hero",
+    "type": "HERO_COUNTDOWN",
+    "enabled": true,
+    "order": 1,
+    "data": {
+     "kicker": "החתונה של",
+     "title": "עמית וגל",
+     "event_date": "2027-06-10T19:00:00+03:00",
+     "venue": "אחוזת הזית",
+     "city": "כפר הס",
+     "date_he": "יום חמישי, 10 ביוני 2027",
+     "time_he": "19:00"
+    },
+    "variant": null
+   },
+   {
+    "id": "quote",
+    "type": "QUOTE",
+    "enabled": true,
+    "order": 2,
+    "data": {
+     "text": "אהבה איננה להביט זה בזה, אלא להביט יחד באותו כיוון.",
+     "credit": "אנטואן דה סנט־אכזופרי"
+    }
+   },
+   {
+    "id": "story",
+    "type": "STORY",
+    "enabled": true,
+    "order": 3,
+    "data": {
+     "kicker": "הסיפור שלנו",
+     "heading": "איך הגענו עד כאן",
+     "chapters": [
+      {
+       "title": "",
+       "body": "נפגשנו בחתונה של חברים, בדיוק ליד הבר. שש שנים, שתי דירות וכלב אחד אחר כך, אנחנו מזמינים אתכם לחגוג איתנו את ההתחלה הבאה."
+      }
+     ],
+     "image": {
+      "stock": "classic/album-2"
+     },
+     "image_caption": ""
+    }
+   },
+   {
+    "id": "schedule",
+    "type": "EVENT_TIMELINE",
+    "enabled": true,
+    "order": 4,
+    "data": {
+     "kicker": "סדר הערב",
+     "heading": "מה קורה ומתי",
+     "items": [
+      {
+       "time": "19:00",
+       "label": "קבלת פנים",
+       "description": "שתייה ונשנושים בחורשה",
+       "icon": "glass"
+      },
+      {
+       "time": "20:00",
+       "label": "חופה",
+       "description": "תחת עצי הזית",
+       "icon": "ring"
+      },
+      {
+       "time": "21:00",
+       "label": "ארוחת חגיגה",
+       "description": "ים־תיכוני, יש גם טבעוני",
+       "icon": "dish"
+      },
+      {
+       "time": "22:30",
+       "label": "רוקדים",
+       "description": "עד שהרגליים יגידו די",
+       "icon": "music"
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "gallery",
+    "type": "GALLERY",
+    "enabled": true,
+    "order": 5,
+    "data": {
+     "kicker": "רגעים",
+     "heading": "מהאלבום שלנו",
+     "note": "",
+     "images": [
+      {
+       "image": {
+        "stock": "classic/album-1"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "classic/album-2"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "classic/album-3"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "classic/album-4"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "classic/album-5"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "classic/album-6"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "classic/album-7"
+       },
+       "caption": ""
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "dress",
+    "type": "CARDS",
+    "enabled": true,
+    "order": 6,
+    "data": {
+     "kicker": "לפני שמגיעים",
+     "heading": "קוד לבוש",
+     "items": [
+      {
+       "title": "חגיגי־קיצי",
+       "body": "צבעים בהירים, בדים נושמים ונעליים נוחות. חלק מהערב בחוץ."
+      }
+     ]
+    }
+   },
+   {
+    "id": "join",
+    "type": "STEPS",
+    "enabled": true,
+    "order": 7,
+    "data": {
+     "kicker": "האלבום החי",
+     "heading": "מצלמים? מעלים!",
+     "steps": [
+      {
+       "n": "01",
+       "title": "סורקים",
+       "body": "את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "n": "02",
+       "title": "מעלים",
+       "body": "תמונות וסרטונים ישר מהטלפון."
+      },
+      {
+       "n": "03",
+       "title": "רואים חי",
+       "body": "הכול מופיע באלבום המשותף ועל המסך באולם."
+      }
+     ],
+     "button_text": "להעלאת תמונות",
+     "album_text": "צפו באלבום החי"
+    }
+   },
+   {
+    "id": "arrive",
+    "type": "MAP",
+    "enabled": true,
+    "order": 8,
+    "data": {
+     "kicker": "הגעה",
+     "heading": "איך מגיעים",
+     "location_name": "אחוזת הזית",
+     "city": "כפר הס",
+     "note": "חניה חופשית בכניסה."
+    }
+   },
+   {
+    "id": "wishes",
+    "type": "WISHING_WELL",
+    "enabled": false,
+    "order": 9,
+    "data": {
+     "title": "ברכות",
+     "message": "נשמח לכמה מילים מכם."
+    }
+   },
+   {
+    "id": "gift",
+    "type": "GIFT",
+    "enabled": false,
+    "order": 10,
+    "data": {
+     "kicker": "מתנה",
+     "heading": "מתנה לזוג",
+     "body": "למי שרוצה, אפשר להעביר מתנה בקישור.",
+     "button": "למתנה",
+     "url": null
+    }
+   },
+   {
+    "id": "rsvp",
+    "type": "RSVP",
+    "enabled": false,
+    "order": 11,
+    "data": {
+     "kicker": "אישור הגעה",
+     "heading": "מגיעים?",
+     "body": "נשמח לדעת עד שבוע לפני."
+    }
+   },
+   {
+    "id": "faq",
+    "type": "FAQ",
+    "enabled": true,
+    "order": 12,
+    "data": {
+     "kicker": "כדאי לדעת",
+     "heading": "שאלות נפוצות",
+     "items": [
+      {
+       "q": "יש חניה?",
+       "a": "כן, חניה חופשית בכניסה."
+      },
+      {
+       "q": "איך מעלים תמונות?",
+       "a": "סורקים את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "q": "יש אוכל טבעוני?",
+       "a": "בטח. כתבו לנו ונדאג לכם."
+      }
+     ]
+    }
+   },
+   {
+    "id": "footer",
+    "type": "FOOTER",
+    "enabled": true,
+    "order": 13,
+    "data": {
+     "note": "העמוד הזה נוצר ב־SnapShare. האורחים מעלים בלי אפליקציה, והתמונות מופיעות באלבום החי."
+    }
+   }
+  ]
+ },
+ "minimal": {
+  "template_id": "minimal",
+  "theme": {
+   "palette_id": "default",
+   "background_type": "LIGHT",
+   "font_family": "Heebo",
+   "scale": "M",
+   "cover": {
+    "stock": "minimal/hero"
+   },
+   "colors": {
+    "primary": "#121212",
+    "secondary": "#BDBDBD",
+    "accent": "#121212",
+    "background": "#FFFFFF",
+    "text": "#121212"
+   }
+  },
+  "blocks": [
+   {
+    "id": "hero",
+    "type": "HERO_COUNTDOWN",
+    "enabled": true,
+    "order": 1,
+    "data": {
+     "kicker": "מתחתנים",
+     "title": "נועה ואורי",
+     "event_date": "2027-06-10T19:00:00+03:00",
+     "venue": "אחוזת הזית",
+     "city": "כפר הס",
+     "date_he": "יום חמישי, 10 ביוני 2027",
+     "time_he": "19:00"
+    },
+    "variant": null
+   },
+   {
+    "id": "quote",
+    "type": "QUOTE",
+    "enabled": true,
+    "order": 2,
+    "data": {
+     "text": "אהבה איננה להביט זה בזה, אלא להביט יחד באותו כיוון.",
+     "credit": "אנטואן דה סנט־אכזופרי"
+    }
+   },
+   {
+    "id": "story",
+    "type": "STORY",
+    "enabled": true,
+    "order": 3,
+    "data": {
+     "kicker": "הסיפור שלנו",
+     "heading": "איך הגענו עד כאן",
+     "chapters": [
+      {
+       "title": "",
+       "body": "נפגשנו בחתונה של חברים, בדיוק ליד הבר. שש שנים, שתי דירות וכלב אחד אחר כך, אנחנו מזמינים אתכם לחגוג איתנו את ההתחלה הבאה."
+      }
+     ],
+     "image": {
+      "stock": "minimal/album-2"
+     },
+     "image_caption": ""
+    }
+   },
+   {
+    "id": "schedule",
+    "type": "EVENT_TIMELINE",
+    "enabled": true,
+    "order": 4,
+    "data": {
+     "kicker": "סדר הערב",
+     "heading": "מה קורה ומתי",
+     "items": [
+      {
+       "time": "19:00",
+       "label": "קבלת פנים",
+       "description": "שתייה ונשנושים בחורשה",
+       "icon": "glass"
+      },
+      {
+       "time": "20:00",
+       "label": "חופה",
+       "description": "תחת עצי הזית",
+       "icon": "ring"
+      },
+      {
+       "time": "21:00",
+       "label": "ארוחת חגיגה",
+       "description": "ים־תיכוני, יש גם טבעוני",
+       "icon": "dish"
+      },
+      {
+       "time": "22:30",
+       "label": "רוקדים",
+       "description": "עד שהרגליים יגידו די",
+       "icon": "music"
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "gallery",
+    "type": "GALLERY",
+    "enabled": true,
+    "order": 5,
+    "data": {
+     "kicker": "רגעים",
+     "heading": "מהאלבום שלנו",
+     "note": "",
+     "images": [
+      {
+       "image": {
+        "stock": "minimal/album-1"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "minimal/album-2"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "minimal/album-3"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "minimal/album-4"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "minimal/album-5"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "minimal/album-6"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "minimal/album-7"
+       },
+       "caption": ""
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "dress",
+    "type": "CARDS",
+    "enabled": true,
+    "order": 6,
+    "data": {
+     "kicker": "לפני שמגיעים",
+     "heading": "קוד לבוש",
+     "items": [
+      {
+       "title": "חגיגי־קיצי",
+       "body": "צבעים בהירים, בדים נושמים ונעליים נוחות. חלק מהערב בחוץ."
+      }
+     ]
+    }
+   },
+   {
+    "id": "join",
+    "type": "STEPS",
+    "enabled": true,
+    "order": 7,
+    "data": {
+     "kicker": "האלבום החי",
+     "heading": "מצלמים? מעלים!",
+     "steps": [
+      {
+       "n": "01",
+       "title": "סורקים",
+       "body": "את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "n": "02",
+       "title": "מעלים",
+       "body": "תמונות וסרטונים ישר מהטלפון."
+      },
+      {
+       "n": "03",
+       "title": "רואים חי",
+       "body": "הכול מופיע באלבום המשותף ועל המסך באולם."
+      }
+     ],
+     "button_text": "להעלאת תמונות",
+     "album_text": "צפו באלבום החי"
+    }
+   },
+   {
+    "id": "arrive",
+    "type": "MAP",
+    "enabled": true,
+    "order": 8,
+    "data": {
+     "kicker": "הגעה",
+     "heading": "איך מגיעים",
+     "location_name": "אחוזת הזית",
+     "city": "כפר הס",
+     "note": "חניה חופשית בכניסה."
+    }
+   },
+   {
+    "id": "wishes",
+    "type": "WISHING_WELL",
+    "enabled": false,
+    "order": 9,
+    "data": {
+     "title": "ברכות",
+     "message": "נשמח לכמה מילים מכם."
+    }
+   },
+   {
+    "id": "gift",
+    "type": "GIFT",
+    "enabled": false,
+    "order": 10,
+    "data": {
+     "kicker": "מתנה",
+     "heading": "מתנה לזוג",
+     "body": "למי שרוצה, אפשר להעביר מתנה בקישור.",
+     "button": "למתנה",
+     "url": null
+    }
+   },
+   {
+    "id": "rsvp",
+    "type": "RSVP",
+    "enabled": false,
+    "order": 11,
+    "data": {
+     "kicker": "אישור הגעה",
+     "heading": "מגיעים?",
+     "body": "נשמח לדעת עד שבוע לפני."
+    }
+   },
+   {
+    "id": "faq",
+    "type": "FAQ",
+    "enabled": true,
+    "order": 12,
+    "data": {
+     "kicker": "כדאי לדעת",
+     "heading": "שאלות נפוצות",
+     "items": [
+      {
+       "q": "יש חניה?",
+       "a": "כן, חניה חופשית בכניסה."
+      },
+      {
+       "q": "איך מעלים תמונות?",
+       "a": "סורקים את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "q": "יש אוכל טבעוני?",
+       "a": "בטח. כתבו לנו ונדאג לכם."
+      }
+     ]
+    }
+   },
+   {
+    "id": "footer",
+    "type": "FOOTER",
+    "enabled": true,
+    "order": 13,
+    "data": {
+     "note": "העמוד הזה נוצר ב־SnapShare. האורחים מעלים בלי אפליקציה, והתמונות מופיעות באלבום החי."
+    }
+   }
+  ]
+ },
+ "botanical": {
+  "template_id": "botanical",
+  "theme": {
+   "palette_id": "default",
+   "background_type": "LIGHT",
+   "font_family": "Suez One",
+   "scale": "M",
+   "cover": {
+    "stock": "botanical/hero"
+   },
+   "colors": {
+    "primary": "#55703D",
+    "secondary": "#B9C79C",
+    "accent": "#55703D",
+    "background": "#EEF0E5",
+    "text": "#22301D"
+   }
+  },
+  "blocks": [
+   {
+    "id": "hero",
+    "type": "HERO_COUNTDOWN",
+    "enabled": true,
+    "order": 1,
+    "data": {
+     "kicker": "החתונה של",
+     "title": "שירה ויואב",
+     "event_date": "2027-06-10T19:00:00+03:00",
+     "venue": "אחוזת הזית",
+     "city": "כפר הס",
+     "date_he": "יום חמישי, 10 ביוני 2027",
+     "time_he": "19:00"
+    },
+    "variant": null
+   },
+   {
+    "id": "quote",
+    "type": "QUOTE",
+    "enabled": true,
+    "order": 2,
+    "data": {
+     "text": "אהבה איננה להביט זה בזה, אלא להביט יחד באותו כיוון.",
+     "credit": "אנטואן דה סנט־אכזופרי"
+    }
+   },
+   {
+    "id": "story",
+    "type": "STORY",
+    "enabled": true,
+    "order": 3,
+    "data": {
+     "kicker": "הסיפור שלנו",
+     "heading": "איך הגענו עד כאן",
+     "chapters": [
+      {
+       "title": "",
+       "body": "נפגשנו בחתונה של חברים, בדיוק ליד הבר. שש שנים, שתי דירות וכלב אחד אחר כך, אנחנו מזמינים אתכם לחגוג איתנו את ההתחלה הבאה."
+      }
+     ],
+     "image": {
+      "stock": "botanical/album-2"
+     },
+     "image_caption": ""
+    }
+   },
+   {
+    "id": "schedule",
+    "type": "EVENT_TIMELINE",
+    "enabled": true,
+    "order": 4,
+    "data": {
+     "kicker": "סדר הערב",
+     "heading": "מה קורה ומתי",
+     "items": [
+      {
+       "time": "19:00",
+       "label": "קבלת פנים",
+       "description": "שתייה ונשנושים בחורשה",
+       "icon": "glass"
+      },
+      {
+       "time": "20:00",
+       "label": "חופה",
+       "description": "תחת עצי הזית",
+       "icon": "ring"
+      },
+      {
+       "time": "21:00",
+       "label": "ארוחת חגיגה",
+       "description": "ים־תיכוני, יש גם טבעוני",
+       "icon": "dish"
+      },
+      {
+       "time": "22:30",
+       "label": "רוקדים",
+       "description": "עד שהרגליים יגידו די",
+       "icon": "music"
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "gallery",
+    "type": "GALLERY",
+    "enabled": true,
+    "order": 5,
+    "data": {
+     "kicker": "רגעים",
+     "heading": "מהאלבום שלנו",
+     "note": "",
+     "images": [
+      {
+       "image": {
+        "stock": "botanical/album-1"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "botanical/album-2"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "botanical/album-3"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "botanical/album-4"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "botanical/album-5"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "botanical/album-6"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "botanical/album-7"
+       },
+       "caption": ""
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "dress",
+    "type": "CARDS",
+    "enabled": true,
+    "order": 6,
+    "data": {
+     "kicker": "לפני שמגיעים",
+     "heading": "קוד לבוש",
+     "items": [
+      {
+       "title": "חגיגי־קיצי",
+       "body": "צבעים בהירים, בדים נושמים ונעליים נוחות. חלק מהערב בחוץ."
+      }
+     ]
+    }
+   },
+   {
+    "id": "join",
+    "type": "STEPS",
+    "enabled": true,
+    "order": 7,
+    "data": {
+     "kicker": "האלבום החי",
+     "heading": "מצלמים? מעלים!",
+     "steps": [
+      {
+       "n": "01",
+       "title": "סורקים",
+       "body": "את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "n": "02",
+       "title": "מעלים",
+       "body": "תמונות וסרטונים ישר מהטלפון."
+      },
+      {
+       "n": "03",
+       "title": "רואים חי",
+       "body": "הכול מופיע באלבום המשותף ועל המסך באולם."
+      }
+     ],
+     "button_text": "להעלאת תמונות",
+     "album_text": "צפו באלבום החי"
+    }
+   },
+   {
+    "id": "arrive",
+    "type": "MAP",
+    "enabled": true,
+    "order": 8,
+    "data": {
+     "kicker": "הגעה",
+     "heading": "איך מגיעים",
+     "location_name": "אחוזת הזית",
+     "city": "כפר הס",
+     "note": "חניה חופשית בכניסה."
+    }
+   },
+   {
+    "id": "wishes",
+    "type": "WISHING_WELL",
+    "enabled": false,
+    "order": 9,
+    "data": {
+     "title": "ברכות",
+     "message": "נשמח לכמה מילים מכם."
+    }
+   },
+   {
+    "id": "gift",
+    "type": "GIFT",
+    "enabled": false,
+    "order": 10,
+    "data": {
+     "kicker": "מתנה",
+     "heading": "מתנה לזוג",
+     "body": "למי שרוצה, אפשר להעביר מתנה בקישור.",
+     "button": "למתנה",
+     "url": null
+    }
+   },
+   {
+    "id": "rsvp",
+    "type": "RSVP",
+    "enabled": false,
+    "order": 11,
+    "data": {
+     "kicker": "אישור הגעה",
+     "heading": "מגיעים?",
+     "body": "נשמח לדעת עד שבוע לפני."
+    }
+   },
+   {
+    "id": "faq",
+    "type": "FAQ",
+    "enabled": true,
+    "order": 12,
+    "data": {
+     "kicker": "כדאי לדעת",
+     "heading": "שאלות נפוצות",
+     "items": [
+      {
+       "q": "יש חניה?",
+       "a": "כן, חניה חופשית בכניסה."
+      },
+      {
+       "q": "איך מעלים תמונות?",
+       "a": "סורקים את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "q": "יש אוכל טבעוני?",
+       "a": "בטח. כתבו לנו ונדאג לכם."
+      }
+     ]
+    }
+   },
+   {
+    "id": "footer",
+    "type": "FOOTER",
+    "enabled": true,
+    "order": 13,
+    "data": {
+     "note": "העמוד הזה נוצר ב־SnapShare. האורחים מעלים בלי אפליקציה, והתמונות מופיעות באלבום החי."
+    }
+   }
+  ]
+ },
+ "editorial": {
+  "template_id": "editorial",
+  "theme": {
+   "palette_id": "default",
+   "background_type": "LIGHT",
+   "font_family": "Frank Ruhl Libre",
+   "scale": "M",
+   "cover": {
+    "stock": "editorial/hero"
+   },
+   "colors": {
+    "primary": "#E0401C",
+    "secondary": "#0E0E0E",
+    "accent": "#E0401C",
+    "background": "#F1EDE6",
+    "text": "#0E0E0E"
+   }
+  },
+  "blocks": [
+   {
+    "id": "hero",
+    "type": "HERO_COUNTDOWN",
+    "enabled": true,
+    "order": 1,
+    "data": {
+     "kicker": "גיליון מיוחד",
+     "title": "דנה בת 40",
+     "event_date": "2027-06-10T19:00:00+03:00",
+     "venue": "הגג בפלורנטין",
+     "city": "תל אביב",
+     "date_he": "יום חמישי, 10 ביוני 2027",
+     "time_he": "21:00"
+    },
+    "variant": null
+   },
+   {
+    "id": "quote",
+    "type": "QUOTE",
+    "enabled": true,
+    "order": 2,
+    "data": {
+     "text": "הגיל הוא רק מספר. המסיבה היא העיקר.",
+     "credit": "גל"
+    }
+   },
+   {
+    "id": "story",
+    "type": "STORY",
+    "enabled": true,
+    "order": 3,
+    "data": {
+     "kicker": "",
+     "heading": "30 זה המספר החדש",
+     "chapters": [
+      {
+       "title": "",
+       "body": "עשור של חברויות, טיולים ומסיבות. בואו לחגוג איתי את הפתיחה של העשור הבא."
+      }
+     ],
+     "image": {
+      "stock": "editorial/album-2"
+     },
+     "image_caption": ""
+    }
+   },
+   {
+    "id": "schedule",
+    "type": "EVENT_TIMELINE",
+    "enabled": true,
+    "order": 4,
+    "data": {
+     "kicker": "סדר הערב",
+     "heading": "מה קורה ומתי",
+     "items": [
+      {
+       "time": "21:00",
+       "label": "מתחילים",
+       "description": "קוקטייל קבלת פנים",
+       "icon": "glass"
+      },
+      {
+       "time": "22:00",
+       "label": "עוגה",
+       "description": "ונרות, כמובן",
+       "icon": "ring"
+      },
+      {
+       "time": "22:30",
+       "label": "DJ",
+       "description": "רחבה פתוחה",
+       "icon": "dish"
+      },
+      {
+       "time": "02:00",
+       "label": "סוף",
+       "description": "או שלא",
+       "icon": "music"
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "gallery",
+    "type": "GALLERY",
+    "enabled": true,
+    "order": 5,
+    "data": {
+     "kicker": "רגעים",
+     "heading": "מהאלבום שלנו",
+     "note": "",
+     "images": [
+      {
+       "image": {
+        "stock": "editorial/album-1"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "editorial/album-2"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "editorial/album-3"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "editorial/album-4"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "editorial/album-5"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "editorial/album-6"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "editorial/album-7"
+       },
+       "caption": ""
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "dress",
+    "type": "CARDS",
+    "enabled": true,
+    "order": 6,
+    "data": {
+     "kicker": "לפני שמגיעים",
+     "heading": "קוד לבוש",
+     "items": [
+      {
+       "title": "חגיגי־קיצי",
+       "body": "צבעים בהירים, בדים נושמים ונעליים נוחות. חלק מהערב בחוץ."
+      }
+     ]
+    }
+   },
+   {
+    "id": "join",
+    "type": "STEPS",
+    "enabled": true,
+    "order": 7,
+    "data": {
+     "kicker": "האלבום החי",
+     "heading": "מצלמים? מעלים!",
+     "steps": [
+      {
+       "n": "01",
+       "title": "סורקים",
+       "body": "את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "n": "02",
+       "title": "מעלים",
+       "body": "תמונות וסרטונים ישר מהטלפון."
+      },
+      {
+       "n": "03",
+       "title": "רואים חי",
+       "body": "הכול מופיע באלבום המשותף ועל המסך באולם."
+      }
+     ],
+     "button_text": "להעלאת תמונות",
+     "album_text": "צפו באלבום החי"
+    }
+   },
+   {
+    "id": "arrive",
+    "type": "MAP",
+    "enabled": true,
+    "order": 8,
+    "data": {
+     "kicker": "הגעה",
+     "heading": "איך מגיעים",
+     "location_name": "הגג בפלורנטין",
+     "city": "תל אביב",
+     "note": "חניה חופשית בכניסה."
+    }
+   },
+   {
+    "id": "wishes",
+    "type": "WISHING_WELL",
+    "enabled": false,
+    "order": 9,
+    "data": {
+     "title": "ברכות",
+     "message": "נשמח לכמה מילים מכם."
+    }
+   },
+   {
+    "id": "gift",
+    "type": "GIFT",
+    "enabled": false,
+    "order": 10,
+    "data": {
+     "kicker": "מתנה",
+     "heading": "מתנה",
+     "body": "למי שרוצה, אפשר להעביר מתנה בקישור.",
+     "button": "למתנה",
+     "url": null
+    }
+   },
+   {
+    "id": "rsvp",
+    "type": "RSVP",
+    "enabled": false,
+    "order": 11,
+    "data": {
+     "kicker": "אישור הגעה",
+     "heading": "מגיעים?",
+     "body": "נשמח לדעת עד שבוע לפני."
+    }
+   },
+   {
+    "id": "faq",
+    "type": "FAQ",
+    "enabled": true,
+    "order": 12,
+    "data": {
+     "kicker": "כדאי לדעת",
+     "heading": "שאלות נפוצות",
+     "items": [
+      {
+       "q": "יש חניה?",
+       "a": "כן, חניה חופשית בכניסה."
+      },
+      {
+       "q": "איך מעלים תמונות?",
+       "a": "סורקים את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "q": "יש אוכל טבעוני?",
+       "a": "בטח. כתבו לנו ונדאג לכם."
+      }
+     ]
+    }
+   },
+   {
+    "id": "footer",
+    "type": "FOOTER",
+    "enabled": true,
+    "order": 13,
+    "data": {
+     "note": "העמוד הזה נוצר ב־SnapShare. האורחים מעלים בלי אפליקציה, והתמונות מופיעות באלבום החי."
+    }
+   }
+  ]
+ },
+ "night": {
+  "template_id": "night",
+  "theme": {
+   "palette_id": "default",
+   "background_type": "DARK",
+   "font_family": "Bellefair",
+   "scale": "M",
+   "cover": {
+    "stock": "night/hero"
+   },
+   "colors": {
+    "primary": "#C9A45C",
+    "secondary": "#6E5A33",
+    "accent": "#C9A45C",
+    "background": "#0E0D0B",
+    "text": "#F3E9D2"
+   }
+  },
+  "blocks": [
+   {
+    "id": "hero",
+    "type": "HERO_COUNTDOWN",
+    "enabled": true,
+    "order": 1,
+    "data": {
+     "kicker": "ערב גאלה",
+     "title": "עמית וגל",
+     "event_date": "2027-06-10T19:00:00+03:00",
+     "venue": "אחוזת הזית",
+     "city": "כפר הס",
+     "date_he": "יום חמישי, 10 ביוני 2027",
+     "time_he": "19:00"
+    },
+    "variant": null
+   },
+   {
+    "id": "quote",
+    "type": "QUOTE",
+    "enabled": true,
+    "order": 2,
+    "data": {
+     "text": "אהבה איננה להביט זה בזה, אלא להביט יחד באותו כיוון.",
+     "credit": "אנטואן דה סנט־אכזופרי"
+    }
+   },
+   {
+    "id": "story",
+    "type": "STORY",
+    "enabled": true,
+    "order": 3,
+    "data": {
+     "kicker": "הסיפור שלנו",
+     "heading": "איך הגענו עד כאן",
+     "chapters": [
+      {
+       "title": "",
+       "body": "נפגשנו בחתונה של חברים, בדיוק ליד הבר. שש שנים, שתי דירות וכלב אחד אחר כך, אנחנו מזמינים אתכם לחגוג איתנו את ההתחלה הבאה."
+      }
+     ],
+     "image": {
+      "stock": "night/album-2"
+     },
+     "image_caption": ""
+    }
+   },
+   {
+    "id": "schedule",
+    "type": "EVENT_TIMELINE",
+    "enabled": true,
+    "order": 4,
+    "data": {
+     "kicker": "סדר הערב",
+     "heading": "מה קורה ומתי",
+     "items": [
+      {
+       "time": "19:00",
+       "label": "קבלת פנים",
+       "description": "שתייה ונשנושים בחורשה",
+       "icon": "glass"
+      },
+      {
+       "time": "20:00",
+       "label": "חופה",
+       "description": "תחת עצי הזית",
+       "icon": "ring"
+      },
+      {
+       "time": "21:00",
+       "label": "ארוחת חגיגה",
+       "description": "ים־תיכוני, יש גם טבעוני",
+       "icon": "dish"
+      },
+      {
+       "time": "22:30",
+       "label": "רוקדים",
+       "description": "עד שהרגליים יגידו די",
+       "icon": "music"
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "gallery",
+    "type": "GALLERY",
+    "enabled": true,
+    "order": 5,
+    "data": {
+     "kicker": "רגעים",
+     "heading": "מהאלבום שלנו",
+     "note": "",
+     "images": [
+      {
+       "image": {
+        "stock": "night/album-1"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "night/album-2"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "night/album-3"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "night/album-4"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "night/album-5"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "night/album-6"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "night/album-7"
+       },
+       "caption": ""
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "dress",
+    "type": "CARDS",
+    "enabled": true,
+    "order": 6,
+    "data": {
+     "kicker": "לפני שמגיעים",
+     "heading": "קוד לבוש",
+     "items": [
+      {
+       "title": "חגיגי־קיצי",
+       "body": "צבעים בהירים, בדים נושמים ונעליים נוחות. חלק מהערב בחוץ."
+      }
+     ]
+    }
+   },
+   {
+    "id": "join",
+    "type": "STEPS",
+    "enabled": true,
+    "order": 7,
+    "data": {
+     "kicker": "האלבום החי",
+     "heading": "מצלמים? מעלים!",
+     "steps": [
+      {
+       "n": "01",
+       "title": "סורקים",
+       "body": "את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "n": "02",
+       "title": "מעלים",
+       "body": "תמונות וסרטונים ישר מהטלפון."
+      },
+      {
+       "n": "03",
+       "title": "רואים חי",
+       "body": "הכול מופיע באלבום המשותף ועל המסך באולם."
+      }
+     ],
+     "button_text": "להעלאת תמונות",
+     "album_text": "צפו באלבום החי"
+    }
+   },
+   {
+    "id": "arrive",
+    "type": "MAP",
+    "enabled": true,
+    "order": 8,
+    "data": {
+     "kicker": "הגעה",
+     "heading": "איך מגיעים",
+     "location_name": "אחוזת הזית",
+     "city": "כפר הס",
+     "note": "חניה חופשית בכניסה."
+    }
+   },
+   {
+    "id": "wishes",
+    "type": "WISHING_WELL",
+    "enabled": false,
+    "order": 9,
+    "data": {
+     "title": "ברכות",
+     "message": "נשמח לכמה מילים מכם."
+    }
+   },
+   {
+    "id": "gift",
+    "type": "GIFT",
+    "enabled": false,
+    "order": 10,
+    "data": {
+     "kicker": "מתנה",
+     "heading": "מתנה לזוג",
+     "body": "למי שרוצה, אפשר להעביר מתנה בקישור.",
+     "button": "למתנה",
+     "url": null
+    }
+   },
+   {
+    "id": "rsvp",
+    "type": "RSVP",
+    "enabled": false,
+    "order": 11,
+    "data": {
+     "kicker": "אישור הגעה",
+     "heading": "מגיעים?",
+     "body": "נשמח לדעת עד שבוע לפני."
+    }
+   },
+   {
+    "id": "faq",
+    "type": "FAQ",
+    "enabled": true,
+    "order": 12,
+    "data": {
+     "kicker": "כדאי לדעת",
+     "heading": "שאלות נפוצות",
+     "items": [
+      {
+       "q": "יש חניה?",
+       "a": "כן, חניה חופשית בכניסה."
+      },
+      {
+       "q": "איך מעלים תמונות?",
+       "a": "סורקים את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "q": "יש אוכל טבעוני?",
+       "a": "בטח. כתבו לנו ונדאג לכם."
+      }
+     ]
+    }
+   },
+   {
+    "id": "footer",
+    "type": "FOOTER",
+    "enabled": true,
+    "order": 13,
+    "data": {
+     "note": "העמוד הזה נוצר ב־SnapShare. האורחים מעלים בלי אפליקציה, והתמונות מופיעות באלבום החי."
+    }
+   }
+  ]
+ },
+ "mitzva": {
+  "template_id": "mitzva",
+  "theme": {
+   "palette_id": "default",
+   "background_type": "LIGHT",
+   "font_family": "Secular One",
+   "scale": "M",
+   "cover": {
+    "stock": "mitzva/hero"
+   },
+   "colors": {
+    "primary": "#FF6A3D",
+    "secondary": "#2FB4FF",
+    "accent": "#FF6A3D",
+    "background": "#FFF7E8",
+    "text": "#1C2757"
+   }
+  },
+  "blocks": [
+   {
+    "id": "hero",
+    "type": "HERO_COUNTDOWN",
+    "enabled": true,
+    "order": 1,
+    "data": {
+     "kicker": "בר המצווה של",
+     "title": "יונתן",
+     "event_date": "2027-06-10T19:00:00+03:00",
+     "venue": "אולמי הגן",
+     "city": "רעננה",
+     "date_he": "יום חמישי, 10 ביוני 2027",
+     "time_he": "19:30"
+    },
+    "variant": null
+   },
+   {
+    "id": "quote",
+    "type": "QUOTE",
+    "enabled": true,
+    "order": 2,
+    "data": {
+     "text": "גדלת כל כך מהר, ואנחנו גאים בך כל יום.",
+     "credit": "אמא ואבא"
+    }
+   },
+   {
+    "id": "story",
+    "type": "STORY",
+    "enabled": true,
+    "order": 3,
+    "data": {
+     "kicker": "",
+     "heading": "על יונתן",
+     "chapters": [
+      {
+       "title": "",
+       "body": "יונתן אוהב כדורסל, לגו טכני ושירים של שלמה ארצי. הערב הזה הוא בשבילו, ואנחנו שמחים שתהיו איתנו."
+      }
+     ],
+     "image": {
+      "stock": "mitzva/album-2"
+     },
+     "image_caption": ""
+    }
+   },
+   {
+    "id": "schedule",
+    "type": "EVENT_TIMELINE",
+    "enabled": true,
+    "order": 4,
+    "data": {
+     "kicker": "סדר הערב",
+     "heading": "מה קורה ומתי",
+     "items": [
+      {
+       "time": "19:30",
+       "label": "קבלת פנים",
+       "description": "עמדות אוכל ובר מיצים",
+       "icon": "glass"
+      },
+      {
+       "time": "20:30",
+       "label": "ברכות",
+       "description": "ההורים, סבא ויונתן",
+       "icon": "ring"
+      },
+      {
+       "time": "21:00",
+       "label": "ארוחה",
+       "description": "יש גם תפריט ילדים",
+       "icon": "dish"
+      },
+      {
+       "time": "22:00",
+       "label": "מסיבה",
+       "description": "DJ ורחבה פתוחה",
+       "icon": "music"
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "gallery",
+    "type": "GALLERY",
+    "enabled": true,
+    "order": 5,
+    "data": {
+     "kicker": "רגעים",
+     "heading": "מהאלבום שלנו",
+     "note": "",
+     "images": [
+      {
+       "image": {
+        "stock": "mitzva/album-1"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "mitzva/album-2"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "mitzva/album-3"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "mitzva/album-4"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "mitzva/album-5"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "mitzva/album-6"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "mitzva/album-7"
+       },
+       "caption": ""
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "dress",
+    "type": "CARDS",
+    "enabled": true,
+    "order": 6,
+    "data": {
+     "kicker": "לפני שמגיעים",
+     "heading": "קוד לבוש",
+     "items": [
+      {
+       "title": "חגיגי־קיצי",
+       "body": "צבעים בהירים, בדים נושמים ונעליים נוחות. חלק מהערב בחוץ."
+      }
+     ]
+    }
+   },
+   {
+    "id": "join",
+    "type": "STEPS",
+    "enabled": true,
+    "order": 7,
+    "data": {
+     "kicker": "האלבום החי",
+     "heading": "מצלמים? מעלים!",
+     "steps": [
+      {
+       "n": "01",
+       "title": "סורקים",
+       "body": "את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "n": "02",
+       "title": "מעלים",
+       "body": "תמונות וסרטונים ישר מהטלפון."
+      },
+      {
+       "n": "03",
+       "title": "רואים חי",
+       "body": "הכול מופיע באלבום המשותף ועל המסך באולם."
+      }
+     ],
+     "button_text": "להעלאת תמונות",
+     "album_text": "צפו באלבום החי"
+    }
+   },
+   {
+    "id": "arrive",
+    "type": "MAP",
+    "enabled": true,
+    "order": 8,
+    "data": {
+     "kicker": "הגעה",
+     "heading": "איך מגיעים",
+     "location_name": "אולמי הגן",
+     "city": "רעננה",
+     "note": "חניה חופשית בכניסה."
+    }
+   },
+   {
+    "id": "wishes",
+    "type": "WISHING_WELL",
+    "enabled": false,
+    "order": 9,
+    "data": {
+     "title": "ברכות",
+     "message": "נשמח לכמה מילים מכם."
+    }
+   },
+   {
+    "id": "gift",
+    "type": "GIFT",
+    "enabled": false,
+    "order": 10,
+    "data": {
+     "kicker": "מתנה",
+     "heading": "מתנה",
+     "body": "למי שרוצה, אפשר להעביר מתנה בקישור.",
+     "button": "למתנה",
+     "url": null
+    }
+   },
+   {
+    "id": "rsvp",
+    "type": "RSVP",
+    "enabled": false,
+    "order": 11,
+    "data": {
+     "kicker": "אישור הגעה",
+     "heading": "מגיעים?",
+     "body": "נשמח לדעת עד שבוע לפני."
+    }
+   },
+   {
+    "id": "faq",
+    "type": "FAQ",
+    "enabled": true,
+    "order": 12,
+    "data": {
+     "kicker": "כדאי לדעת",
+     "heading": "שאלות נפוצות",
+     "items": [
+      {
+       "q": "יש חניה?",
+       "a": "כן, חניה חופשית בכניסה."
+      },
+      {
+       "q": "איך מעלים תמונות?",
+       "a": "סורקים את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "q": "יש אוכל טבעוני?",
+       "a": "בטח. כתבו לנו ונדאג לכם."
+      }
+     ]
+    }
+   },
+   {
+    "id": "footer",
+    "type": "FOOTER",
+    "enabled": true,
+    "order": 13,
+    "data": {
+     "note": "העמוד הזה נוצר ב־SnapShare. האורחים מעלים בלי אפליקציה, והתמונות מופיעות באלבום החי."
+    }
+   }
+  ]
+ },
+ "pastel": {
+  "template_id": "pastel",
+  "theme": {
+   "palette_id": "default",
+   "background_type": "LIGHT",
+   "font_family": "Amatic SC",
+   "scale": "M",
+   "cover": {
+    "stock": "pastel/hero"
+   },
+   "colors": {
+    "primary": "#9C84C8",
+    "secondary": "#F2C3CE",
+    "accent": "#9C84C8",
+    "background": "#F7F2F8",
+    "text": "#4A3E5C"
+   }
+  },
+  "blocks": [
+   {
+    "id": "hero",
+    "type": "HERO_COUNTDOWN",
+    "enabled": true,
+    "order": 1,
+    "data": {
+     "kicker": "ברוכה הבאה",
+     "title": "ליה",
+     "event_date": "2027-06-10T19:00:00+03:00",
+     "venue": "הגינה של סבא וסבתא",
+     "city": "מושב בית יצחק",
+     "date_he": "יום חמישי, 10 ביוני 2027",
+     "time_he": "10:00"
+    },
+    "variant": null
+   },
+   {
+    "id": "quote",
+    "type": "QUOTE",
+    "enabled": true,
+    "order": 2,
+    "data": {
+     "text": "הלב שלנו גדל בדיוק בגודל של ליה.",
+     "credit": "המשפחה"
+    }
+   },
+   {
+    "id": "story",
+    "type": "STORY",
+    "enabled": true,
+    "order": 3,
+    "data": {
+     "kicker": "",
+     "heading": "ברוכה הבאה, ליה",
+     "chapters": [
+      {
+       "title": "",
+       "body": "ליה נולדה ב־2 בנובמבר, 3.2 ק״ג של שמחה. נשמח לחגוג איתכם את הבריתה בגינה של סבא וסבתא."
+      }
+     ],
+     "image": {
+      "stock": "pastel/album-2"
+     },
+     "image_caption": ""
+    }
+   },
+   {
+    "id": "schedule",
+    "type": "EVENT_TIMELINE",
+    "enabled": true,
+    "order": 4,
+    "data": {
+     "kicker": "סדר הערב",
+     "heading": "מה קורה ומתי",
+     "items": [
+      {
+       "time": "10:00",
+       "label": "התכנסות",
+       "description": "קפה ומאפים בגינה",
+       "icon": "glass"
+      },
+      {
+       "time": "10:30",
+       "label": "טקס הבריתה",
+       "description": "קריאת השם",
+       "icon": "ring"
+      },
+      {
+       "time": "11:00",
+       "label": "בראנץ׳",
+       "description": "כיבוד חלבי",
+       "icon": "dish"
+      },
+      {
+       "time": "12:30",
+       "label": "סיום",
+       "description": "תודה שבאתם",
+       "icon": "music"
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "gallery",
+    "type": "GALLERY",
+    "enabled": true,
+    "order": 5,
+    "data": {
+     "kicker": "רגעים",
+     "heading": "מהאלבום שלנו",
+     "note": "",
+     "images": [
+      {
+       "image": {
+        "stock": "pastel/album-1"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "pastel/album-2"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "pastel/album-3"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "pastel/album-4"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "pastel/album-5"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "pastel/album-6"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "pastel/album-7"
+       },
+       "caption": ""
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "dress",
+    "type": "CARDS",
+    "enabled": true,
+    "order": 6,
+    "data": {
+     "kicker": "לפני שמגיעים",
+     "heading": "קוד לבוש",
+     "items": [
+      {
+       "title": "חגיגי־קיצי",
+       "body": "צבעים בהירים, בדים נושמים ונעליים נוחות. חלק מהערב בחוץ."
+      }
+     ]
+    }
+   },
+   {
+    "id": "join",
+    "type": "STEPS",
+    "enabled": true,
+    "order": 7,
+    "data": {
+     "kicker": "האלבום החי",
+     "heading": "מצלמים? מעלים!",
+     "steps": [
+      {
+       "n": "01",
+       "title": "סורקים",
+       "body": "את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "n": "02",
+       "title": "מעלים",
+       "body": "תמונות וסרטונים ישר מהטלפון."
+      },
+      {
+       "n": "03",
+       "title": "רואים חי",
+       "body": "הכול מופיע באלבום המשותף ועל המסך באולם."
+      }
+     ],
+     "button_text": "להעלאת תמונות",
+     "album_text": "צפו באלבום החי"
+    }
+   },
+   {
+    "id": "arrive",
+    "type": "MAP",
+    "enabled": true,
+    "order": 8,
+    "data": {
+     "kicker": "הגעה",
+     "heading": "איך מגיעים",
+     "location_name": "הגינה של סבא וסבתא",
+     "city": "מושב בית יצחק",
+     "note": "חניה חופשית בכניסה."
+    }
+   },
+   {
+    "id": "wishes",
+    "type": "WISHING_WELL",
+    "enabled": false,
+    "order": 9,
+    "data": {
+     "title": "ברכות",
+     "message": "נשמח לכמה מילים מכם."
+    }
+   },
+   {
+    "id": "gift",
+    "type": "GIFT",
+    "enabled": false,
+    "order": 10,
+    "data": {
+     "kicker": "מתנה",
+     "heading": "מתנה",
+     "body": "למי שרוצה, אפשר להעביר מתנה בקישור.",
+     "button": "למתנה",
+     "url": null
+    }
+   },
+   {
+    "id": "rsvp",
+    "type": "RSVP",
+    "enabled": false,
+    "order": 11,
+    "data": {
+     "kicker": "אישור הגעה",
+     "heading": "מגיעים?",
+     "body": "נשמח לדעת עד שבוע לפני."
+    }
+   },
+   {
+    "id": "faq",
+    "type": "FAQ",
+    "enabled": true,
+    "order": 12,
+    "data": {
+     "kicker": "כדאי לדעת",
+     "heading": "שאלות נפוצות",
+     "items": [
+      {
+       "q": "יש חניה?",
+       "a": "כן, חניה חופשית בכניסה."
+      },
+      {
+       "q": "איך מעלים תמונות?",
+       "a": "סורקים את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "q": "יש אוכל טבעוני?",
+       "a": "בטח. כתבו לנו ונדאג לכם."
+      }
+     ]
+    }
+   },
+   {
+    "id": "footer",
+    "type": "FOOTER",
+    "enabled": true,
+    "order": 13,
+    "data": {
+     "note": "העמוד הזה נוצר ב־SnapShare. האורחים מעלים בלי אפליקציה, והתמונות מופיעות באלבום החי."
+    }
+   }
+  ]
+ },
+ "corporate": {
+  "template_id": "corporate",
+  "theme": {
+   "palette_id": "default",
+   "background_type": "LIGHT",
+   "font_family": "Heebo",
+   "scale": "M",
+   "cover": {
+    "stock": "corporate/hero"
+   },
+   "colors": {
+    "primary": "#2356F6",
+    "secondary": "#00B8A9",
+    "accent": "#2356F6",
+    "background": "#F3F5FA",
+    "text": "#0D1A3A"
+   }
+  },
+  "blocks": [
+   {
+    "id": "hero",
+    "type": "HERO_COUNTDOWN",
+    "enabled": true,
+    "order": 1,
+    "data": {
+     "kicker": "הכנס השנתי",
+     "title": "נובה 2027",
+     "event_date": "2027-06-10T19:00:00+03:00",
+     "venue": "מגדל נובה",
+     "city": "תל אביב",
+     "date_he": "יום חמישי, 10 ביוני 2027",
+     "time_he": "09:00"
+    },
+    "variant": null
+   },
+   {
+    "id": "quote",
+    "type": "QUOTE",
+    "enabled": true,
+    "order": 2,
+    "data": {
+     "text": "הדרך הטובה ביותר לחזות את העתיד היא לבנות אותו.",
+     "credit": "צוות נובה"
+    }
+   },
+   {
+    "id": "story",
+    "type": "STORY",
+    "enabled": true,
+    "order": 3,
+    "data": {
+     "kicker": "",
+     "heading": "על הכנס",
+     "chapters": [
+      {
+       "title": "",
+       "body": "יום של השראה, נטוורקינג והכרזות על המוצרים של 2027. מצלמים, מעלים, ורואים הכול על המסך הגדול."
+      }
+     ],
+     "image": {
+      "stock": "corporate/album-2"
+     },
+     "image_caption": ""
+    }
+   },
+   {
+    "id": "schedule",
+    "type": "EVENT_TIMELINE",
+    "enabled": true,
+    "order": 4,
+    "data": {
+     "kicker": "סדר היום",
+     "heading": "מה קורה ומתי",
+     "items": [
+      {
+       "time": "09:00",
+       "label": "רישום וקפה",
+       "description": "לובי קומה 32",
+       "icon": "glass"
+      },
+      {
+       "time": "10:00",
+       "label": "הרצאת פתיחה",
+       "description": "מנכ״ל נובה",
+       "icon": "ring"
+      },
+      {
+       "time": "12:30",
+       "label": "ארוחת צהריים",
+       "description": "מול הנוף",
+       "icon": "dish"
+      },
+      {
+       "time": "14:00",
+       "label": "פאנלים",
+       "description": "שלושה אולמות",
+       "icon": "music"
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "gallery",
+    "type": "GALLERY",
+    "enabled": true,
+    "order": 5,
+    "data": {
+     "kicker": "רגעים",
+     "heading": "מהאלבום שלנו",
+     "note": "",
+     "images": [
+      {
+       "image": {
+        "stock": "corporate/album-1"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "corporate/album-2"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "corporate/album-3"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "corporate/album-4"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "corporate/album-5"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "corporate/album-6"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "corporate/album-7"
+       },
+       "caption": ""
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "dress",
+    "type": "CARDS",
+    "enabled": true,
+    "order": 6,
+    "data": {
+     "kicker": "לפני שמגיעים",
+     "heading": "קוד לבוש",
+     "items": [
+      {
+       "title": "חגיגי־קיצי",
+       "body": "צבעים בהירים, בדים נושמים ונעליים נוחות. חלק מהערב בחוץ."
+      }
+     ]
+    }
+   },
+   {
+    "id": "join",
+    "type": "STEPS",
+    "enabled": true,
+    "order": 7,
+    "data": {
+     "kicker": "האלבום החי",
+     "heading": "מצלמים? מעלים!",
+     "steps": [
+      {
+       "n": "01",
+       "title": "סורקים",
+       "body": "את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "n": "02",
+       "title": "מעלים",
+       "body": "תמונות וסרטונים ישר מהטלפון."
+      },
+      {
+       "n": "03",
+       "title": "רואים חי",
+       "body": "הכול מופיע באלבום המשותף ועל המסך באולם."
+      }
+     ],
+     "button_text": "להעלאת תמונות",
+     "album_text": "צפו באלבום החי"
+    }
+   },
+   {
+    "id": "arrive",
+    "type": "MAP",
+    "enabled": true,
+    "order": 8,
+    "data": {
+     "kicker": "הגעה",
+     "heading": "איך מגיעים",
+     "location_name": "מגדל נובה",
+     "city": "תל אביב",
+     "note": "חניה חופשית בכניסה."
+    }
+   },
+   {
+    "id": "wishes",
+    "type": "WISHING_WELL",
+    "enabled": false,
+    "order": 9,
+    "data": {
+     "title": "ברכות",
+     "message": "נשמח לכמה מילים מכם."
+    }
+   },
+   {
+    "id": "gift",
+    "type": "GIFT",
+    "enabled": false,
+    "order": 10,
+    "data": {
+     "kicker": "מתנה",
+     "heading": "מתנה",
+     "body": "למי שרוצה, אפשר להעביר מתנה בקישור.",
+     "button": "למתנה",
+     "url": null
+    }
+   },
+   {
+    "id": "rsvp",
+    "type": "RSVP",
+    "enabled": false,
+    "order": 11,
+    "data": {
+     "kicker": "אישור הגעה",
+     "heading": "מגיעים?",
+     "body": "נשמח לדעת עד שבוע לפני."
+    }
+   },
+   {
+    "id": "faq",
+    "type": "FAQ",
+    "enabled": true,
+    "order": 12,
+    "data": {
+     "kicker": "כדאי לדעת",
+     "heading": "שאלות נפוצות",
+     "items": [
+      {
+       "q": "יש חניה?",
+       "a": "כן, חניה חופשית בכניסה."
+      },
+      {
+       "q": "איך מעלים תמונות?",
+       "a": "סורקים את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "q": "יש אוכל טבעוני?",
+       "a": "בטח. כתבו לנו ונדאג לכם."
+      }
+     ]
+    }
+   },
+   {
+    "id": "footer",
+    "type": "FOOTER",
+    "enabled": true,
+    "order": 13,
+    "data": {
+     "note": "העמוד הזה נוצר ב־SnapShare. האורחים מעלים בלי אפליקציה, והתמונות מופיעות באלבום החי."
+    }
+   }
+  ]
+ },
+ "party": {
+  "template_id": "party",
+  "theme": {
+   "palette_id": "default",
+   "background_type": "DARK",
+   "font_family": "Karantina",
+   "scale": "M",
+   "cover": {
+    "stock": "party/hero"
+   },
+   "colors": {
+    "primary": "#FF4FA3",
+    "secondary": "#FFD23F",
+    "accent": "#FF4FA3",
+    "background": "#170C2B",
+    "text": "#FFF6FF"
+   }
+  },
+  "blocks": [
+   {
+    "id": "hero",
+    "type": "HERO_COUNTDOWN",
+    "enabled": true,
+    "order": 1,
+    "data": {
+     "kicker": "חוגגים",
+     "title": "גל בת 30",
+     "event_date": "2027-06-10T19:00:00+03:00",
+     "venue": "הגג בפלורנטין",
+     "city": "תל אביב",
+     "date_he": "יום חמישי, 10 ביוני 2027",
+     "time_he": "21:00"
+    },
+    "variant": null
+   },
+   {
+    "id": "quote",
+    "type": "QUOTE",
+    "enabled": true,
+    "order": 2,
+    "data": {
+     "text": "הגיל הוא רק מספר. המסיבה היא העיקר.",
+     "credit": "גל"
+    }
+   },
+   {
+    "id": "story",
+    "type": "STORY",
+    "enabled": true,
+    "order": 3,
+    "data": {
+     "kicker": "",
+     "heading": "30 זה המספר החדש",
+     "chapters": [
+      {
+       "title": "",
+       "body": "עשור של חברויות, טיולים ומסיבות. בואו לחגוג איתי את הפתיחה של העשור הבא."
+      }
+     ],
+     "image": {
+      "stock": "party/album-2"
+     },
+     "image_caption": ""
+    }
+   },
+   {
+    "id": "schedule",
+    "type": "EVENT_TIMELINE",
+    "enabled": true,
+    "order": 4,
+    "data": {
+     "kicker": "סדר הערב",
+     "heading": "מה קורה ומתי",
+     "items": [
+      {
+       "time": "21:00",
+       "label": "מתחילים",
+       "description": "קוקטייל קבלת פנים",
+       "icon": "glass"
+      },
+      {
+       "time": "22:00",
+       "label": "עוגה",
+       "description": "ונרות, כמובן",
+       "icon": "ring"
+      },
+      {
+       "time": "22:30",
+       "label": "DJ",
+       "description": "רחבה פתוחה",
+       "icon": "dish"
+      },
+      {
+       "time": "02:00",
+       "label": "סוף",
+       "description": "או שלא",
+       "icon": "music"
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "gallery",
+    "type": "GALLERY",
+    "enabled": true,
+    "order": 5,
+    "data": {
+     "kicker": "רגעים",
+     "heading": "מהאלבום שלנו",
+     "note": "",
+     "images": [
+      {
+       "image": {
+        "stock": "party/album-1"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "party/album-2"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "party/album-3"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "party/album-4"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "party/album-5"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "party/album-6"
+       },
+       "caption": ""
+      },
+      {
+       "image": {
+        "stock": "party/album-7"
+       },
+       "caption": ""
+      }
+     ]
+    },
+    "variant": null
+   },
+   {
+    "id": "dress",
+    "type": "CARDS",
+    "enabled": true,
+    "order": 6,
+    "data": {
+     "kicker": "לפני שמגיעים",
+     "heading": "קוד לבוש",
+     "items": [
+      {
+       "title": "חגיגי־קיצי",
+       "body": "צבעים בהירים, בדים נושמים ונעליים נוחות. חלק מהערב בחוץ."
+      }
+     ]
+    }
+   },
+   {
+    "id": "join",
+    "type": "STEPS",
+    "enabled": true,
+    "order": 7,
+    "data": {
+     "kicker": "האלבום החי",
+     "heading": "מצלמים? מעלים!",
+     "steps": [
+      {
+       "n": "01",
+       "title": "סורקים",
+       "body": "את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "n": "02",
+       "title": "מעלים",
+       "body": "תמונות וסרטונים ישר מהטלפון."
+      },
+      {
+       "n": "03",
+       "title": "רואים חי",
+       "body": "הכול מופיע באלבום המשותף ועל המסך באולם."
+      }
+     ],
+     "button_text": "להעלאת תמונות",
+     "album_text": "צפו באלבום החי"
+    }
+   },
+   {
+    "id": "arrive",
+    "type": "MAP",
+    "enabled": true,
+    "order": 8,
+    "data": {
+     "kicker": "הגעה",
+     "heading": "איך מגיעים",
+     "location_name": "הגג בפלורנטין",
+     "city": "תל אביב",
+     "note": "חניה חופשית בכניסה."
+    }
+   },
+   {
+    "id": "wishes",
+    "type": "WISHING_WELL",
+    "enabled": false,
+    "order": 9,
+    "data": {
+     "title": "ברכות",
+     "message": "נשמח לכמה מילים מכם."
+    }
+   },
+   {
+    "id": "gift",
+    "type": "GIFT",
+    "enabled": false,
+    "order": 10,
+    "data": {
+     "kicker": "מתנה",
+     "heading": "מתנה",
+     "body": "למי שרוצה, אפשר להעביר מתנה בקישור.",
+     "button": "למתנה",
+     "url": null
+    }
+   },
+   {
+    "id": "rsvp",
+    "type": "RSVP",
+    "enabled": false,
+    "order": 11,
+    "data": {
+     "kicker": "אישור הגעה",
+     "heading": "מגיעים?",
+     "body": "נשמח לדעת עד שבוע לפני."
+    }
+   },
+   {
+    "id": "faq",
+    "type": "FAQ",
+    "enabled": true,
+    "order": 12,
+    "data": {
+     "kicker": "כדאי לדעת",
+     "heading": "שאלות נפוצות",
+     "items": [
+      {
+       "q": "יש חניה?",
+       "a": "כן, חניה חופשית בכניסה."
+      },
+      {
+       "q": "איך מעלים תמונות?",
+       "a": "סורקים את ה־QR שעל השולחן, או נכנסים מהקישור. בלי אפליקציה."
+      },
+      {
+       "q": "יש אוכל טבעוני?",
+       "a": "בטח. כתבו לנו ונדאג לכם."
+      }
+     ]
+    }
+   },
+   {
+    "id": "footer",
+    "type": "FOOTER",
+    "enabled": true,
+    "order": 13,
+    "data": {
+     "note": "העמוד הזה נוצר ב־SnapShare. האורחים מעלים בלי אפליקציה, והתמונות מופיעות באלבום החי."
+    }
+   }
+  ]
+ }
+}
