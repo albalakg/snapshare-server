@@ -1,0 +1,48 @@
+# English blocked list (see README.md), plus common Hebrew slang written in Latin letters.
+*fuck*
+fck
+fcking
+fuk
+fuking
+phuck
+motherfucker
+shit
+shitty
+shithead
+bullshit
+bitch*
+cunt*
+dickhead
+asshole*
+ass
+arse
+arsehole
+bastard
+slut*
+whore*
+nigger*
+nigga*
+faggot*
+fag
+retard*
+pussy
+wanker
+twat
+porn*
+jerkoff
+blowjob
+handjob
+dildo
+# Hebrew slang in Latin letters
+sharmut*
+sharmoot*
+kusemek
+kusemak
+kus emek
+kus emak
+kus ima
+kusima
+benzona
+ben zona
+yabenzona
+manyak

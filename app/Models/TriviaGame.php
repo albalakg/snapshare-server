@@ -29,6 +29,9 @@ class TriviaGame extends Model
         'question_started_at',
         'starts_at',
         'results_at',
+        'sound_enabled',
+        'sound_volume',
+        'reactions_enabled',
     ];
 
     protected $casts = [
@@ -42,6 +45,9 @@ class TriviaGame extends Model
         'starts_at' => 'datetime',
         'results_at' => 'datetime',
         'question_started_at' => 'datetime',
+        'sound_enabled' => 'boolean',
+        'sound_volume' => 'integer',
+        'reactions_enabled' => 'boolean',
     ];
 
     public function event()

@@ -252,6 +252,17 @@ class MessagesEnum extends BaseEnum
     const TRIVIA_TEMPLATE_HAS_QUESTIONS = 'Confirm replace to overwrite existing trivia questions';
     const TRIVIA_TEAM_REQUIRED = 'Pick a team to join';
     const TRIVIA_INVALID_TYPE = 'Unsupported trivia question type';
+    const TRIVIA_NICKNAME_BLOCKED = 'Please choose a different nickname';
+    const TRIVIA_PLAYER_REMOVED = 'The host removed you from this trivia game';
+    const TRIVIA_REJOIN_BLOCKED = 'The host blocked rejoining this trivia game';
+    const TRIVIA_PLAYER_UPDATED = 'Trivia player updated successfully';
+    const TRIVIA_ANSWERS_MODERATED = 'Trivia answers updated successfully';
+    const TRIVIA_LIVE_FETCHED = 'Trivia live moderation fetched successfully';
+    const TRIVIA_FX_UPDATED = 'Trivia sound and reactions updated successfully';
+    const TRIVIA_REACTION_SENT = 'Reaction sent';
+    const TRIVIA_REACTIONS_OFF = 'Reactions are turned off';
+    const TRIVIA_REACTION_RATE_LIMITED = 'Too many reactions, slow down';
+    const TRIVIA_TEXT_CHECKED = 'Text checked';
 
     // Validations
     const INVALID_PASSWORD = 'Password is required and must be minimum 8 characters, at least one lowercase letter, uppercase letter and one number';

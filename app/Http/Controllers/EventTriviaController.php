@@ -17,9 +17,14 @@ class EventTriviaController extends Controller
         try {
             $service = new TriviaService();
 
-            return $this->successResponse(MessagesEnum::TRIVIA_FETCHED, $service->screenByPath($event_path));
+            $after = request()->query('reactions_after');
+
+            return $this->successResponse(
+                MessagesEnum::TRIVIA_FETCHED,
+                $service->screenByPath($event_path, is_numeric($after) ? (int) $after : null)
+            );
         } catch (Exception $ex) {
-            return $this->errorResponse($ex, null, $ex->getCode() ?: Response::HTTP_BAD_REQUEST);
+            return $this->errorResponse($ex, TriviaService::errorReason($ex), $ex->getCode() ?: Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -32,12 +37,14 @@ class EventTriviaController extends Controller
                 $event_path,
                 $data['nickname'],
                 $request->file('image'),
-                $data['team'] ?? null
+                $data['team'] ?? null,
+                $data['device_id'] ?? null,
+                $request->header('X-Trivia-Session')
             );
 
             return $this->successResponse(MessagesEnum::TRIVIA_JOINED, $response);
         } catch (Exception $ex) {
-            return $this->errorResponse($ex, null, $ex->getCode() ?: Response::HTTP_BAD_REQUEST);
+            return $this->errorResponse($ex, TriviaService::errorReason($ex), $ex->getCode() ?: Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -52,7 +59,7 @@ class EventTriviaController extends Controller
 
             return $this->successResponse(MessagesEnum::TRIVIA_QUESTION_FETCHED, $response);
         } catch (Exception $ex) {
-            return $this->errorResponse($ex, null, $ex->getCode() ?: Response::HTTP_BAD_REQUEST);
+            return $this->errorResponse($ex, TriviaService::errorReason($ex), $ex->getCode() ?: Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -73,7 +80,7 @@ class EventTriviaController extends Controller
 
             return $this->successResponse(MessagesEnum::TRIVIA_ANSWER_RECORDED, $response);
         } catch (Exception $ex) {
-            return $this->errorResponse($ex, null, $ex->getCode() ?: Response::HTTP_BAD_REQUEST);
+            return $this->errorResponse($ex, TriviaService::errorReason($ex), $ex->getCode() ?: Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -88,7 +95,7 @@ class EventTriviaController extends Controller
 
             return $this->successResponse(MessagesEnum::TRIVIA_FETCHED, $response);
         } catch (Exception $ex) {
-            return $this->errorResponse($ex, null, $ex->getCode() ?: Response::HTTP_BAD_REQUEST);
+            return $this->errorResponse($ex, TriviaService::errorReason($ex), $ex->getCode() ?: Response::HTTP_BAD_REQUEST);
         }
     }
 }

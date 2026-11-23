@@ -14,11 +14,16 @@ class TriviaPlayer extends Model
         'team',
         'score',
         'finished_at',
+        'device_id',
+        'kicked_at',
+        'rejoin_blocked',
     ];
 
     protected $casts = [
         'score' => 'integer',
         'finished_at' => 'datetime',
+        'kicked_at' => 'datetime',
+        'rejoin_blocked' => 'boolean',
     ];
 
     public function answers()

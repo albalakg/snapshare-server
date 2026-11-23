@@ -1,0 +1,33 @@
+# Words that must never be flagged, even if a rule above would match them.
+# Hebrew
+מזין
+מזינה
+מזינים
+מזינות
+הזין
+הזינה
+הזינו
+להזין
+כלי זין
+זינוק
+כוס
+כוסות
+כוסיה
+# English
+class
+classic
+assistant
+assassin
+passion
+bass
+grass
+glass
+mass
+pass
+scunthorpe
+cocktail
+shitake
+shiitake
+כוסית
+כוסיות
+cum

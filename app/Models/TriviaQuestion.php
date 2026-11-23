@@ -16,6 +16,7 @@ class TriviaQuestion extends Model
         'sort_order',
         'time_limit_seconds',
         'max_points',
+        'requires_approval',
     ];
 
     protected $casts = [
@@ -23,6 +24,7 @@ class TriviaQuestion extends Model
         'sort_order' => 'integer',
         'time_limit_seconds' => 'integer',
         'max_points' => 'integer',
+        'requires_approval' => 'boolean',
     ];
 
     public function options()

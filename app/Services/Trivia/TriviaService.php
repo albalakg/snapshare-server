@@ -39,7 +39,25 @@ class TriviaService
         $this->event_service ??= new EventService();
     }
 
-    public function publicScreen(Event $event, string $event_path): array
+    /**
+     * Machine-readable reason for guest-facing errors. Production hides exception
+     * messages, so the phone keys its UI off this instead.
+     */
+    public static function errorReason(Exception $ex): ?array
+    {
+        $reason = match ($ex->getMessage()) {
+            MessagesEnum::TRIVIA_PLAYER_REMOVED => 'removed',
+            MessagesEnum::TRIVIA_REJOIN_BLOCKED => 'rejoin_blocked',
+            MessagesEnum::TRIVIA_NICKNAME_BLOCKED => 'nickname_blocked',
+            MessagesEnum::TRIVIA_REACTIONS_OFF => 'reactions_off',
+            MessagesEnum::TRIVIA_REACTION_RATE_LIMITED => 'rate_limited',
+            default => null,
+        };
+
+        return $reason ? ['reason' => $reason] : null;
+    }
+
+    public function publicScreen(Event $event, string $event_path, ?int $reactions_after = null): array
     {
         $game = TriviaGame::with(['currentQuestion.options', 'currentQuestion.mediaAsset'])
             ->where('event_id', $event->id)
@@ -55,7 +73,7 @@ class TriviaService
             'title' => $game?->title,
             'player_count' => $status_phase === 'photos' || !$game
                 ? 0
-                : TriviaPlayer::where('event_id', $event->id)->count(),
+                : TriviaPlayer::where('event_id', $event->id)->whereNull('kicked_at')->count(),
             'join_path' => '/event/trivia/' . $event_path,
             'top' => [],
             'teams' => null,
@@ -65,12 +83,16 @@ class TriviaService
             'fun_fact' => null,
             'correct' => null,
             'joining' => [],
+            'fx' => TriviaModerationService::fxPayload($game),
+            'reactions' => null,
             'server_now' => now()->toIso8601String(),
         ];
 
         if (!$game || $status_phase === 'photos') {
             return $payload;
         }
+
+        $payload['reactions'] = TriviaModerationService::screenReactions($game, $reactions_after);
 
         $top_limit = $current_phase === TriviaPhaseEnum::LEADERBOARD ? 8 : 3;
         $payload['top'] = $this->topPlayers((int) $event->id, $top_limit);
@@ -111,11 +133,11 @@ class TriviaService
         return $payload;
     }
 
-    public function screenByPath(string $event_path): array
+    public function screenByPath(string $event_path, ?int $reactions_after = null): array
     {
         $event = $this->findEventByPath($event_path);
 
-        return $this->publicScreen($event, $event_path);
+        return $this->publicScreen($event, $event_path, $reactions_after);
     }
 
     public function getAdmin(int $event_id, int $user_id): array
@@ -623,10 +645,42 @@ class TriviaService
         ];
     }
 
-    public function join(string $event_path, string $nickname, $image = null, ?string $team = null): array
-    {
+    public function join(
+        string $event_path,
+        string $nickname,
+        $image = null,
+        ?string $team = null,
+        ?string $device_id = null,
+        ?string $previous_session = null
+    ): array {
         $event = $this->findEventByPath($event_path);
         $game = $this->liveGameOrFail((int) $event->id);
+        $filter = new ProfanityFilter();
+
+        if (!$filter->isClean($nickname)) {
+            throw new Exception(MessagesEnum::TRIVIA_NICKNAME_BLOCKED, Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $device_id = is_string($device_id) && preg_match('/^[A-Za-z0-9\-_]{8,64}$/', $device_id) ? $device_id : null;
+        $previous_session = is_string($previous_session) && preg_match('/^[A-Za-z0-9\-_]{32,255}$/', $previous_session)
+            ? $previous_session
+            : null;
+        if ($device_id || $previous_session) {
+            $blocked = TriviaPlayer::where('event_id', $game->event_id)
+                ->where('rejoin_blocked', true)
+                ->where(function ($query) use ($device_id, $previous_session) {
+                    if ($device_id) {
+                        $query->orWhere('device_id', $device_id);
+                    }
+                    if ($previous_session) {
+                        $query->orWhere('session_token', $previous_session);
+                    }
+                })
+                ->exists();
+            if ($blocked) {
+                throw new Exception(MessagesEnum::TRIVIA_REJOIN_BLOCKED, Response::HTTP_FORBIDDEN);
+            }
+        }
 
         $teams_mode = $game->teams_mode ?? 'none';
         if ($teams_mode === 'sides') {
@@ -638,6 +692,7 @@ class TriviaService
             if ($team === '') {
                 throw new Exception(MessagesEnum::TRIVIA_TEAM_REQUIRED, Response::HTTP_UNPROCESSABLE_ENTITY);
             }
+            $team = $filter->mask($team);
         } else {
             $team = null;
         }
@@ -645,6 +700,7 @@ class TriviaService
         $player = new TriviaPlayer([
             'event_id' => $game->event_id,
             'session_token' => Str::random(48),
+            'device_id' => $device_id,
             'nickname' => trim($nickname),
             'team' => $team,
             'score' => 0,
@@ -686,6 +742,7 @@ class TriviaService
             'rank' => $this->rankOf($player),
             'correct_count' => $player->answers()->where('is_correct', true)->count(),
             'total_questions' => $total,
+            'reactions_enabled' => (bool) ($game?->reactions_enabled ?? true),
         ];
     }
 
@@ -811,8 +868,13 @@ class TriviaService
                     throw new Exception(MessagesEnum::TRIVIA_ANSWER_LOCKED, Response::HTTP_UNPROCESSABLE_ENTITY);
                 }
 
+                // Profanity is masked on the server and never reaches the big screen.
+                $check = (new ProfanityFilter())->check($text);
+                $answer->is_flagged = $check['flagged'];
+                $answer->hidden_at = $check['flagged'] ? now() : null;
+
                 return $this->storeSimpleAnswer($player, $game, $question, $answer, $elapsed, [
-                    'value_text' => $text,
+                    'value_text' => $check['masked'],
                 ], false, 0);
             }
 
@@ -1810,6 +1872,7 @@ class TriviaService
         $type = $question->type ?? TriviaQuestionTypeEnum::CHOICE;
         $answers = TriviaAnswer::where('question_id', $question->id)
             ->whereNotNull('answered_at')
+            ->whereHas('player', fn ($query) => $query->whereNull('kicked_at'))
             ->get();
 
         if ($type === TriviaQuestionTypeEnum::NUMBER || $type === TriviaQuestionTypeEnum::DATE) {
@@ -1839,7 +1902,8 @@ class TriviaService
 
         if (in_array($type, TriviaQuestionTypeEnum::freeText(), true)) {
             $words = [];
-            foreach ($answers as $answer) {
+            $visible = $answers->filter(fn (TriviaAnswer $answer) => TriviaModerationService::answerVisible($answer, $question));
+            foreach ($visible as $answer) {
                 $text = $this->cleanText($answer->value_text);
                 if ($text === '') {
                     continue;
@@ -2245,6 +2309,7 @@ class TriviaService
     private function joiningPlayers(int $event_id): array
     {
         return TriviaPlayer::where('event_id', $event_id)
+            ->whereNull('kicked_at')
             ->orderByDesc('id')
             ->limit(24)
             ->get()
@@ -2262,6 +2327,7 @@ class TriviaService
 
         if ($mode === 'tables') {
             $rows = TriviaPlayer::where('event_id', $game->event_id)
+                ->whereNull('kicked_at')
                 ->whereNotNull('team')
                 ->where('team', '!=', '')
                 ->selectRaw('team, COALESCE(SUM(score), 0) as total, COUNT(*) as players')
@@ -2291,6 +2357,7 @@ class TriviaService
 
         $labels = $game->team_labels ?? ['a' => 'צד עמית', 'b' => 'צד גל'];
         $totals = TriviaPlayer::where('event_id', $game->event_id)
+            ->whereNull('kicked_at')
             ->selectRaw('team, COALESCE(SUM(score), 0) as total')
             ->whereIn('team', ['a', 'b'])
             ->groupBy('team')
@@ -2309,6 +2376,7 @@ class TriviaService
     private function rankedPlayers(int $event_id)
     {
         return TriviaPlayer::where('event_id', $event_id)
+            ->whereNull('kicked_at')
             ->with('answers')
             ->withSum('answers as total_time_ms', 'elapsed_ms')
             ->orderByDesc('score')
@@ -2374,6 +2442,9 @@ class TriviaService
             'reveal_seconds' => (int) ($game->reveal_seconds ?? 6),
             'default_time' => (int) ($game->default_time ?? 20),
             'default_points' => (int) ($game->default_points ?? 1000),
+            'sound_enabled' => (bool) ($game->sound_enabled ?? true),
+            'sound_volume' => (int) ($game->sound_volume ?? 70),
+            'reactions_enabled' => (bool) ($game->reactions_enabled ?? true),
             'current_question_id' => $game->current_question_id ? (int) $game->current_question_id : null,
             'question_started_at' => $game->question_started_at?->toIso8601String(),
             'starts_at' => $game->starts_at?->toIso8601String(),
@@ -2397,6 +2468,7 @@ class TriviaService
             'sort_order' => (int) $question->sort_order,
             'time_limit_seconds' => (int) $question->time_limit_seconds,
             'max_points' => (int) $question->max_points,
+            'requires_approval' => (bool) ($question->requires_approval ?? false),
             'options' => $question->options->map(fn ($option) => [
                 'id' => $option->id,
                 'label' => $option->label,
@@ -2424,6 +2496,9 @@ class TriviaService
             'reveal_seconds' => 6,
             'default_time' => 20,
             'default_points' => 1000,
+            'sound_enabled' => true,
+            'sound_volume' => 70,
+            'reactions_enabled' => true,
             'current_question_id' => null,
             'question_started_at' => null,
             'starts_at' => null,
@@ -3016,6 +3091,10 @@ class TriviaService
 
         if (!$player) {
             throw new Exception(MessagesEnum::TRIVIA_PLAYER_NOT_FOUND, Response::HTTP_UNAUTHORIZED);
+        }
+
+        if ($player->kicked_at) {
+            throw new Exception(MessagesEnum::TRIVIA_PLAYER_REMOVED, Response::HTTP_FORBIDDEN);
         }
 
         return $player;

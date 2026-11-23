@@ -18,6 +18,9 @@ class TriviaAnswer extends Model
         'elapsed_ms',
         'served_at',
         'answered_at',
+        'is_flagged',
+        'hidden_at',
+        'approved_at',
     ];
 
     protected $casts = [
@@ -29,6 +32,9 @@ class TriviaAnswer extends Model
         'elapsed_ms' => 'integer',
         'served_at' => 'datetime',
         'answered_at' => 'datetime',
+        'is_flagged' => 'boolean',
+        'hidden_at' => 'datetime',
+        'approved_at' => 'datetime',
     ];
 
     public function player()

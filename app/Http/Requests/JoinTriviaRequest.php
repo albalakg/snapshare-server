@@ -17,6 +17,7 @@ class JoinTriviaRequest extends FormRequest
             'nickname' => 'required|string|min:2|max:40',
             'image' => 'nullable|file|image|mimes:jpeg,jpg,png,webp|max:2048',
             'team' => 'nullable|string|max:40',
+            'device_id' => 'nullable|string|max:64',
         ];
     }
 }
