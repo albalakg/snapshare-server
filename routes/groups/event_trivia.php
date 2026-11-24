@@ -35,10 +35,10 @@ Route::group(['middleware' => 'auth:api'], function () {
     // Live moderation, screen sound and reactions.
     Route::get('{event_id}/trivia/admin/live', [EventTriviaModerationController::class, 'live']);
     Route::put('{event_id}/trivia/admin/fx', [EventTriviaModerationController::class, 'fx']);
-    Route::post('{event_id}/trivia/admin/players/{player_id}/kick', [EventTriviaModerationController::class, 'kick']);
-    Route::post('{event_id}/trivia/admin/players/{player_id}/restore', [EventTriviaModerationController::class, 'restore']);
-    Route::post('{event_id}/trivia/admin/players/{player_id}/rename', [EventTriviaModerationController::class, 'rename']);
+    Route::post('{event_id}/trivia/admin/players/{player_id}/kick', [EventTriviaModerationController::class, 'kick'])->whereNumber('player_id');
+    Route::post('{event_id}/trivia/admin/players/{player_id}/restore', [EventTriviaModerationController::class, 'restore'])->whereNumber('player_id');
+    Route::post('{event_id}/trivia/admin/players/{player_id}/rename', [EventTriviaModerationController::class, 'rename'])->whereNumber('player_id');
     Route::post('{event_id}/trivia/admin/answers/hide', [EventTriviaModerationController::class, 'hideAnswers']);
     Route::post('{event_id}/trivia/admin/answers/approve', [EventTriviaModerationController::class, 'approveAnswers']);
-    Route::post('{event_id}/trivia/admin/questions/{question_id}/approval', [EventTriviaModerationController::class, 'questionApproval']);
+    Route::post('{event_id}/trivia/admin/questions/{question_id}/approval', [EventTriviaModerationController::class, 'questionApproval'])->whereNumber('question_id');
 });

@@ -184,7 +184,8 @@ class TriviaModerationService
         $this->event_service->assertEventAccess($event_id, $user_id);
         $player = $this->playerForHost($event_id, $player_id);
         $nickname = mb_substr(trim(preg_replace('/\s+/u', ' ', $nickname) ?? ''), 0, 40);
-        if (mb_strlen($nickname) < 2) {
+        // The new name goes on the big screen, so it passes the same filter as guest nicknames.
+        if (mb_strlen($nickname) < 2 || !(new ProfanityFilter())->isClean($nickname)) {
             throw new Exception(MessagesEnum::TRIVIA_NICKNAME_BLOCKED, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         $player->nickname = $nickname;

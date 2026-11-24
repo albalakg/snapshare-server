@@ -265,6 +265,24 @@ class TriviaModerationTest extends TestCase
         $this->assertSame('אורח נחמד', $this->service->me((int) $this->event->id, $player->session_token)['player']['nickname']);
     }
 
+    public function test_host_rename_is_filtered_and_bad_ids_are_404(): void
+    {
+        $this->liveGame();
+        $player = $this->player('שם ישן');
+
+        try {
+            $this->moderation->renamePlayer((int) $this->event->id, (int) $this->user->id, (int) $player->id, 'שרמוטה');
+            $this->fail('offensive rename must be rejected');
+        } catch (Exception $ex) {
+            $this->assertSame(MessagesEnum::TRIVIA_NICKNAME_BLOCKED, $ex->getMessage());
+        }
+        $this->assertSame('שם ישן', $player->fresh()->nickname);
+
+        $this->actingAs($this->user, 'api')
+            ->postJson("/api/events/{$this->event->id}/trivia/admin/players/abc/kick", ['block' => false])
+            ->assertNotFound();
+    }
+
     /* ---------------- reactions ---------------- */
 
     public function test_reactions_reach_the_screen_through_a_cursor(): void
