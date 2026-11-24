@@ -25,6 +25,7 @@ class EventHubService
         private ?EventHubSlugValidator $slug_validator = null,
         private ?EventHubCacheService $cache_service = null,
         private ?HubVariantNormalizer $variant_normalizer = null,
+        private ?SaveTheDateNormalizer $std_normalizer = null,
     ) {
         $this->event_service ??= new EventService(new UserService());
         $this->block_validator ??= new HubBlockValidator();
@@ -32,6 +33,7 @@ class EventHubService
         $this->variant_normalizer ??= new HubVariantNormalizer();
         $this->slug_validator ??= new EventHubSlugValidator();
         $this->cache_service ??= new EventHubCacheService();
+        $this->std_normalizer ??= new SaveTheDateNormalizer();
     }
 
     public function getAdminHub(int $event_id, int $user_id): array
@@ -64,8 +66,11 @@ class EventHubService
             $this->slug_validator->validate($slug, $event_id);
         }
 
+        $hub_config = $this->mergeSaveTheDateSlice($existing?->hub_config ?? [], $hub_config);
+
         // Gen-2 layout variants: unknown values become null (the template preset) instead of a 422.
         $hub_config = $this->variant_normalizer->normalize($hub_config);
+        $hub_config = $this->std_normalizer->normalizeHubConfig($hub_config);
         $this->block_validator->validate($hub_config, $event_id);
         $this->forceMandatoryBlocksEnabled($hub_config);
         $hub_config = $this->content_sanitizer->sanitizeHubConfig($hub_config);
@@ -232,11 +237,16 @@ class EventHubService
 
     private function formatAdminHub(EventHub $hub): array
     {
+        $config = $hub->hub_config ?? ['theme' => [], 'blocks' => []];
+        if (!isset($config['presentation'])) {
+            $config['presentation'] = 'landing';
+        }
+
         return [
             'event_id'     => $hub->event_id,
             'slug'         => $hub->slug,
             'is_published' => $hub->is_published,
-            'hub_config'   => $hub->hub_config ?? ['theme' => [], 'blocks' => []],
+            'hub_config'   => $config,
             'updated_at'   => $hub->updated_at?->toIso8601String(),
         ];
     }
@@ -259,38 +269,43 @@ class EventHubService
             })
             ->all();
 
+        $presentation = ($config['presentation'] ?? 'landing') === 'save_the_date'
+            ? 'save_the_date'
+            : 'landing';
+        $std = is_array($config['save_the_date'] ?? null) ? $config['save_the_date'] : null;
+
+        $asset_map = $this->loadVisibleImageAssetMap($event->id, $theme, $blocks, $std);
         if ($is_template) {
-            $asset_map = $this->loadVisibleImageAssetMap($event->id, $theme, $blocks);
             $theme = $this->resolveImageRefsInNode($theme, $asset_map);
             $blocks = $this->resolveImageRefsInNode($blocks, $asset_map);
-
-            return [
-                'event_id'     => $event->id,
-                'event_name'   => $event->name,
-                'event_path'   => $event->path,
-                'template_id'  => $template_id,
-                'theme'        => $theme,
-                'blocks'       => $blocks,
-                'integrations' => [
-                    'gallery_path'       => $event->path,
-                    'gallery_url'        => '/' . $event->path,
-                    'icebreaker_enabled' => $this->isIcebreakerActive($event),
-                ],
-            ];
+        }
+        if ($std !== null) {
+            $std = $this->resolveImageRefsInNode($std, $asset_map);
         }
 
-        return [
-            'event_id'     => $event->id,
-            'event_name'   => $event->name,
-            'event_path'   => $event->path,
-            'theme'        => $theme,
-            'blocks'       => $blocks,
-            'integrations' => [
+        $payload = [
+            'event_id'      => $event->id,
+            'event_name'    => $event->name,
+            'event_path'    => $event->path,
+            'presentation'  => $presentation,
+            'theme'         => $theme,
+            'blocks'        => $blocks,
+            'integrations'  => [
                 'gallery_path'       => $event->path,
                 'gallery_url'        => '/' . $event->path,
                 'icebreaker_enabled' => $this->isIcebreakerActive($event),
             ],
         ];
+        if ($is_template) {
+            $payload['template_id'] = $template_id;
+        }
+        // Public view uses presentation to pick one page. Only expose the STD
+        // slice when it is the live presentation so landing clients stay unchanged.
+        if ($presentation === 'save_the_date' && $std !== null) {
+            $payload['save_the_date'] = $std;
+        }
+
+        return $payload;
     }
 
     /**
@@ -322,7 +337,7 @@ class EventHubService
     /**
      * @return array<int, EventAsset>
      */
-    private function loadVisibleImageAssetMap(int $event_id, array $theme, array $blocks): array
+    private function loadVisibleImageAssetMap(int $event_id, array $theme, array $blocks, ?array $std = null): array
     {
         $ids = [];
         $this->collectAssetIdsFromNode($theme['cover'] ?? null, $ids);
@@ -332,6 +347,10 @@ class EventHubService
                 continue;
             }
             $this->collectAssetIdsFromNode($block['data'] ?? [], $ids);
+        }
+
+        if ($std !== null) {
+            $this->collectAssetIdsFromNode($std, $ids);
         }
 
         $ids = array_values(array_unique(array_map('intval', $ids)));
@@ -456,6 +475,46 @@ class EventHubService
         $has_stock = array_key_exists('stock', $node);
 
         return count($node) === 1 && ($has_asset xor $has_stock);
+    }
+
+    /**
+     * Preserve presentation + save_the_date when the landing builder omits them.
+     * Incoming keys win; style_opts of omitted styles are kept from the previous slice.
+     */
+    private function mergeSaveTheDateSlice(array $previous, array $incoming): array
+    {
+        if (!array_key_exists('presentation', $incoming) && isset($previous['presentation'])) {
+            $incoming['presentation'] = $previous['presentation'];
+        }
+
+        if (!array_key_exists('save_the_date', $incoming)) {
+            if (isset($previous['save_the_date'])) {
+                $incoming['save_the_date'] = $previous['save_the_date'];
+            }
+
+            return $incoming;
+        }
+
+        if (!is_array($incoming['save_the_date'])) {
+            return $incoming;
+        }
+
+        $prev_std = is_array($previous['save_the_date'] ?? null) ? $previous['save_the_date'] : [];
+
+        if (!array_key_exists('content', $incoming['save_the_date']) && isset($prev_std['content'])) {
+            $incoming['save_the_date']['content'] = $prev_std['content'];
+        }
+        if (!array_key_exists('show', $incoming['save_the_date']) && isset($prev_std['show'])) {
+            $incoming['save_the_date']['show'] = $prev_std['show'];
+        }
+
+        $prev_opts = is_array($prev_std['style_opts'] ?? null) ? $prev_std['style_opts'] : [];
+        $in_opts = is_array($incoming['save_the_date']['style_opts'] ?? null)
+            ? $incoming['save_the_date']['style_opts']
+            : [];
+        $incoming['save_the_date']['style_opts'] = array_merge($prev_opts, $in_opts);
+
+        return $incoming;
     }
 
     private function isIcebreakerActive(Event $event): bool

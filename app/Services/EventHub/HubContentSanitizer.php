@@ -30,6 +30,14 @@ class HubContentSanitizer
             }
         }
 
+        if (isset($hub_config['save_the_date']) && is_array($hub_config['save_the_date'])) {
+            $hub_config['save_the_date'] = $this->sanitizeArray($hub_config['save_the_date']);
+        }
+
+        if (isset($hub_config['presentation']) && is_string($hub_config['presentation'])) {
+            $hub_config['presentation'] = $this->sanitizeString($hub_config['presentation']);
+        }
+
         return $hub_config;
     }
 
