@@ -49,6 +49,12 @@ class RouteServiceProvider extends ServiceProvider
                 ->group(base_path('routes/groups/event_whatsapp.php'));
 
             Route::prefix('api/events')
+                ->group(base_path('routes/groups/event_guests.php'));
+
+            Route::prefix('api/events')
+                ->group(base_path('routes/groups/event_seating.php'));
+
+            Route::prefix('api/events')
                 ->group(base_path('routes/groups/event_icebreaker.php'));
 
             Route::prefix('api/events')

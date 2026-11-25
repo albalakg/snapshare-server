@@ -188,8 +188,9 @@ class WhatsAppCampaignService
      */
     private function resolveGuestIds(int $event_id, ?array $guest_ids): array
     {
+        // Guest CRM allows guests without a phone (seating only); they can't receive WhatsApp.
         if ($guest_ids === null || $guest_ids === []) {
-            return EventGuest::where('event_id', $event_id)->pluck('id')->all();
+            return EventGuest::where('event_id', $event_id)->whereNotNull('phone_hash')->pluck('id')->all();
         }
 
         $valid_ids = EventGuest::where('event_id', $event_id)
@@ -201,7 +202,7 @@ class WhatsAppCampaignService
             throw new Exception(MessagesEnum::WHATSAPP_GUEST_NOT_FOUND);
         }
 
-        return $valid_ids;
+        return EventGuest::whereIn('id', $valid_ids)->whereNotNull('phone_hash')->pluck('id')->all();
     }
 
     private function findCampaignForEvent(int $event_id, int $campaign_id): WhatsAppCampaign

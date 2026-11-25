@@ -25,6 +25,9 @@ class EventGuest extends Model
         'status',
         'party_size',
         'group_key',
+        'group_id',
+        'side',
+        'notes',
         'metadata',
     ];
 
@@ -32,12 +35,18 @@ class EventGuest extends Model
         'full_name' => 'encrypted',
         'phone'     => 'encrypted',
         'email'     => 'encrypted',
+        'notes'     => 'encrypted',
         'metadata'  => 'array',
     ];
 
     public function event()
     {
         return $this->belongsTo(Event::class);
+    }
+
+    public function group()
+    {
+        return $this->belongsTo(EventGuestGroup::class, 'group_id');
     }
 
     public function whatsappCampaignGuests()

@@ -31,7 +31,9 @@ class EventGuestService
     {
         $this->event_service->assertEventAccess($event_id, $user_id);
 
+        // Guest CRM allows phoneless guests (seating only); the WhatsApp list shows only reachable ones.
         $guests = EventGuest::where('event_id', $event_id)
+            ->whereNotNull('phone_hash')
             ->orderBy('id')
             ->get()
             ->map(fn (EventGuest $guest) => $this->formatGuest($guest));
