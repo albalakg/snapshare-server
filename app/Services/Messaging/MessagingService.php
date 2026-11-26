@@ -102,6 +102,40 @@ class MessagingService
         ];
     }
 
+    /** Guests for the audience picker: phone / opt-out state, quota usage, pending queue per guest. */
+    public function audience(int $event_id, int $user_id): array
+    {
+        $event = MessagingContext::event($event_id, $user_id);
+        $settings = MessagingContext::settings($event_id);
+        $limit = $this->quota->perGuest($event, $settings);
+        $usage = $this->quota->usage($event_id);
+        $guests = EventGuest::where('event_id', $event_id)->orderBy('id')->get();
+        $tables = \Illuminate\Support\Facades\DB::table('seating_assignments as a')
+            ->join('seating_tables as t', 't.id', '=', 'a.table_id')->join('seating_plans as p', 'p.id', '=', 'a.plan_id')
+            ->where('p.event_id', $event_id)->pluck('t.label', 'a.guest_id');
+        $last = WhatsAppSendRecipient::where('event_id', $event_id)->whereIn('status', ['sent', 'delivered', 'read', 'failed'])
+            ->orderBy('id')->get(['guest_id', 'status', 'replied_at'])->keyBy('guest_id');
+        $groups = \App\Models\EventGuestGroup::where('event_id', $event_id)->orderBy('name')->get(['id', 'name', 'side']);
+
+        return [
+            'per_guest' => $limit,
+            'groups' => $groups,
+            'guests' => $guests->map(function ($g) use ($usage, $tables, $last, $limit) {
+                $u = $usage[$g->id] ?? ['used' => 0, 'reserved' => 0];
+                $l = $last[$g->id] ?? null;
+
+                return [
+                    'id' => $g->id, 'full_name' => $g->full_name, 'status' => (int) $g->status, 'side' => $g->side, 'group_id' => $g->group_id ? (int) $g->group_id : null,
+                    'party_size' => (int) $g->party_size, 'has_phone' => (bool) $g->phone_hash, 'opted_out' => (bool) $g->wa_opted_out_at,
+                    'table_label' => isset($tables[$g->id]) ? (string) $tables[$g->id] : null,
+                    'used' => $u['used'], 'pending' => $u['reserved'], 'left' => max(0, $limit - $u['used'] - $u['reserved']),
+                    'last_status' => $l?->replied_at ? 'replied' : $l?->status, 'rsvp_source' => $g->rsvp_source,
+                    'answers' => (array) (($g->metadata['rsvp'] ?? null) ?: new \stdClass()),
+                ];
+            })->values(),
+        ];
+    }
+
     // ───────────────────────── settings ─────────────────────────
 
     public function settings(int $event_id, int $user_id): array

@@ -254,6 +254,9 @@ class WhatsAppMessagingTest extends TestCase
         $this->assertNotNull($a->fresh()->wa_opted_out_at);
         $this->assertSame('skipped', WhatsAppSendRecipient::where('send_id', $pending)->first()->status);
         $this->m('GET', "/guests/{$a->id}/messages")->assertOk()->assertJsonCount(2, 'data.items');
+        $aud = $this->m('GET', '/audience')->assertOk();
+        $this->assertTrue($aud->json('data.guests.0.opted_out'));
+        $this->assertSame(1, $aud->json('data.guests.0.used'));
     }
 
     public function test_intent_parser_examples(): void

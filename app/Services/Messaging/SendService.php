@@ -452,7 +452,7 @@ class SendService
         $template = $s->template_id ? WhatsAppTemplate::find($s->template_id) : null;
         $out = [
             'id' => $s->id, 'title' => $s->title, 'source' => $s->source, 'automation_id' => $s->automation_id,
-            'template_key' => $s->template_key, 'category' => $s->category, 'status' => $s->status,
+            'template_id' => $s->template_id, 'template_key' => $s->template_key, 'category' => $s->category, 'status' => $s->status,
             'scheduled_at' => optional($s->scheduled_at)->toIso8601String(), 'override_quiet' => (bool) $s->override_quiet,
             'version' => (int) $s->version, 'content_version' => (int) $s->content_version, 'audience_mode' => $s->audience_mode,
             'editable' => $s->isEditable(),

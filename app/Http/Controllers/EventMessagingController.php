@@ -33,6 +33,11 @@ class EventMessagingController extends Controller
         return $this->respond('Overview fetched', fn () => $this->svc()->overview($event_id, Auth::id()));
     }
 
+    public function audience(int $event_id)
+    {
+        return $this->respond('Audience fetched', fn () => $this->svc()->audience($event_id, Auth::id()));
+    }
+
     public function settings(int $event_id)
     {
         return $this->respond('Settings fetched', fn () => $this->svc()->settings($event_id, Auth::id()));

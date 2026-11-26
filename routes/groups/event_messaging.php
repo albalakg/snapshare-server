@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
  */
 Route::group(['middleware' => 'auth:api', 'prefix' => '{event_id}/messaging'], function () {
     Route::get('overview', [C::class, 'overview']);
+    Route::get('audience', [C::class, 'audience']);
     Route::get('settings', [C::class, 'settings']);
     Route::put('settings', [C::class, 'updateSettings']);
 
