@@ -55,6 +55,9 @@ class RouteServiceProvider extends ServiceProvider
                 ->group(base_path('routes/groups/event_seating.php'));
 
             Route::prefix('api/events')
+                ->group(base_path('routes/groups/event_messaging.php'));
+
+            Route::prefix('api/events')
                 ->group(base_path('routes/groups/event_icebreaker.php'));
 
             Route::prefix('api/events')
@@ -65,6 +68,9 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::prefix('api/public')
                 ->group(base_path('routes/groups/public.php'));
+
+            Route::prefix('api/public')
+                ->group(base_path('routes/groups/messaging_public.php'));
 
             Route::prefix('api/store')
                 ->group(base_path('routes/groups/store.php'));
@@ -77,6 +83,9 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::middleware('api')
                 ->group(base_path('routes/groups/openwa_webhook.php'));
+
+            Route::middleware('api')
+                ->group(base_path('routes/groups/messaging_webhook.php'));
         });
     }
 

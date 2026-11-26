@@ -515,6 +515,11 @@ class HubConfigValidationTest extends TestCase
                 return false;
             }
 
+            // D8 (t134u): RSVP is now wired through the WhatsApp messaging public endpoints only.
+            if (in_array($uri, ['api/public/rsvp/{token}', 'api/public/hubs/{slug}/rsvp'], true)) {
+                return false;
+            }
+
             return (bool) preg_match('#(hubs?.*/(wish|wishes|rsvp)|/(wish|wishes|rsvp)/)#i', $uri);
         });
         $this->assertCount(0, $hub_wish_rsvp_posts);

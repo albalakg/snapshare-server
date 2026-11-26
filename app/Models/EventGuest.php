@@ -29,6 +29,9 @@ class EventGuest extends Model
         'side',
         'notes',
         'metadata',
+        'wa_opted_out_at',
+        'rsvp_responded_at',
+        'rsvp_source',
     ];
 
     protected $casts = [
@@ -37,6 +40,8 @@ class EventGuest extends Model
         'email'     => 'encrypted',
         'notes'     => 'encrypted',
         'metadata'  => 'array',
+        'wa_opted_out_at'   => 'datetime',
+        'rsvp_responded_at' => 'datetime',
     ];
 
     public function event()
