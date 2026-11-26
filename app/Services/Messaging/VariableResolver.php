@@ -7,6 +7,7 @@ use App\Models\EventGuest;
 use App\Models\EventHub;
 use App\Models\EventWhatsAppSetting;
 use App\Models\SeatingPlan;
+use App\Services\Seating\TableToken;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -44,6 +45,7 @@ class VariableResolver
             'party_size'  => (string) max(1, (int) $guest->party_size),
             'table_label' => $this->tables[$guest->id] ?? '—',
             'rsvp_link'   => RsvpToken::link($guest),
+            'table_link'  => TableToken::link($guest),
         ];
     }
 
@@ -53,6 +55,7 @@ class VariableResolver
         return $this->eventVars + [
             'first_name' => 'נועה', 'full_name' => 'נועה כהן', 'party_size' => '2', 'table_label' => '7',
             'rsvp_link' => rtrim((string) config('app.client_url'), '/') . '/rsvp/…',
+            'table_link' => rtrim((string) config('app.client_url'), '/') . '/t/…',
         ];
     }
 

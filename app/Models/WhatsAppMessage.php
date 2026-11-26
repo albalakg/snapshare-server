@@ -10,7 +10,7 @@ class WhatsAppMessage extends Model
 
     protected $fillable = [
         'event_id', 'guest_id', 'send_id', 'direction', 'kind', 'body', 'payload', 'provider_message_id', 'context_id',
-        'status', 'intent', 'suggestion', 'handled', 'read_by_host_at',
+        'status', 'intent', 'suggestion', 'classifier', 'confidence', 'suggestion_note', 'handled', 'read_by_host_at',
     ];
 
     protected $casts = [

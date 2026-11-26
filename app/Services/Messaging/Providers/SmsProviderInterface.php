@@ -3,8 +3,8 @@
 namespace App\Services\Messaging\Providers;
 
 /**
- * D6 SMS fallback for guests without WhatsApp. Only the mock driver is wired; a real Israeli provider
- * (recommendation in the t134u report) plugs in here once Gal opens an account.
+ * D6 SMS fallback for guests without WhatsApp. Drivers: MockSmsDriver (default) and MicropaySmsDriver
+ * (SMS_DRIVER=micropay + MICROPAY_SMS_TOKEN), selected in ProviderFactory::sms().
  */
 interface SmsProviderInterface
 {

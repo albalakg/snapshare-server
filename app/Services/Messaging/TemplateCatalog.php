@@ -26,6 +26,7 @@ class TemplateCatalog
         'rsvp_link'     => 'קישור אישור הגעה אישי',
         'album_link'    => 'האלבום החי',
         'table_label'   => 'מספר שולחן',
+        'table_link'    => 'קישור "השולחן שלי"',
         'party_size'    => 'מספר מוזמנים',
         'gift_link'     => 'קישור למתנה',
     ];
@@ -74,6 +75,13 @@ class TemplateCatalog
                 'body' => "היום חוגגים, {{first_name}}! 🥂\nמחכים לראות אותך הערב ב{{venue_name}} החל מ-{{event_time}}.\n\n🪑 השולחן שלך: {{table_label}} (עבור {{party_size}} אורחים)\n📸 העלאת תמונות לאלבום החי מהאירוע:\n{{album_link}}",
                 'footer' => 'נוצר אוטומטית ממפת ההושבה של SnapShare',
                 'buttons' => [['type' => 'url', 'text' => 'לאלבום החי', 'link' => 'album_link']],
+            ],
+            'table_page_link' => [
+                'title' => 'יום האירוע — קישור "השולחן שלי" עם מפת האולם', 'stage' => 'dayof', 'category' => 'utility',
+                'header' => 'איפה יושבים? 🪑',
+                'body' => "היי {{first_name}}, מחכים לך הערב ב{{venue_name}} 🥂\nהשולחן שלך: {{table_label}}\nבקישור תמצאו את השולחן מסומן על מפת האולם:\n{{table_link}}",
+                'footer' => 'נוצר אוטומטית ממפת ההושבה של SnapShare',
+                'buttons' => [['type' => 'url', 'text' => 'השולחן שלי', 'link' => 'table_link']],
             ],
             'live_album_cta' => [
                 'title' => 'קישור לאלבום החי + צילום במהלך הערב', 'stage' => 'dayof', 'category' => 'utility',

@@ -25,8 +25,21 @@ class ProviderFactory
 
     public static function sms(): SmsProviderInterface
     {
-        // Only the mock is wired (D6). A real provider is added here once chosen.
-        return new MockSmsDriver();
+        if (app()->bound(SmsProviderInterface::class)) {
+            return app(SmsProviderInterface::class);
+        }
+
+        return self::smsName() === 'micropay' ? new MicropaySmsDriver() : new MockSmsDriver();
+    }
+
+    /** Mock by default. Micropay only when explicitly selected AND a token exists; tests never reach it. */
+    public static function smsName(): string
+    {
+        if (app()->environment('testing')) {
+            return 'mock';
+        }
+
+        return config('whatsapp_messaging.sms.driver') === 'micropay' && MicropaySmsDriver::configured() ? 'micropay' : 'mock';
     }
 
     /**

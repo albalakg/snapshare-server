@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
  * Seating builder + smart arrange (host). Writes are gated by SeatingEntitlement
- * (feature flag stub; TODO paid add-on once pricing is confirmed).
+ * (feature flag + optional paid add-on paywall → 402; see SeatingEntitlement).
  */
 Route::group(['middleware' => 'auth:api'], function () {
     Route::get('{event_id}/seating', [EventSeatingController::class, 'show']);

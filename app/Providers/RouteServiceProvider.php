@@ -58,6 +58,9 @@ class RouteServiceProvider extends ServiceProvider
                 ->group(base_path('routes/groups/event_messaging.php'));
 
             Route::prefix('api/events')
+                ->group(base_path('routes/groups/event_addons.php'));
+
+            Route::prefix('api/events')
                 ->group(base_path('routes/groups/event_icebreaker.php'));
 
             Route::prefix('api/events')
@@ -74,6 +77,9 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::prefix('api/store')
                 ->group(base_path('routes/groups/store.php'));
+
+            Route::prefix('api/store')
+                ->group(base_path('routes/groups/addons_store.php'));
 
             Route::prefix('api/subscriptions')
                 ->group(base_path('routes/groups/subscription.php'));
@@ -106,6 +112,9 @@ class RouteServiceProvider extends ServiceProvider
         // (plain throttle:N,M shares one bucket per IP across every route that uses it).
         RateLimiter::for('rsvp-read', fn (Request $request) => Limit::perMinute(60)->by('rsvp-read|' . $request->ip()));
         RateLimiter::for('rsvp-submit', fn (Request $request) => Limit::perMinute(20)->by('rsvp-submit|' . $request->ip()));
+        RateLimiter::for('table-read', fn (Request $request) => Limit::perMinute(60)->by('table-read|' . $request->ip()));
+        RateLimiter::for('addon-checkout', fn (Request $request) => Limit::perMinute(10)->by('addon-checkout|' . ($request->user()?->id ?: $request->ip())));
+        RateLimiter::for('addon-callback', fn (Request $request) => Limit::perMinute(120)->by('addon-callback|' . $request->ip()));
         RateLimiter::for('rsvp-hub-submit', fn (Request $request) => Limit::perMinute(10)->by('rsvp-hub|' . $request->ip()));
     }
 }

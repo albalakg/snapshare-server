@@ -36,12 +36,16 @@ class SeatingAiService
 
     public function quota(int $event_id): array
     {
-        $included = (int) config('seating.ai.runs_per_event', 5);
+        $base = (int) config('seating.ai.runs_per_event', 5);
+        $extra = SeatingEntitlement::extraAiRuns($event_id);
+        $included = $base + $extra;
         $used = AiSeatingRun::where('event_id', $event_id)->where('engine', 'ai')->whereIn('status', self::COUNTED_STATUSES)->count();
         $provider = $this->provider();
 
         return [
             'included'  => $included,
+            'base'      => $base,
+            'extra'     => $extra,
             'used'      => $used,
             'remaining' => max(0, $included - $used),
             'provider'  => $provider->name(),

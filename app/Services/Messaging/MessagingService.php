@@ -2,6 +2,7 @@
 
 namespace App\Services\Messaging;
 
+use App\Services\Messaging\Ai\ReplyClassifierFactory;
 use App\Models\EventGuest;
 use App\Models\WhatsAppConversation;
 use App\Models\WhatsAppMessage;
@@ -40,6 +41,8 @@ class MessagingService
             'enabled' => true,
             'provider' => ProviderFactory::whatsappName(),
             'sms_provider' => ProviderFactory::sms()->name(),
+            'reply_classifier' => ReplyClassifierFactory::name(),
+            'checkout' => ['enabled' => (bool) config('addons.enabled', false), 'driver' => \App\Services\Addons\AddonGatewayFactory::driver()],
             'dev_tools' => $this->devAllowed(),
             'event' => ['id' => $event->id, 'name' => $event->name, 'starts_at' => $event->starts_at ? \Carbon\Carbon::parse($event->starts_at, 'UTC')->toIso8601String() : null, 'vars' => $vars],
             'quota' => $this->quota->summary($event, $settings, $withPhone),
@@ -270,7 +273,7 @@ class MessagingService
                 'party_size' => $g ? (int) $g->party_size : null, 'unread' => (int) $row->unread,
                 'last' => $m ? ['direction' => $m->direction, 'body' => mb_substr((string) $m->body, 0, 140), 'at' => optional($m->created_at)->toIso8601String(), 'intent' => $m->intent] : null,
                 'window_open' => $this->windowOpen($c), 'bot_step' => $c?->step,
-                'suggestion' => $s ? ['message_id' => $s->id, 'changes' => $s->suggestion] : null,
+                'suggestion' => $s ? ['message_id' => $s->id, 'changes' => $s->suggestion, 'classifier' => $s->classifier, 'note' => $s->suggestion_note] : null,
             ];
         })->values()];
     }
@@ -290,7 +293,9 @@ class MessagingService
             'messages' => $msgs->map(fn ($m) => [
                 'id' => $m->id, 'direction' => $m->direction, 'kind' => $m->kind, 'body' => $m->body, 'status' => $m->status, 'intent' => $m->intent,
                 'suggestion' => $m->suggestion, 'handled' => $m->handled, 'at' => optional($m->created_at)->toIso8601String(),
+                'classifier' => $m->classifier, 'confidence' => $m->confidence !== null ? (float) $m->confidence : null, 'suggestion_note' => $m->suggestion_note,
             ])->values(),
+            'classifier' => ReplyClassifierFactory::name(),
         ];
     }
 

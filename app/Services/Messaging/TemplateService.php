@@ -107,7 +107,7 @@ class TemplateService
             $type = ($b['type'] ?? 'quick_reply') === 'url' ? 'url' : 'quick_reply';
             $row = ['type' => $type, 'text' => $text];
             if ($type === 'url') {
-                $row['link'] = in_array($b['link'] ?? '', ['hub_link', 'album_link', 'rsvp_link', 'gift_link', 'waze_link'], true) ? $b['link'] : 'hub_link';
+                $row['link'] = in_array($b['link'] ?? '', ['hub_link', 'album_link', 'rsvp_link', 'gift_link', 'waze_link', 'table_link'], true) ? $b['link'] : 'hub_link';
             } else {
                 $row['payload'] = in_array($b['payload'] ?? '', ['rsvp_yes', 'rsvp_maybe', 'rsvp_no', 'opt_out'], true) ? $b['payload'] : 'reply';
             }

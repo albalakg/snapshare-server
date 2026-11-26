@@ -9,8 +9,8 @@ use App\Models\WhatsAppSendRecipient;
 use Illuminate\Support\Facades\DB;
 
 /**
- * D1/D3 per-guest message quota. TODO(pricing): Pro add-on / top-ups are flags on event_whatsapp_settings
- * until checkout is wired; subscription prices are untouched.
+ * D1/D3 per-guest message quota. Pro add-on / top-ups live on event_whatsapp_settings and are credited by
+ * AddonPurchaseService after a verified payment (t135u); subscription prices are untouched.
  *
  * A credit is used when the provider accepts a template message (credited=1).
  * Pending / sending rows reserve a credit so the queue can never oversell a guest.
@@ -124,7 +124,8 @@ class QuotaService
             'reserved'          => $reserved,
             'remaining'         => max(0, $capacity - $used - $reserved),
             'pricing'           => [
-                'checkout_enabled' => (bool) config('whatsapp_messaging.pricing.enabled'), // TODO(pricing)
+                // Pro / top-up checkout = per-event add-ons (config/addons.php, PayPlus or mock gateway).
+                'checkout_enabled' => (bool) config('addons.enabled', false) && (bool) config('whatsapp_messaging.pricing.enabled', true),
                 'packages'         => array_values(array_map(fn ($p, $id) => ['id' => $id] + $p, config('whatsapp_messaging.pricing.packages'), array_keys(config('whatsapp_messaging.pricing.packages')))),
                 'pro_addon'        => config('whatsapp_messaging.pricing.pro_addon'),
                 'topup'            => config('whatsapp_messaging.pricing.topup'),

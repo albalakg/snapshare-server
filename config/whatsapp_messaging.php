@@ -43,22 +43,39 @@ return [
         'dev_endpoints' => filter_var(env('WHATSAPP_MOCK_DEV_ENDPOINTS', $isDevEnv), FILTER_VALIDATE_BOOLEAN),
     ],
 
-    // D6: SMS fallback for guests without WhatsApp. Mock only until a provider is chosen and credentialed.
+    // D6: SMS fallback for guests without WhatsApp. Mock is the default; Micropay (cheapest Israeli provider with
+    // an HTTP API, t135u research) is wired and used only with SMS_DRIVER=micropay + MICROPAY_SMS_TOKEN.
     'sms' => [
-        'driver' => env('SMS_DRIVER', 'mock'), // mock (only driver wired today)
-        'sender' => env('SMS_SENDER', 'SnapShare'),
+        'driver' => env('SMS_DRIVER', 'mock'), // mock | micropay
+        'sender' => env('SMS_SENDER', 'SnapShare'), // 2-11 latin chars/digits, or a verified phone number
         'max_chars' => 268, // 4 Hebrew (UCS-2) segments
+        'micropay' => [
+            'endpoint' => env('MICROPAY_SMS_ENDPOINT', 'https://www.micropay.co.il/extApi/scheduleSms.php'),
+            'token'    => env('MICROPAY_SMS_TOKEN'), // "טוקנים לממשקים" token with SMS permission
+            'from'     => env('MICROPAY_SMS_FROM'), // optional; falls back to sms.sender / the token's default sender id
+            'timeout'  => (int) env('MICROPAY_SMS_TIMEOUT', 15),
+        ],
+    ],
+
+    // Free-text reply classifier (suggestions only, never auto-applied). auto = OpenAI when a key exists, else rules.
+    'ai' => [
+        'provider' => env('WHATSAPP_AI_PROVIDER', 'auto'), // auto | openai | mock | rules
+        'model'    => env('WHATSAPP_AI_MODEL', 'gpt-4o-mini'),
+        'api_key'  => env('WHATSAPP_OPENAI_API_KEY', env('OPENAI_API_KEY')),
+        'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
+        'timeout'  => (int) env('WHATSAPP_AI_TIMEOUT', 8),
     ],
 
     /*
-    | D1/D3 quotas — TODO(pricing): prices and packaging confirmed by Gal on 26.11.2026 (t134u) but checkout is
-    | NOT wired. The existing subscription prices (Trial free, Classic ₪200, Premium ₪300) are unchanged.
-    | The Pro add-on and top-ups are recorded on event_whatsapp_settings by an admin/dev until checkout exists.
+    | D1/D3 quotas — prices and packaging confirmed by Gal on 26.11.2026 (t134u). Checkout (t135u) is the per-event
+    | add-on flow in config/addons.php (keep wa_pro / wa_topup prices there in sync with the values below).
+    | The existing subscription prices (Trial free, Classic ₪200, Premium ₪300) are unchanged.
     | Messages are counted per guest (household row), only for template sends accepted by the provider.
     | Free-form replies inside the 24h service window (RSVP bot, inbox replies) are not counted.
     */
     'pricing' => [
-        'enabled' => filter_var(env('WHATSAPP_PRICING_ENABLED', false), FILTER_VALIDATE_BOOLEAN), // TODO(pricing): checkout
+        // Kill switch for the Pro / top-up checkout buttons (the checkout itself is config/addons.php → ADDON_PAYMENTS_ENABLED).
+        'enabled' => filter_var(env('WHATSAPP_PRICING_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
         'currency' => 'ILS',
         'packages' => [
             // subscription_id => messages per guest / max guests that can receive messages

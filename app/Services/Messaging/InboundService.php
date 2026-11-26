@@ -10,7 +10,9 @@ use App\Services\Guests\GuestCrmService;
 use App\Services\Guests\PhoneNormalizer;
 use App\Services\Messaging\Providers\ProviderFactory;
 use App\Services\Messaging\Providers\WhatsAppProviderInterface;
+use App\Services\Messaging\Ai\ReplyClassifierFactory;
 use Exception;
+use Throwable;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -131,7 +133,43 @@ class InboundService
             }
         }
 
+        // Free text the bot did not handle → optional AI classifier (suggestion for the host only; never applied here).
+        if (!$payload) {
+            $parsed = $this->classify($msg, $guest, $text, $parsed, $cfg);
+        }
+
         return ['matched' => true, 'guest_id' => $guest->id, 'intent' => $parsed['intent']];
+    }
+
+    /**
+     * AI classifier with fallback to the Hebrew rules. Opt-out stays rules-only (handled above).
+     */
+    private function classify(WhatsAppMessage $msg, EventGuest $guest, string $text, array $rules, array $cfg): array
+    {
+        $msg->update(['classifier' => 'rules']);
+        $classifier = ReplyClassifierFactory::make();
+        if (!$classifier || trim($text) === '') {
+            return $rules;
+        }
+        try {
+            $out = $classifier->classify($text, [
+                'rules' => $rules,
+                'guest_first_name' => preg_split('/\s+/u', trim((string) $guest->full_name))[0] ?? null,
+                'party_size' => (int) $guest->party_size,
+                'max_party_size' => (int) ($cfg['max_party_size'] ?? 10),
+                'meal_options' => (array) ($cfg['meals'] ?? []),
+            ]);
+        } catch (Throwable $e) {
+            Log::warning('[whatsapp-inbound] AI classifier failed, using rules', ['error' => $e->getMessage()]);
+
+            return $rules;
+        }
+        $msg->update([
+            'intent' => $out['intent'], 'suggestion' => $out['suggestion'], 'classifier' => $classifier->name(),
+            'confidence' => $out['confidence'], 'suggestion_note' => $out['note'],
+        ]);
+
+        return $out;
     }
 
     private function nextStep(EventGuest $guest, WhatsAppConversation $conv, array $cfg, ?string $after): void
