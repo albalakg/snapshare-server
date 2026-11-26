@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('event_id')->primary();
             $table->boolean('quiet_hours_enabled')->default(true);
             $table->boolean('shabbat_guard_enabled')->default(true);
-            $table->boolean('sms_fallback_enabled')->default(false);
+            $table->boolean('sms_fallback_enabled')->default(true); // D6: on by default, host can turn off; runs only when an SMS provider is wired
             $table->boolean('pro_addon')->default(false);          // TODO(pricing): set by checkout
             $table->unsignedInteger('topups')->default(0);         // TODO(pricing): set by checkout
             $table->unsignedInteger('test_sends_used')->default(0);

@@ -39,7 +39,7 @@ class MessagingContext
         return EventWhatsAppSetting::firstOrCreate(['event_id' => $event_id], [
             'quiet_hours_enabled' => true,
             'shabbat_guard_enabled' => true,
-            'sms_fallback_enabled' => false,
+            'sms_fallback_enabled' => true,
             'rsvp_config' => TemplateCatalog::defaultRsvpConfig(),
             'variables' => [],
         ]);

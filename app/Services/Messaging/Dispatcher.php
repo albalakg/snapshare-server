@@ -167,7 +167,7 @@ class Dispatcher
         ], $vars, $payloads);
 
         $channel = 'whatsapp';
-        if ($result->notOnWhatsApp() && $settings->sms_fallback_enabled) {
+        if ($result->notOnWhatsApp() && $settings->sms_fallback_enabled && ProviderFactory::smsAvailable()) {
             $result = $this->sms->send($to, $this->smsText($rendered, $vars));
             $channel = 'sms';
         }
@@ -265,7 +265,7 @@ class Dispatcher
         $rank = ['sent' => 1, 'delivered' => 2, 'read' => 3];
         if ($status === 'failed') {
             $settings = MessagingContext::settings($r->event_id);
-            if ($error_code === '131026' && $settings->sms_fallback_enabled && $r->channel === 'whatsapp') {
+            if ($error_code === '131026' && $settings->sms_fallback_enabled && $r->channel === 'whatsapp' && ProviderFactory::smsAvailable()) {
                 $guest = EventGuest::find($r->guest_id);
                 $send = WhatsAppSend::find($r->send_id);
                 $event = Event::find($r->event_id);

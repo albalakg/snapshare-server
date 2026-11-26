@@ -29,6 +29,15 @@ class ProviderFactory
         return new MockSmsDriver();
     }
 
+    /**
+     * SMS fallback may run: a real SMS provider is wired, or the whole stack is in mock mode (local QA).
+     * Prevents "sent" SMS rows in production while only the mock SMS driver exists.
+     */
+    public static function smsAvailable(): bool
+    {
+        return self::isMock() || self::sms()->name() !== 'mock';
+    }
+
     public static function isMock(): bool
     {
         return self::whatsappName() === 'mock';

@@ -272,8 +272,12 @@ class WhatsAppMessagingTest extends TestCase
     public function test_sms_fallback_for_guest_without_whatsapp(): void
     {
         $this->guest('בלי וואטסאפ', 1, ['phone' => '0501230000', 'status' => 0]);
+        // D6: on by default, the host can turn it off
+        $this->m('GET', '/settings')->assertJsonPath('data.sms_fallback_enabled', true)->assertJsonPath('data.sms_available', true);
+        $this->m('PUT', '/settings', ['sms_fallback_enabled' => false])->assertOk();
         $this->m('POST', '/sends', ['template_key' => 'rsvp_invite', 'segment' => ['statuses' => [0]], 'send_now' => true])
             ->assertJsonPath('data.counts.failed', 1);
+        $this->assertCount(0, MockSmsDriver::$outbox);
         $this->m('PUT', '/settings', ['sms_fallback_enabled' => true])->assertOk();
         $this->m('POST', '/dev/entitlement', ['topups' => 1]);
         $this->m('POST', '/sends', ['template_key' => 'rsvp_nudge', 'segment' => ['statuses' => [0]], 'send_now' => true])

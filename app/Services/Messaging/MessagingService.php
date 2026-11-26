@@ -203,7 +203,7 @@ class MessagingService
     {
         return [
             'quiet_hours_enabled' => (bool) $s->quiet_hours_enabled, 'shabbat_guard_enabled' => (bool) $s->shabbat_guard_enabled,
-            'sms_fallback_enabled' => (bool) $s->sms_fallback_enabled, 'variables' => (array) ($s->variables ?? []) ?: new \stdClass(),
+            'sms_fallback_enabled' => (bool) $s->sms_fallback_enabled, 'sms_available' => ProviderFactory::smsAvailable(), 'variables' => (array) ($s->variables ?? []) ?: new \stdClass(),
             'rsvp_config' => MessagingContext::rsvpConfig($s), 'quiet_hours' => config('whatsapp_messaging.quiet_hours'), 'shabbat' => config('whatsapp_messaging.shabbat'),
             'test_sends_used' => (int) $s->test_sends_used, 'test_sends_limit' => (int) config('whatsapp_messaging.test_sends_per_event'),
         ];
