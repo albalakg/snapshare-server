@@ -137,6 +137,8 @@ class WhatsAppMessagingTest extends TestCase
         $id = $this->m('POST', '/sends', ['template_key' => 'save_the_date', 'segment' => ['statuses' => [0]], 'scheduled_at' => '2026-12-01T12:30'])->json('data.id');
         $r = $this->m('PATCH', "/sends/{$id}", ['expected_version' => 1, 'body' => 'היי {{first_name}}, נוסח חדש לגמרי {{hub_link}}'])->assertOk();
         $r->assertJsonPath('data.content_version', 2)->assertJsonPath('data.changes.content.needs_review', true)->assertJsonPath('data.pending_updated', 2);
+        // the host sees it as "waiting on Meta" right away, before the dispatcher reaches the send time
+        $this->m('GET', '/overview')->assertJsonPath('data.queue.review', 1);
 
         Carbon::setTestNow(now()->addMinutes(31)->subSeconds(10)); // due, but still within review delay? approve_after=30s
         config(['whatsapp_messaging.mock.approve_after_seconds' => 999999]);

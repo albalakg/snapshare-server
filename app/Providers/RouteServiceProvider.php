@@ -101,5 +101,11 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('google-auth-code', function (Request $request) {
             return Limit::perMinute(10)->by($request->ip());
         });
+
+        // Public RSVP (WhatsApp messaging). Named limiters so each endpoint has its own bucket per IP
+        // (plain throttle:N,M shares one bucket per IP across every route that uses it).
+        RateLimiter::for('rsvp-read', fn (Request $request) => Limit::perMinute(60)->by('rsvp-read|' . $request->ip()));
+        RateLimiter::for('rsvp-submit', fn (Request $request) => Limit::perMinute(20)->by('rsvp-submit|' . $request->ip()));
+        RateLimiter::for('rsvp-hub-submit', fn (Request $request) => Limit::perMinute(10)->by('rsvp-hub|' . $request->ip()));
     }
 }

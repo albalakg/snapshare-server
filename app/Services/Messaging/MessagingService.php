@@ -52,7 +52,13 @@ class MessagingService
             'queue' => [
                 'upcoming' => WhatsAppSend::where('event_id', $event_id)->whereIn('status', WhatsAppSend::EDITABLE)->count(),
                 'pending_messages' => WhatsAppSendRecipient::where('event_id', $event_id)->where('status', 'pending')->count(),
-                'review' => WhatsAppSend::where('event_id', $event_id)->where('status', 'review')->count(),
+                // waiting on Meta: dispatcher already holding it, or its template still pending/rejected
+                'review' => WhatsAppSend::where('event_id', $event_id)->where(function ($q) {
+                    $q->where('status', 'review')->orWhere(function ($q2) {
+                        $q2->whereIn('status', ['scheduled', 'paused', 'sending'])
+                            ->whereIn('template_id', WhatsAppTemplate::whereIn('meta_status', ['pending', 'rejected'])->select('id'));
+                    });
+                })->count(),
                 'next' => $next ? $this->sends->format($next, $this->sends->counts([$next->id])[$next->id] ?? []) : null,
             ],
             'inbox' => [
