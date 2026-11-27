@@ -177,7 +177,7 @@ class EventService
 
         $assets = EventAsset::where('event_id', $id)
             ->whereIn('status', $statuses)
-            ->select('id', 'event_id', 'asset_type', 'path', 'is_displayed', 'status', 'moderation_labels')
+            ->select('id', 'event_id', 'asset_type', 'path', 'is_displayed', 'is_favorite', 'status', 'moderation_labels', 'created_at', 'device_id')
             ->get();
 
         $blockedCount = EventAsset::where('event_id', $id)
