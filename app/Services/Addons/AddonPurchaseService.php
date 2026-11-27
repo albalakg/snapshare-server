@@ -186,6 +186,7 @@ class AddonPurchaseService
         }
         if ($purchase->provider !== 'payplus' || !$this->gateway()->verifyCallback($data, $raw_body)) {
             $this->log->error('Addon callback rejected', ['purchase' => $purchase->uid]);
+            \App\Services\Mail\EmailTriggers::paymentCallbackRejected('addon', $purchase->uid, 'payment callback verification failed');
             throw new SeatingHttpException('Invalid payment callback', 400);
         }
 

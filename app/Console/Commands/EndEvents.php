@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Exception;
+use App\Services\Events\RetentionService;
 use Carbon\Carbon;
 use App\Models\Event;
 use Illuminate\Console\Command;
@@ -39,10 +40,11 @@ class EndEvents extends Command
         $event_service = new EventService();
         $icebreaker_service = new IcebreakerConfigService();
         $events = Event::join('users', 'users.id', 'events.user_id')
+            ->leftJoin('orders', 'orders.id', 'events.order_id')
             ->where('events.finished_at', '<=', Carbon::now())
             ->where('events.status', StatusEnum::IN_PROGRESS)
             ->withCount('assets')
-            ->select('events.id', 'events.name', 'events.starts_at', 'events.finished_at', 'users.first_name', 'users.email', 'events.status')
+            ->select('events.id', 'events.name', 'events.starts_at', 'events.finished_at', 'users.first_name', 'users.email', 'events.status', 'orders.subscription_id')
             ->get();
             
 
@@ -59,8 +61,9 @@ class EndEvents extends Command
                     'date' => $event->starts_at,
                     'assets_count' => $event->assets_count ?? 0,
                     'event_url' => config('app.client_url') . '/event/assets',
+                    'retention_until' => RetentionService::until($event->finished_at, $event->subscription_id ? (int) $event->subscription_id : null),
                 ];
-                $mail_service->send($event->email, MailEnum::EVENT_FINISHED, $data);
+                $mail_service->send($event->email, MailEnum::EVENT_FINISHED, $data, ['dedupe' => 'event:' . $event->id . ':finished', 'event_id' => $event->id]);
                 LogService::init()->info(LogsEnum::EVENT_ENDED, ['id' => $event->id]);
             } catch(Exception $ex) {
                 LogService::init()->error($ex, ['id' => $event->id, 'method' => LogsEnum::EVENT_ENDED]);

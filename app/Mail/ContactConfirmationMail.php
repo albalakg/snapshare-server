@@ -27,13 +27,21 @@ class ContactConfirmationMail extends Mailable implements ShouldQueue
         $this->first_name = $mail_data['first_name'];
     }
 
+    /** Subject: v2 copy (PLAN.md) when EMAILS_V2_ENABLED, legacy subject otherwise. */
+    public function mailSubject(): string
+    {
+        return \App\Services\Mail\MailV2::enabled()
+            ? 'קיבלנו את הפנייה שלכם'
+            : 'פנייתך התקבלה - ' . config('app.name');
+    }
+
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'פנייתך התקבלה - ' . config('app.name'),
+            subject: $this->mailSubject(),
         );
     }
 
@@ -43,8 +51,9 @@ class ContactConfirmationMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'mails.contactConfirmation',
+            view: \App\Services\Mail\MailV2::enabled() ? 'mails.v2.contactConfirmation' : 'mails.contactConfirmation',
             with: [
+                'mail_subject' => $this->mailSubject(),
                 'first_name' => $this->first_name,
             ]
         );

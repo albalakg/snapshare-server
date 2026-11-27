@@ -23,6 +23,9 @@ use function Aws\boolean_value;
 
 class StoreService
 {
+    /** Set by syncConfirmedOrderEvents(): true when the confirmed order upgraded an active one (B4 email). */
+    private bool $last_sync_was_upgrade = false;
+
     private LogService $log_service;
 
     private DiscountCodeService $discount_code_service;
@@ -290,6 +293,12 @@ class StoreService
                 'failure_reason' => 'ההזמנה נכשלה מסיבה לא ידועה, אנו מציעים לנסות שוב',
                 'retry_url' => config('app.client_url') . '/order',
             ]);
+            $this->mail_service->send(MailService::SYSTEM_EMAILS, MailEnum::ADMIN_PAYMENT_ALERT, [
+                'kind' => 'order',
+                'id' => $order->id,
+                'reason' => 'payment callback validation failed',
+                'ip' => request()?->ip(),
+            ]);
             $this->log_service->info('Order callback: step 6b — failure mail dispatched', [
                 'order_id' => $order->id,
             ]);
@@ -314,11 +323,7 @@ class StoreService
 
         $this->log_service->info('Order callback: step 10 — DB transaction finished', ['order_id' => $order->id]);
 
-        $this->mail_service->send($user->email, MailEnum::ORDER_CONFIRMED, [
-            'order' => $order,
-            'first_name' => $user->first_name,
-            'event_url' => config('app.client_url') . '/event',
-        ]);
+        $this->sendOrderConfirmedMail($order, $user, false);
         $this->log_service->info('Order callback: step 11 — confirmation mail dispatched', [
             'order_id' => $order->id,
         ]);
@@ -394,7 +399,9 @@ class StoreService
 
         $current_order = $this->getCurrentActiveOrder($order->user_id);
 
+        $this->last_sync_was_upgrade = false;
         if ($this->isSubscriptionUpgrade($order, $current_order)) {
+            $this->last_sync_was_upgrade = true;
             $this->log_service->info('Order callback: sync events — upgrade path', [
                 'order_id' => $order->id,
                 'previous_active_order_id' => $current_order->id,
@@ -526,16 +533,53 @@ class StoreService
         }
 
         try {
-            $this->mail_service->send($user->email, MailEnum::ORDER_CONFIRMED, [
-                'order' => $order,
-                'first_name' => $user->first_name,
-                'event_url' => config('app.client_url') . '/event',
-            ]);
+            $this->sendOrderConfirmedMail($order, $user, true);
         } catch (Exception $ex) {
             $this->log_service->error('Failed to send free order confirmation mail', [
                 'order_id' => $order->id,
                 'error' => $ex->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * B1 / B3 / B4 (t141u). With EMAILS_V2_ENABLED: upgrade → SubscriptionUpgradedMail, free order → FreeOrderConfirmedMail,
+     * otherwise OrderConfirmedMail. With the flag off the legacy behaviour is kept (OrderConfirmedMail for all).
+     * Deduped per order so a repeated payment callback never sends twice.
+     */
+    private function sendOrderConfirmedMail(Order $order, User $user, bool $free): void
+    {
+        $event_url = config('app.client_url') . '/event';
+        $order->loadMissing('subscription');
+
+        if (\App\Services\Mail\MailV2::enabled() && $this->last_sync_was_upgrade) {
+            $this->mail_service->send($user->email, MailEnum::SUBSCRIPTION_UPGRADED, [
+                'first_name' => $user->first_name,
+                'subscription' => $order->subscription,
+                'manage_url' => $event_url,
+            ], ['dedupe' => 'order:' . $order->id . ':confirmed']);
+            return;
+        }
+
+        if (\App\Services\Mail\MailV2::enabled() && $free) {
+            $sub = $order->subscription;
+            $hours = (int) ($sub->storage_time ?? 0);
+            $this->mail_service->send($user->email, MailEnum::FREE_ORDER_CONFIRMED, [
+                'first_name' => $user->first_name,
+                'order_id' => $order->order_number ?? $order->id,
+                'plan' => $sub->name ?? '',
+                'files_allowed' => $sub->files_allowed ?? null,
+                'storage_text' => $hours ? ($hours % 24 === 0 && $hours >= 72 ? ($hours / 24) . ' ימים' : $hours . ' שעות') : null,
+                'is_trial' => (float) ($sub->price ?? 0) <= 0,
+                'event_url' => $event_url,
+            ], ['dedupe' => 'order:' . $order->id . ':confirmed']);
+            return;
+        }
+
+        $this->mail_service->send($user->email, MailEnum::ORDER_CONFIRMED, [
+            'order' => $order,
+            'first_name' => $user->first_name,
+            'event_url' => $event_url,
+        ], ['dedupe' => 'order:' . $order->id . ':confirmed']);
     }
 }

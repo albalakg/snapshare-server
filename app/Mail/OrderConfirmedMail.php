@@ -30,13 +30,21 @@ class OrderConfirmedMail extends Mailable implements ShouldQueue
         $this->event_url = $mail_data['event_url'];
     }
 
+    /** Subject: v2 copy (PLAN.md) when EMAILS_V2_ENABLED, legacy subject otherwise. */
+    public function mailSubject(): string
+    {
+        return \App\Services\Mail\MailV2::enabled()
+            ? 'ההזמנה אושרה — האירוע שלכם מוכן'
+            : 'אישור הזמנה #' . $this->order->id . ' - ' . config('app.name');
+    }
+
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'אישור הזמנה #' . $this->order->id . ' - ' . config('app.name'),
+            subject: $this->mailSubject(),
         );
     }
 
@@ -46,8 +54,9 @@ class OrderConfirmedMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'mails.orderConfirmed',
+            view: \App\Services\Mail\MailV2::enabled() ? 'mails.v2.orderConfirmed' : 'mails.orderConfirmed',
             with: [
+                'mail_subject' => $this->mailSubject(),
                 'order' => $this->order,
                 'first_name' => $this->first_name,
                 'event_url' => $this->event_url,

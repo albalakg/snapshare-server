@@ -27,13 +27,21 @@ class ForgotPasswordMail extends Mailable implements ShouldQueue
         $this->reset_url = $mail_data['reset_url'];
     }
 
+    /** Subject: v2 copy (PLAN.md) when EMAILS_V2_ENABLED, legacy subject otherwise. */
+    public function mailSubject(): string
+    {
+        return \App\Services\Mail\MailV2::enabled()
+            ? 'איפוס הסיסמה ל־SnapShare'
+            : 'איפוס סיסמה - ' . config('app.name');
+    }
+
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'איפוס סיסמה - ' . config('app.name'),
+            subject: $this->mailSubject(),
         );
     }
 
@@ -43,8 +51,9 @@ class ForgotPasswordMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'mails.forgotPassword',
+            view: \App\Services\Mail\MailV2::enabled() ? 'mails.v2.forgotPassword' : 'mails.forgotPassword',
             with: [
+                'mail_subject' => $this->mailSubject(),
                 'first_name' => $this->first_name,
                 'reset_url' => $this->reset_url,
             ]

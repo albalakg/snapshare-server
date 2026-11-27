@@ -35,13 +35,21 @@ class ApplicationErrorMail extends Mailable implements ShouldQueue
             : ['payload' => is_scalar($requestData) ? (string) $requestData : get_debug_type($requestData)];
     }
 
+    /** Subject: v2 copy (PLAN.md) when EMAILS_V2_ENABLED, legacy subject otherwise. */
+    public function mailSubject(): string
+    {
+        return \App\Services\Mail\MailV2::enabled()
+            ? '[' . app()->environment() . '] שגיאה: ' . mb_substr($this->error_message, 0, 80)
+            : 'שגיאת מערכת - ' . config('app.name');
+    }
+
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'שגיאת מערכת - ' . config('app.name'),
+            subject: $this->mailSubject(),
         );
     }
 
@@ -51,8 +59,9 @@ class ApplicationErrorMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'mails.applicationError',
+            view: \App\Services\Mail\MailV2::enabled() ? 'mails.v2.applicationError' : 'mails.applicationError',
             with: [
+                'mail_subject' => $this->mailSubject(),
                 'error_message' => $this->error_message,
                 'error_trace' => $this->error_trace,
                 'request_url' => $this->request_url,

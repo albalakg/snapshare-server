@@ -6,7 +6,7 @@ use App\Models\Event;
 use App\Services\Enums\LogsEnum;
 use App\Services\Enums\MailEnum;
 use App\Services\Enums\StatusEnum;
-use App\Services\Enums\SubscriptionEnum;
+use App\Services\Events\RetentionService;
 use App\Services\Events\EventService;
 use App\Services\Helpers\LogService;
 use App\Services\Helpers\MailService;
@@ -28,7 +28,7 @@ class DisableEvents extends Command
      *
      * @var string
      */
-    protected $description = 'Disable events that are older than 30 days and still active';
+    protected $description = 'Disable finished events whose retention ended (Classic 180 / Premium 365 days)';
 
     /**
      * Execute the console command.
@@ -46,17 +46,9 @@ class DisableEvents extends Command
 
         foreach ($events as $event) {
             try {
-                $should_disable = false;
-                $finishedAt = Carbon::parse($event->finished_at);
-                $days_diff = $finishedAt->diffInDays(Carbon::now()->endOfDay());
-                if (
-                    ($event->subscription_id === SubscriptionEnum::CLASSIC_ID &&
-                    $days_diff === 14) ||
-                    ($event->subscription_id === SubscriptionEnum::PREMIUM_ID &&
-                    $days_diff === 30)
-                ) {
-                    $should_disable = true;
-                }
+                // Retention (t142u): Classic 180 / Premium 365 days (subscriptions.storage_time), same rule as event:warning.
+                $should_disable = !RetentionService::isProtected((int) $event->id)
+                    && RetentionService::shouldDisable($event->finished_at, (int) $event->subscription_id);
 
                 if (! $should_disable) {
                     LogService::init()->info(LogsEnum::EVENT_DISABLED.' SKIP', ['id' => $event->id]);
@@ -69,7 +61,7 @@ class DisableEvents extends Command
                     'event' => $event,
                     'first_name' => $event->first_name ?? '',
                 ];
-                $mail_service->send($event->email, MailEnum::EVENT_DISABLED, $data);
+                $mail_service->send($event->email, MailEnum::EVENT_DISABLED, $data, ['dedupe' => 'event:'.$event->id.':disabled', 'event_id' => $event->id]);
                 LogService::init()->info(LogsEnum::EVENT_DISABLED, ['id' => $event->id]);
 
             } catch (Exception $ex) {

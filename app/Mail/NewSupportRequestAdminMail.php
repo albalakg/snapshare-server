@@ -28,13 +28,21 @@ class NewSupportRequestAdminMail extends Mailable
         $this->ticket_id = (string) ($mail_data['ticket_id'] ?? '');
     }
 
+    /** Subject: v2 copy (PLAN.md) when EMAILS_V2_ENABLED, legacy subject otherwise. */
+    public function mailSubject(): string
+    {
+        return \App\Services\Mail\MailV2::enabled()
+            ? 'פנייה חדשה #' . $this->ticket_id . ' מאת ' . $this->full_name
+            : 'פניית תמיכה חדשה - ' . config('app.name');
+    }
+
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'פניית תמיכה חדשה - ' . config('app.name'),
+            subject: $this->mailSubject(),
         );
     }
 
@@ -44,8 +52,9 @@ class NewSupportRequestAdminMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'mails.newSupportRequestAdmin',
+            view: \App\Services\Mail\MailV2::enabled() ? 'mails.v2.newSupportRequestAdmin' : 'mails.newSupportRequestAdmin',
             with: [
+                'mail_subject' => $this->mailSubject(),
                 'full_name' => $this->full_name,
                 'email' => $this->email,
                 'text' => $this->text,

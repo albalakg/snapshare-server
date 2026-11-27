@@ -100,8 +100,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Example'),
+        'address' => env('MAIL_FROM_ADDRESS', 'hello@snapshare-live.com'),
+        'name' => env('MAIL_FROM_NAME', 'SnapShare'),
     ],
 
     /*
@@ -121,6 +121,25 @@ return [
         'paths' => [
             resource_path('views/vendor/mail'),
         ],
+    ],
+
+
+    /*
+    | Global Reply-To (Gal t144u): replies go to hello@snapshare-live.com. Laravel applies mail.reply_to to every message.
+    */
+    'reply_to' => [
+        'address' => env('MAIL_REPLY_TO_ADDRESS', 'hello@snapshare-live.com'),
+        'name' => env('MAIL_REPLY_TO_NAME', 'SnapShare'),
+    ],
+
+    /*
+    | Brand values used by the v2 email layout (resources/views/components/mail/*).
+    | Footer = business name + contact only (transactional mail; no marketing → no unsubscribe/"פרסומת").
+    */
+    'brand' => [
+        'name' => 'SnapShare',
+        'support_email' => env('MAIL_SUPPORT_EMAIL', 'hello@snapshare-live.com'),
+        'logo_url' => env('MAIL_LOGO_URL', rtrim((string) env('APP_URL', 'http://localhost'), '/') . '/mail/logo-mark.png'),
     ],
 
 ];

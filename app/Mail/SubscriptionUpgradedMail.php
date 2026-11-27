@@ -30,13 +30,21 @@ class SubscriptionUpgradedMail extends Mailable implements ShouldQueue
         $this->manage_url = $mail_data['manage_url'];
     }
 
+    /** Subject: v2 copy (PLAN.md) when EMAILS_V2_ENABLED, legacy subject otherwise. */
+    public function mailSubject(): string
+    {
+        return \App\Services\Mail\MailV2::enabled()
+            ? 'החבילה שודרגה ל־' . (is_object($this->subscription) ? ($this->subscription->name ?? '') : (is_array($this->subscription) ? ($this->subscription['name'] ?? '') : (string) $this->subscription))
+            : 'החבילה שלך שודרגה! - ' . config('app.name');
+    }
+
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'החבילה שלך שודרגה! - ' . config('app.name'),
+            subject: $this->mailSubject(),
         );
     }
 
@@ -46,8 +54,9 @@ class SubscriptionUpgradedMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'mails.subscriptionUpgraded',
+            view: \App\Services\Mail\MailV2::enabled() ? 'mails.v2.subscriptionUpgraded' : 'mails.subscriptionUpgraded',
             with: [
+                'mail_subject' => $this->mailSubject(),
                 'first_name' => $this->first_name,
                 'subscription' => $this->subscription,
                 'manage_url' => $this->manage_url,

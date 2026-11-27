@@ -26,13 +26,21 @@ class UserDeletedMail extends Mailable implements ShouldQueue
         $this->first_name = $mail_data['first_name'];
     }
 
+    /** Subject: v2 copy (PLAN.md) when EMAILS_V2_ENABLED, legacy subject otherwise. */
+    public function mailSubject(): string
+    {
+        return \App\Services\Mail\MailV2::enabled()
+            ? 'החשבון שלכם נמחק'
+            : 'חשבונך נמחק - ' . config('app.name');
+    }
+
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'חשבונך נמחק - ' . config('app.name'),
+            subject: $this->mailSubject(),
         );
     }
 
@@ -42,8 +50,9 @@ class UserDeletedMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'mails.userDeleted',
+            view: \App\Services\Mail\MailV2::enabled() ? 'mails.v2.userDeleted' : 'mails.userDeleted',
             with: [
+                'mail_subject' => $this->mailSubject(),
                 'first_name' => $this->first_name,
             ]
         );

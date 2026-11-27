@@ -30,13 +30,21 @@ class EventStartNotificationSecondMail extends Mailable implements ShouldQueue
         $this->event_url = $mail_data['event_url'];
     }
 
+    /** Subject: v2 copy (PLAN.md) when EMAILS_V2_ENABLED, legacy subject otherwise. */
+    public function mailSubject(): string
+    {
+        return \App\Services\Mail\MailV2::enabled()
+            ? 'מחר זה קורה: ' . $this->event->name
+            : 'איזו התרגשות האירוע עומד להתחיל! - ' . $this->event->name;
+    }
+
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'איזו התרגשות האירוע עומד להתחיל! - ' . $this->event->name,
+            subject: $this->mailSubject(),
         );
     }
 
@@ -46,8 +54,9 @@ class EventStartNotificationSecondMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'mails.eventNotificationSecond',
+            view: \App\Services\Mail\MailV2::enabled() ? 'mails.v2.eventNotificationSecond' : 'mails.eventNotificationSecond',
             with: [
+                'mail_subject' => $this->mailSubject(),
                 'event' => $this->event,
                 'first_name' => $this->first_name,
                 'event_url' => $this->event_url,

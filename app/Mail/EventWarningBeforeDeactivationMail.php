@@ -38,13 +38,21 @@ class EventWarningBeforeDeactivationMail extends Mailable implements ShouldQueue
         }
     }
 
+    /** Subject: v2 copy (PLAN.md) when EMAILS_V2_ENABLED, legacy subject otherwise. */
+    public function mailSubject(): string
+    {
+        return \App\Services\Mail\MailV2::enabled()
+            ? 'עוד ' . ((int) ($this->days_remaining ?? 3)) . ' ימים והקבצים של ' . $this->event->name . ' יימחקו'
+            : 'התראה: האירוע יושבת בקרוב - ' . $this->event->name;
+    }
+
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'התראה: האירוע יושבת בקרוב - ' . $this->event->name,
+            subject: $this->mailSubject(),
         );
     }
 
@@ -54,8 +62,9 @@ class EventWarningBeforeDeactivationMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'mails.eventWarningBeforeDeactivation',
+            view: \App\Services\Mail\MailV2::enabled() ? 'mails.v2.eventWarningBeforeDeactivation' : 'mails.eventWarningBeforeDeactivation',
             with: [
+                'mail_subject' => $this->mailSubject(),
                 'event' => $this->event,
                 'first_name' => $this->first_name,
                 'deactivation_date' => $this->deactivation_date,

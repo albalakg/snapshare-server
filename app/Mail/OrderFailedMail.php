@@ -32,13 +32,21 @@ class OrderFailedMail extends Mailable implements ShouldQueue
         $this->retry_url = $mail_data['retry_url'];
     }
 
+    /** Subject: v2 copy (PLAN.md) when EMAILS_V2_ENABLED, legacy subject otherwise. */
+    public function mailSubject(): string
+    {
+        return \App\Services\Mail\MailV2::enabled()
+            ? 'התשלום לא עבר — ההזמנה שמורה לכם'
+            : 'כשל בהזמנה #' . $this->order->id . ' - ' . config('app.name');
+    }
+
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'כשל בהזמנה #' . $this->order->id . ' - ' . config('app.name'),
+            subject: $this->mailSubject(),
         );
     }
 
@@ -48,8 +56,9 @@ class OrderFailedMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'mails.orderFailed',
+            view: \App\Services\Mail\MailV2::enabled() ? 'mails.v2.orderFailed' : 'mails.orderFailed',
             with: [
+                'mail_subject' => $this->mailSubject(),
                 'order' => $this->order,
                 'first_name' => $this->first_name,
                 'failure_reason' => $this->failure_reason,

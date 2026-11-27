@@ -29,13 +29,21 @@ class UserSignupMail extends Mailable
         $this->order_url = $mail_data['order_url'];
     }
 
+    /** Subject: v2 copy (PLAN.md) when EMAILS_V2_ENABLED, legacy subject otherwise. */
+    public function mailSubject(): string
+    {
+        return \App\Services\Mail\MailV2::enabled()
+            ? 'אמתו את הכתובת והתחילו עם SnapShare'
+            : 'ברוכים הבאים ל' . config('app.name');
+    }
+
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'ברוכים הבאים ל' . config('app.name'),
+            subject: $this->mailSubject(),
         );
     }
 
@@ -45,8 +53,9 @@ class UserSignupMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'mails.userSignup',
+            view: \App\Services\Mail\MailV2::enabled() ? 'mails.v2.userSignup' : 'mails.userSignup',
             with: [
+                'mail_subject' => $this->mailSubject(),
                 'first_name' => $this->first_name,
                 'verification_url' => $this->verification_url,
                 'order_url' => $this->order_url,

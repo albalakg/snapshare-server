@@ -33,13 +33,21 @@ class AssetsReadyForDownloadMail extends Mailable implements ShouldQueue
         $this->download_url = $mail_data['download_url'];
     }
 
+    /** Subject: v2 copy (PLAN.md) when EMAILS_V2_ENABLED, legacy subject otherwise. */
+    public function mailSubject(): string
+    {
+        return \App\Services\Mail\MailV2::enabled()
+            ? 'הקבצים של ' . $this->event->name . ' מוכנים להורדה'
+            : 'הקבצים מוכנים להורדה - ' . $this->event->name;
+    }
+
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'הקבצים מוכנים להורדה - ' . $this->event->name,
+            subject: $this->mailSubject(),
         );
     }
 
@@ -49,8 +57,9 @@ class AssetsReadyForDownloadMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'mails.assetsReadyForDownload',
+            view: \App\Services\Mail\MailV2::enabled() ? 'mails.v2.assetsReadyForDownload' : 'mails.assetsReadyForDownload',
             with: [
+                'mail_subject' => $this->mailSubject(),
                 'event' => $this->event,
                 'total_assets' => $this->total_assets,
                 'first_name' => $this->first_name,
