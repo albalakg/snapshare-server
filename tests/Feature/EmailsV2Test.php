@@ -378,6 +378,30 @@ class EmailsV2Test extends TestCase
         $this->get('/dev/emails')->assertNotFound();
     }
 
+    public function test_v2_defaults_off_on_a_local_machine_wired_to_a_real_mailer(): void
+    {
+        $saved = [$_SERVER['MAIL_MAILER'] ?? null, $_SERVER['APP_ENV'] ?? null, $_SERVER['EMAILS_V2_ENABLED'] ?? null];
+        $_SERVER['APP_ENV'] = 'local';
+        unset($_SERVER['EMAILS_V2_ENABLED']);
+        try {
+            $_SERVER['MAIL_MAILER'] = 'ses';
+            $this->assertFalse((require config_path('emails.php'))['v2_enabled'], 'local + SES must not auto-enable new emails');
+            $_SERVER['MAIL_MAILER'] = 'log';
+            $this->assertTrue((require config_path('emails.php'))['v2_enabled']);
+            $_SERVER['APP_ENV'] = 'production';
+            $this->assertFalse((require config_path('emails.php'))['v2_enabled']);
+            $this->assertFalse((require config_path('emails.php'))['preview_enabled']);
+        } finally {
+            foreach (['MAIL_MAILER', 'APP_ENV', 'EMAILS_V2_ENABLED'] as $i => $k) {
+                if ($saved[$i] === null) {
+                    unset($_SERVER[$k]);
+                } else {
+                    $_SERVER[$k] = $saved[$i];
+                }
+            }
+        }
+    }
+
     public function test_admin_recipient_stays_hardcoded(): void
     {
         $this->assertSame('gal.blacky@gmail.com', MailService::SYSTEM_EMAILS);

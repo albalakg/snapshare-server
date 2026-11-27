@@ -5,6 +5,9 @@
 |
 | EMAILS_V2_ENABLED  — new layout + copy for the 18 existing mailables, and turns on the NEW emails
 |                      (they only exist in the v2 layout). Default: on in local/testing/development, off in production.
+|                      Safety: a local machine whose MAIL_MAILER is a real transport (ses/smtp/…) also defaults to OFF,
+|                      so a dev box wired to SES never starts sending the new emails to real addresses by itself.
+|                      Set EMAILS_V2_ENABLED=true explicitly to opt in.
 | EMAILS_POLICY_*    — quiet hours / Shabbat / 1-per-day cap for non-urgent event notifications. Default on.
 | EMAILS_PREVIEW_ENABLED — dev-only preview route (/dev/emails) and `php artisan emails:preview`. Never in production.
 |
@@ -13,9 +16,10 @@
 */
 
 $localish = in_array(env('APP_ENV', 'production'), ['local', 'testing', 'development'], true);
+$realMailer = in_array(strtolower((string) env('MAIL_MAILER', 'smtp')), ['ses', 'ses-v2', 'smtp', 'sendmail', 'mailgun', 'postmark', 'resend', 'failover'], true);
 
 return [
-    'v2_enabled' => filter_var(env('EMAILS_V2_ENABLED', $localish), FILTER_VALIDATE_BOOLEAN),
+    'v2_enabled' => filter_var(env('EMAILS_V2_ENABLED', $localish && !$realMailer), FILTER_VALIDATE_BOOLEAN),
 
     'preview_enabled' => filter_var(env('EMAILS_PREVIEW_ENABLED', $localish), FILTER_VALIDATE_BOOLEAN),
 
